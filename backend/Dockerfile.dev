@@ -1,0 +1,4 @@
+FROM gradle:8.12-jdk21 AS build
+WORKDIR /app
+COPY . .
+CMD ["./gradlew", "bootRun"]
