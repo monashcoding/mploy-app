@@ -1,8 +1,8 @@
 .PHONY: dev dev-docker
 
 dev:
-	cd frontend && npm run dev & \
-	cd backend && ./gradlew bootRun
+	docker compose -f docker-compose.dev.yml up
 
-dev-docker:
-	docker-compose -f docker-compose.dev.yml up
+dev-clean:
+	docker compose -f docker-compose.dev.yml down
+	docker compose -f docker-compose.dev.yml up --build
