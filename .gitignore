@@ -1,0 +1,60 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# MonoRepo Specific
+/packages/*/node_modules/
+**/dist/
+**/build/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+*.tlog
+*.trace
+*.pid
+
+# Testing
+coverage/
+**/__pycache__/
+*.py[cod]
+*.sqlite
+
+# Miscellaneous
+.env
+.env.local
+*.local
+*.lock
+*.bak
+*.tmp
+*.backup
+*.orig
+
+# Ignored by custom tooling
+*.cache
+*.output
+*.pidfile
+
+# System Files
+*.iml
+*.sublime-workspace
+*.sublime-project
+desktop.ini
+
+# Temporary or Backup Files
+*.tmp
+*.temp
+*.bak
+*.backup
