@@ -58,3 +58,6 @@ desktop.ini
 *.temp
 *.bak
 *.backup
+
+
+/repo-to-text/
