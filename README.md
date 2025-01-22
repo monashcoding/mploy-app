@@ -53,7 +53,7 @@ cd backend
   Examples:
   - backend/edwn/redis-caching
   - frontend/sarah/job-filters
-  - fullstack/alex/docker-setup
+  - shared/alex/docker-setup
   ```
   
 ## License
