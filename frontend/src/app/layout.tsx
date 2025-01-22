@@ -3,16 +3,16 @@ import "./globals.css";
 import "@mantine/core/styles.css";
 import { MantineProvider } from "@mantine/core";
 import { ColorSchemeScript } from "@mantine/core";
-import {theme} from "@/lib/constants/theme";
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren } from "react";
+import Head from "next/head";
+import { theme } from "@/lib/theme";
 
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
     <html lang="en">
-      <head>
-        <ColorSchemeScript />
-        <title>MPLOY</title>
-      </head>
+      <Head>
+        <ColorSchemeScript defaultColorScheme="dark" />
+      </Head>
       <body>
         <MantineProvider theme={theme} defaultColorScheme="dark">
           <div className="min-h-screen flex flex-col">

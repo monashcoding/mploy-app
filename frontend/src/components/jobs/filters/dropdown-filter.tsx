@@ -1,17 +1,17 @@
-import {Select} from "@mantine/core";
+import { Select } from "@mantine/core";
 
 interface DropdownFilterProps {
-    label: string;
+  label: string;
 }
 
 export default function DropdownFilter({ label }: DropdownFilterProps) {
   return (
-      <Select
-          placeholder={label}
-          data={["Test", "Test2", "Test3"]}
-          multiple={true}
-          variant="unstyled"
-          searchable
-      />
+    <Select
+      placeholder={label}
+      data={["Test", "Test2", "Test3"]}
+      multiple={true}
+      variant="unstyled"
+      searchable
+    />
   );
 }

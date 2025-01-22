@@ -1,12 +1,12 @@
-import {Select} from "@mantine/core";
+import { Select } from "@mantine/core";
 
 // combobox mantine?
 export default function DropdownSort() {
   return (
-      <Select
-          data={['Ascending', 'Descending']}
-          defaultValue="Ascending"
-          allowDeselect={false}
-      />
+    <Select
+      data={["Ascending", "Descending"]}
+      defaultValue="Ascending"
+      allowDeselect={false}
+    />
   );
 }

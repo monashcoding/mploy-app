@@ -1,9 +1,5 @@
-import {Text} from "@mantine/core";
+import { Text } from "@mantine/core";
 
 export default function Logo() {
-  return (
-    <Text >
-      JOB BOARD
-    </Text>
-  );
+  return <Text>JOB BOARD</Text>;
 }

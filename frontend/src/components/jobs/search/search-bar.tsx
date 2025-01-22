@@ -1,8 +1,11 @@
-import {Input} from "@mantine/core";
-import {IconSearch} from "@tabler/icons-react";
+import { Input } from "@mantine/core";
+import { IconSearch } from "@tabler/icons-react";
 
 export default function SearchBar() {
   return (
-      <Input placeholder="Search for a company or a role..." leftSection={<IconSearch size={16} />} />
+    <Input
+      placeholder="Search for a company or a role..."
+      leftSection={<IconSearch size={16} />}
+    />
   );
 }

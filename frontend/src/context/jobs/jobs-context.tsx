@@ -1,28 +1,7 @@
-"use client";
-
+// frontend/src/context/jobs/jobs-context.tsx
 import { createContext, useContext } from "react";
-
-export interface Job {
-  id: string;
-  title: string;
-  company: string;
-  location: string;
-  type: string;
-  studyFields: string[];
-  workingRights: string[];
-  description: string;
-  postedDate: string;
-}
-
-export interface JobFilters {
-  search: string;
-  studyFields: string[];
-  jobTypes: string[];
-  locations: string[];
-  workingRights: string[];
-  page: number;
-  sortBy: "recent" | "relevant";
-}
+import { Job } from "@/types/job";
+import { JobFilters } from "@/types/filters";
 
 interface JobsState {
   jobs: Job[];
@@ -40,7 +19,7 @@ interface JobsContextType {
   clearFilters: () => void;
 }
 
-const initialFilters: JobFilters = {
+export const initialFilters: JobFilters = {
   search: "",
   studyFields: [],
   jobTypes: [],
@@ -65,8 +44,8 @@ export const JobsContext = createContext<JobsContextType | undefined>(
 
 export function useJobsContext() {
   const context = useContext(JobsContext);
-  if (context === undefined) {
-    throw new Error("useJobsContext must be used within a JobsProvider");
+  if (!context) {
+    throw new Error("useJobsContext must be used within JobsProvider");
   }
   return context;
 }

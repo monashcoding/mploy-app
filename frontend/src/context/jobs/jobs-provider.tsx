@@ -1,7 +1,11 @@
+// frontend/src/context/jobs/jobs-provider.tsx
 "use client";
 
 import { ReactNode, useCallback, useEffect, useMemo, useReducer } from "react";
-import { JobsContext, initialState, JobFilters, Job } from "./jobs-context";
+import { JobsContext, initialState } from "./jobs-context";
+import { JobFilters } from "@/types/filters";
+import { Job } from "@/types/job";
+import { MOCK_JOBS } from "@/lib/mock-data";
 
 type JobsAction =
   | { type: "SET_JOBS"; payload: { jobs: Job[]; total: number } }
@@ -11,10 +15,7 @@ type JobsAction =
   | { type: "SET_LOADING"; payload: boolean }
   | { type: "SET_ERROR"; payload: Error | null };
 
-function jobsReducer(
-  state: typeof initialState,
-  action: JobsAction,
-): typeof initialState {
+function jobsReducer(state: typeof initialState, action: JobsAction) {
   switch (action.type) {
     case "SET_JOBS":
       return {
@@ -24,43 +25,23 @@ function jobsReducer(
         isLoading: false,
         error: null,
       };
-
     case "SET_SELECTED_JOB":
-      return {
-        ...state,
-        selectedJobId: action.payload,
-      };
-
+      return { ...state, selectedJobId: action.payload };
     case "UPDATE_FILTERS":
       return {
         ...state,
         filters: {
           ...state.filters,
           ...action.payload,
-          // Reset page to 1 when filters change, unless page is being explicitly set
           page: action.payload.page ?? 1,
         },
       };
-
     case "CLEAR_FILTERS":
-      return {
-        ...state,
-        filters: initialState.filters,
-      };
-
+      return { ...state, filters: initialState.filters };
     case "SET_LOADING":
-      return {
-        ...state,
-        isLoading: action.payload,
-      };
-
+      return { ...state, isLoading: action.payload };
     case "SET_ERROR":
-      return {
-        ...state,
-        error: action.payload,
-        isLoading: false,
-      };
-
+      return { ...state, error: action.payload, isLoading: false };
     default:
       return state;
   }
@@ -81,28 +62,23 @@ export function JobsProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "CLEAR_FILTERS" });
   }, []);
 
-  // Fetch jobs whenever filters change
   useEffect(() => {
-    async function fetchJobs() {
+    const fetchJobs = async () => {
       try {
         dispatch({ type: "SET_LOADING", payload: true });
-
-        const params = new URLSearchParams();
-        Object.entries(state.filters).forEach(([key, value]) => {
-          if (Array.isArray(value)) {
-            value.forEach((v) => params.append(key, v));
-          } else if (value) {
-            params.append(key, String(value));
-          }
-        });
-
-        const response = await fetch(`/api/jobs?${params.toString()}`);
-        if (!response.ok) throw new Error("Failed to fetch jobs");
-
-        const data = await response.json();
+        // Mock search implementation directly in provider
+        const filtered = MOCK_JOBS.filter(
+          (job) =>
+            job.title
+              .toLowerCase()
+              .includes(state.filters.search.toLowerCase()) ||
+            job.company.name
+              .toLowerCase()
+              .includes(state.filters.search.toLowerCase()),
+        );
         dispatch({
           type: "SET_JOBS",
-          payload: { jobs: data.jobs, total: data.total },
+          payload: { jobs: filtered, total: filtered.length },
         });
       } catch (error) {
         dispatch({
@@ -110,8 +86,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
           payload: error instanceof Error ? error : new Error("Unknown error"),
         });
       }
-    }
-
+    };
     fetchJobs();
   }, [state.filters]);
 
