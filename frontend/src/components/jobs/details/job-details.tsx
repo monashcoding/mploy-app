@@ -8,9 +8,10 @@ import {
   Button,
   Card,
   Stack,
-  Avatar,
+  Image,
   Divider,
   ScrollArea,
+  Box,
 } from "@mantine/core";
 import {
   IconMapPin,
@@ -18,6 +19,7 @@ import {
   IconBook2,
   IconBriefcase2,
 } from "@tabler/icons-react";
+import DOMPurify from 'isomorphic-dompurify';
 
 interface JobDetailsProps {
   id: string;
@@ -45,11 +47,15 @@ function formatISODate(isoDate: string): string {
   const month = date.toLocaleString("en-US", { month: "short" });
   const year = date.getFullYear();
 
-  return `${day} ${month} ${year}`; // Example: 1st Jan 2025
+  return `${day} ${month} ${year}`;
+}
+
+function sanitizeHtml(html: string) {
+  return DOMPurify.sanitize(html);
 }
 
 export default function JobDetails({
-  id,
+  //id,
   title,
   company,
   description,
@@ -58,9 +64,9 @@ export default function JobDetails({
   studyFields,
   workingRights,
   applicationUrl,
-  closeDate,
+  //closeDate,
   createdAt,
-  updatedAt,
+  //updatedAt,
 }: JobDetailsProps) {
   const handleApplyClick = () => {
     window.open(applicationUrl, "_blank"); // Open link in a new tab
@@ -71,17 +77,25 @@ export default function JobDetails({
       <ScrollArea
         style={{
           maxHeight: "500px",
-          paddingLeft: "16px",
+          paddingLeft: "18px",
           paddingRight: "24px",
         }}
         type="hover"
       >
         {/* Header Section */}
         <Stack gap="sm" mb="md">
-          <Group justify="space-between" align="center" mb="md">
+          <Group justify="space-between" align="top" mb="md">
             {/* Logo and Company Name */}
             <Group align="top">
-              <Avatar src={company.logo} size="lg" radius="md"/>
+              <Image
+                alt={company.name}
+                src={company.logo}
+                radius="20%"
+                fit="contain"
+                h={60}
+                w={60}
+                style={{backgroundColor: "white"}}
+              />
               <Text
                 fw={500}
                 mt="12px"
@@ -112,14 +126,14 @@ export default function JobDetails({
 
           {/* Job Information section */}
           <Group gap="xs" wrap="wrap" mb="sm">
-              {/* Locations */}
-              
-                <IconMapPin size={20} stroke={1.5} />
-                {locations.map((location) => (
-                  <Badge autoContrast key={location} color="dark.4" size="lg">
-                    {location}
-                  </Badge>
-                ))}
+            {/* Locations */}
+
+            <IconMapPin size={20} stroke={1.5} />
+            {locations.map((location) => (
+              <Badge key={location} color="dark.4" size="lg" radius="lg">
+                {location}
+              </Badge>
+            ))}
             <Divider color="rgb(255, 226, 47)" orientation="vertical" />
 
             {/* Post Date */}
@@ -147,7 +161,13 @@ export default function JobDetails({
               Job Description
             </Title>
           </Group>
-          <Text size="sm">{description}</Text>
+          <Box>
+            <div
+              dangerouslySetInnerHTML={{
+                __html: sanitizeHtml(description),
+              }}
+            />
+          </Box>
         </Stack>
 
         {/* Study Field Section */}
@@ -168,7 +188,7 @@ export default function JobDetails({
           </Group>
           <Group gap="xs" wrap="wrap">
             {studyFields.map((field) => (
-              <Badge autoContrast key={field} color="dark.4" size="lg">
+              <Badge key={field} color="dark.4" size="lg" radius="md">
                 {field}
               </Badge>
             ))}
@@ -193,7 +213,7 @@ export default function JobDetails({
           </Group>
           <Group gap="xs" wrap="wrap">
             {workingRights.map((rights) => (
-              <Badge autoContrast key={rights} color="dark.4" size="lg">
+              <Badge key={rights} color="dark.4" size="lg" radius="md">
                 {rights}
               </Badge>
             ))}
