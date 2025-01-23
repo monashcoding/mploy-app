@@ -20,32 +20,50 @@ import {
 } from "@tabler/icons-react";
 
 interface JobDetailsProps {
+  id: string;
   title: string;
-  company: string;
-  jobType: string;
-  locations: string[];
+  company: {
+    name: string;
+    website: string;
+    logo?: string;
+  };
   description: string;
+  type: string;
+  locations: string[];
   studyFields: string[];
   workingRights: string[];
-  posted: string;
-  applicationURL: string;
-  logo?: string;
+  applicationUrl: string;
+  closeDate: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+function formatISODate(isoDate: string): string {
+  const date = new Date(isoDate);
+
+  const day = date.getDate();
+  const month = date.toLocaleString("en-US", { month: "short" });
+  const year = date.getFullYear();
+
+  return `${day} ${month} ${year}`; // Example: 1st Jan 2025
 }
 
 export default function JobDetails({
+  id,
   title,
   company,
-  jobType,
-  locations,
   description,
+  type,
+  locations,
   studyFields,
   workingRights,
-  posted,
-  applicationURL,
-  logo,
+  applicationUrl,
+  closeDate,
+  createdAt,
+  updatedAt,
 }: JobDetailsProps) {
   const handleApplyClick = () => {
-    window.open(applicationURL, "_blank"); // Open link in a new tab
+    window.open(applicationUrl, "_blank"); // Open link in a new tab
   };
 
   return (
@@ -63,7 +81,7 @@ export default function JobDetails({
           <Group justify="space-between" align="center" mb="md">
             {/* Logo and Company Name */}
             <Group align="top">
-              <Avatar src={logo} size="lg" radius="md"/>
+              <Avatar src={company.logo} size="lg" radius="md"/>
               <Text
                 fw={500}
                 mt="12px"
@@ -74,7 +92,7 @@ export default function JobDetails({
                   textDecorationThickness: "1px",
                 }}
               >
-                {company}
+                {company.name}
               </Text>
             </Group>
 
@@ -105,11 +123,11 @@ export default function JobDetails({
             <Divider color="rgb(255, 226, 47)" orientation="vertical" />
 
             {/* Post Date */}
-            <Text size="sm">Posted {posted}</Text>
+            <Text size="sm">Posted {formatISODate(createdAt)}</Text>
             <Divider color="rgb(255, 226, 47)" orientation="vertical" />
 
             {/* Job Type */}
-            <Text size="sm">{jobType}</Text>
+            <Text size="sm">{type}</Text>
           </Group>
         </Stack>
 
