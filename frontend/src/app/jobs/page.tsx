@@ -5,15 +5,16 @@ import JobDetails from "@/components/jobs/details/job-details";
 import { Title } from "@mantine/core";
 
 const mockJobDetails = {
-  title: "Job Title",
+  title: "REALLLY LONG TITLE ATHAT YOU SHOULD BE ETXENDING TO SHOW WHAT TO DO IN CASE OF LONGNGGGG NAMES UH OH",
   company: "Company Name",
-  type: "Graduate",
-  locations: ["Location 1", "Location 2", "Location 3"],
+  jobType: "Graduate",
+  locations: ["Location 1", "Location 2", "Location 3", "Location 4", "Location 5", "Location 6", "Location 7"],
   description:
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aeneantincidunt urna ac luctus pellentesque.",
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aeneantincidunt urna ac luctus pellentesque. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aeneantincidunt urna ac luctus pellentesque. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aeneantincidunt urna ac luctus pellentesque. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aeneantincidunt urna ac luctus pellentesque.",
   studyFields: ["Field 1", "Field 2", "Field 3"],
   posted: "01/01/2025",
   workingRights: ["Right 1", "Right 2", "Right 3"],
+  applicationURL: "https://careers.mcdonalds.com.au/"
 };
 
 export default function JobsPage() {
