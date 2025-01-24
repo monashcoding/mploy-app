@@ -12,6 +12,7 @@ import {
   Divider,
   ScrollArea,
   Box,
+  Flex,
 } from "@mantine/core";
 import {
   IconMapPin,
@@ -19,7 +20,7 @@ import {
   IconBook2,
   IconBriefcase2,
 } from "@tabler/icons-react";
-import DOMPurify from 'isomorphic-dompurify';
+import DOMPurify from "isomorphic-dompurify";
 
 interface JobDetailsProps {
   id: string;
@@ -75,18 +76,23 @@ export default function JobDetails({
   return (
     <Card shadow="sm" padding="lg" radius="md" className="h-full">
       <ScrollArea
-        style={{
+        style={(theme) => ({
           maxHeight: "500px",
-          paddingLeft: "18px",
-          paddingRight: "24px",
-        }}
+          paddingLeft: theme.spacing.sm,
+          paddingRight: theme.spacing.xl,
+          [`@media (maxWidth: ${theme.breakpoints.sm}px)`]: {
+            maxHeight: "400px",
+            paddingLeft: theme.spacing.xs,
+            paddingRight: theme.spacing.xs,
+          },
+        })}
         type="hover"
       >
         {/* Header Section */}
         <Stack gap="sm" mb="md">
           <Group justify="space-between" align="top" mb="md">
             {/* Logo and Company Name */}
-            <Group align="top">
+            <Group align="top" wrap="nowrap">
               <Image
                 alt={company.name}
                 src={company.logo}
@@ -94,7 +100,7 @@ export default function JobDetails({
                 fit="contain"
                 h={60}
                 w={60}
-                style={{backgroundColor: "white"}}
+                style={{ backgroundColor: "white" }}
               />
               <Text
                 fw={500}
@@ -125,7 +131,18 @@ export default function JobDetails({
           <Title order={2}>{title}</Title>
 
           {/* Job Information section */}
-          <Group gap="xs" wrap="wrap" mb="sm">
+          <Flex
+            gap="xs"
+            wrap="wrap"
+            mb="sm"
+            style={(theme) => ({
+              flexDirection: "row",
+              [`@media (maxWidth: ${theme.breakpoints.sm}px)`]: {
+                flexDirection: "column",
+                alignItems: "center",
+              },
+            })}
+          >
             {/* Locations */}
 
             <IconMapPin size={20} stroke={1.5} />
@@ -134,7 +151,16 @@ export default function JobDetails({
                 {location}
               </Badge>
             ))}
-            <Divider color="rgb(255, 226, 47)" orientation="vertical" />
+            <Divider
+              color="rgb(255, 226, 47)"
+              orientation="vertical"
+              style={(theme) => ({
+                display: "block",
+                [`@media (maxWidth: ${theme.breakpoints.sm}px)`]: {
+                  display: "none",
+                },
+              })}
+            />
 
             {/* Post Date */}
             <Text size="sm">Posted {formatISODate(createdAt)}</Text>
@@ -142,7 +168,7 @@ export default function JobDetails({
 
             {/* Job Type */}
             <Text size="sm">{type}</Text>
-          </Group>
+          </Flex>
         </Stack>
 
         {/* Description Section */}

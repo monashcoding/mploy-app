@@ -8,13 +8,13 @@ const mockJobDetails = {
   id:"12345",
   title:"Frontend Developer",
   company: {
-    name: "Tech Corp",
+    name: "Reserve Bank of Australiaaaaa",
     website: "https://techcorp.com",
-    logo: "https://connect-assets.prosple.com/cdn/ff/9TkA_wOmR8zHDo2ItpcQsIcYFFUxhzSTrDoim6Z519Q/1585906995/public/styles/scale_and_crop_center_80x80/public/2019-09/Logo-reserve-bank-of-australia-rba-120x120-2019.jpg",
+    logo: "https://connect-assets.prosple.com/cdn/ff/LxBzK0I5Jr8vU1WcXce4lf873yPS9Q67rLOugmUXsJI/1568086775/public/styles/scale_and_crop_center_120x120/public/2019-09/Logo-australian-security-intelligence-organisation-asio-120x120-2019.jpg?itok=T1OmQAn3https://connect-assets.prosple.com/cdn/ff/Ayx_liRamnduFSV1FsycoYaBNWIUiZfwkbuzQXDplKU/1568591959/public/styles/scale_and_crop_center_80x80/public/2019-09/Logo-australian-security-intelligence-organisation-asio-120x120-2019.jpg",
   },
   description: "You will help perform data analytics to improve portfolio management and risk monitoring. You will help perform data analytics to improve portfolio management and risk monitoring.",
   type: "Graduate",
-  locations: ["VIC", "NSW"],
+  locations: ["VIC", "NSW", "TAS", "OTHERS", "QLD"],
   studyFields: ["IT & Computer Science", "Engineering & Mathematics"],
   workingRights: ["AUS_CITIZEN", "OTHER_RIGHTS"],
   applicationUrl: "https://careers.mcdonalds.com.au/",
@@ -36,7 +36,7 @@ export default function JobsPage() {
         </div>
 
         {/* Sticky Job Details - hidden on mobile, 70% on desktop */}
-        <div className="hidden lg:block lg:w-[65%]">
+        <div className=" lg:block lg:w-[65%]">
           <div className="overflow-y-auto h-[calc(100vh-330px)]">
             <JobDetails {...mockJobDetails} />
           </div>
