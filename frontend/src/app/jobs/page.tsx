@@ -3,7 +3,7 @@ import FilterSection from "@/components/jobs/filters/filter-section";
 import JobList from "@/components/jobs/details/job-list";
 import JobDetails from "@/components/jobs/details/job-details";
 import { Title } from "@mantine/core";
-import { fetchJobs } from "@/app/api/fetchJobs";
+import { fetchJobs } from "@/lib/fetch-jobs";
 import { JobFilters } from "@/types/filters";
 
 export default async function JobsPage({
