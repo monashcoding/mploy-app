@@ -1,26 +1,30 @@
 // frontend/src/types/job.ts
-export type JobType = "EOI" | "FIRST_YEAR" | "INTERN" | "GRADUATE";
-export type StudyField = "SOFTWARE" | "CYBERSECURITY" | "DATA_SCIENCE";
-export type LocationType = "VIC" | "NSW" | "QLD" | "WA" | "NT" | "SA" | "HYBRID" | "REMOTE" | "AUSTRALIA";
-export type WorkingRight = "AUS_CITIZEN" | "AUS_PR" | "NZ_CITIZEN" | "NZ_PR" | "INTERNATIONAL";
+export type JobType = "EOI" | "FIRST_YEAR" | "INTERN" | "GRADUATE" | "OTHER";
+export type LocationType = "VIC" | "NSW" | "QLD" | "WA" | "NT" | "SA" | "ACT" | "TAS" | "AUSTRALIA" | "OTHERS";
+export type WFHStatus = "HYBRID" | "REMOTE" | "OFFICE";
+export type WorkingRight = "AUS_CITIZEN" | "AUS_PR" | "NZ_CITIZEN" | "NZ_PR" | "INTERNATIONAL" | "WORK_VISA" | "VISA_SPONSORED" | "OTHER_RIGHTS";
+export type IndustryField = "CONSULTING" | "BANKS" | "BIG_TECH" | "TECH" | "QUANT_TRADING" | "OTHER_INDUSTRY";
 
 export interface Company {
   name: string;
-  website: string;
+  website?: string;
+  logo?: string;
 }
 
 export interface Job {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   company: Company;
-  applicationUrl: string;
+  applicationUrl?: string;
+  wfhStatus?: WFHStatus;
   sourceUrls: string[];
-  type: JobType;
+  type?: JobType;
+  openDate?: string;
   closeDate?: string;
   locations: LocationType[];
-  studyFields: StudyField[];
-  startDate: string;
+  studyFields: string[];
+  industryField: IndustryField;
   workingRights: WorkingRight[];
   createdAt: string;
   updatedAt: string;
