@@ -1,3 +1,5 @@
+"use client"
+
 // frontend/src/hooks/use-url-state.ts
 import { useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";

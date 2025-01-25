@@ -1,3 +1,5 @@
+"use client";
+
 // frontend/src/context/jobs/jobs-context.tsx
 import { createContext, useContext } from "react";
 import { Job } from "@/types/job";

@@ -6,15 +6,19 @@ const DEBOUNCE_MS = 300;
 
 export function useJobSearch() {
   const { state, updateFilters } = useJobsContext();
-  const [debouncedSearch, setDebouncedSearch] = useState(state.filters.search);
+  const [searchValue, setSearchValue] = useState(state.filters.search);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearch(state.filters.search);
-      updateFilters({ search: state.filters.search });
+      updateFilters({ search: searchValue });
     }, DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [state.filters.search, updateFilters]);
 
-  return { debouncedSearch };
+    return () => clearTimeout(timer);
+  }, [searchValue, updateFilters]);
+
+  return {
+    searchValue,
+    setSearchValue,
+    debouncedSearch: state.filters.search,
+  };
 }
