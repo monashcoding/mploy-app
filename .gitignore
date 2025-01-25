@@ -59,6 +59,9 @@ desktop.ini
 *.bak
 *.backup
 
+# Lock file for pnpm
+pnpm-lock.yaml
+
 
 /repo-to-text/
 .aider*
