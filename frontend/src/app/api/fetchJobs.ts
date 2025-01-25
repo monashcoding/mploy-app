@@ -1,8 +1,8 @@
 import { Job } from "@/types/job";
 import { JobFilters } from "@/types/filters";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function fetchJobs(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   filters: Partial<JobFilters>,
 ): Promise<{ jobs: Job[]; total: number }> {
   try {
