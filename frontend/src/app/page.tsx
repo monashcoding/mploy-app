@@ -13,16 +13,16 @@ export default function Page() {
     console.log("Search Intern Jobs");
   };
   return (
-    <Center style={{ height: "100vh", flexDirection: "column" }}>
-      <Title order={1} mb="lg">
-        Discover the role you've been dreaming of
+    <Center style={{ height: "100vh", flexDirection: "column"}}>
+      <Title order={1} mb="xl">
+        Discover your Dream Job
       </Title>
-      <Group gap="md" align="center">
-        <Button autoContrast size="lg" variant="filled" color="#FFE22F" onClick={handleGradJobsClick}>
-          Search Grad Jobs
+      <Group gap="xl" align="center">
+        <Button mt="xl" autoContrast size="lg" variant="filled" color="#FFE22F" radius="lg" onClick={handleGradJobsClick}>
+          Search Grad Jobs →
         </Button>
-        <Button autoContrast size="lg" variant="filled" color="#FFE22F" onClick={handleInternJobsClick}>
-          Search Intern Jobs
+        <Button mt="xl" autoContrast size="lg" variant="filled" color="#FFE22F" radius="lg" onClick={handleInternJobsClick}>
+          Search Internips →
         </Button>
       </Group>
     </Center>
