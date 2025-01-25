@@ -6,11 +6,21 @@ export async function fetchJobs(
   filters: Partial<JobFilters>,
 ): Promise<{ jobs: Job[]; total: number }> {
   try {
-    // TODO: Implement actual API call
-    // For now return mock data
+    const url = new URL(window.location.href + "/api/jobs");
+    url.searchParams.set("offset", "0");
+    url.searchParams.set("limit", "100");
+    url.searchParams.set("outdated", "false");
+
+    const response = await fetch(url.toString());
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
     return {
-      jobs: [],
-      total: 0,
+      jobs: data,
+      total: data.length,
     };
   } catch (error) {
     console.error("Failed to fetch jobs:", error);
