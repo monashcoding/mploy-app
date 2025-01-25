@@ -12,7 +12,7 @@ export default function DropdownSort() {
       ]}
       value={state.filters.sortBy}
       allowDeselect={false}
-      onChange={(value) => 
+      onChange={(value) =>
         updateFilters({ sortBy: value as "recent" | "relevant" })
       }
       placeholder="Sort by"

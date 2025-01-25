@@ -14,40 +14,43 @@ export function JobsProvider({ children }: { children: ReactNode }) {
 
   // Handles selection of a specific job
   const setSelectedJob = useCallback((jobId: string | null) => {
-    setState(prev => ({ ...prev, selectedJobId: jobId }));
+    setState((prev) => ({ ...prev, selectedJobId: jobId }));
   }, []);
 
   // Updates filters and syncs with URL
-  const updateFilters = useCallback((filters: Partial<JobFilters>) => {
-    const params = new URLSearchParams(searchParams.toString());
-    
-    // Handle different filter types (arrays, strings, etc)
-    Object.entries(filters).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        params.delete(key);
-        value.forEach((v) => params.append(key, v));
-      } else if (value) {
-        params.set(key, String(value));
-      } else {
-        params.delete(key);
-      }
-    });
+  const updateFilters = useCallback(
+    (filters: Partial<JobFilters>) => {
+      const params = new URLSearchParams(searchParams.toString());
 
-    // Update URL and state
-    router.push(`?${params.toString()}`);
-    setState(prev => ({
-      ...prev,
-      filters: {
-        ...prev.filters,
-        ...filters,
-        page: filters.page ?? 1
-      }
-    }));
-  }, [router, searchParams]);
+      // Handle different filter types (arrays, strings, etc)
+      Object.entries(filters).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          params.delete(key);
+          value.forEach((v) => params.append(key, v));
+        } else if (value) {
+          params.set(key, String(value));
+        } else {
+          params.delete(key);
+        }
+      });
+
+      // Update URL and state
+      router.push(`?${params.toString()}`);
+      setState((prev) => ({
+        ...prev,
+        filters: {
+          ...prev.filters,
+          ...filters,
+          page: filters.page ?? 1,
+        },
+      }));
+    },
+    [router, searchParams],
+  );
 
   // Resets all filters to initial state
   const clearFilters = useCallback(() => {
-    setState(prev => ({ ...prev, filters: initialState.filters }));
+    setState((prev) => ({ ...prev, filters: initialState.filters }));
   }, []);
 
   // Initialize state from URL parameters on component mount
@@ -62,13 +65,13 @@ export function JobsProvider({ children }: { children: ReactNode }) {
       page: Number(params.get("page")) || 1,
       sortBy: (params.get("sortBy") as "recent" | "relevant") || "recent",
     };
-    
-    setState(prev => ({
+
+    setState((prev) => ({
       ...prev,
       filters: {
         ...prev.filters,
-        ...urlFilters
-      }
+        ...urlFilters,
+      },
     }));
   }, [searchParams]);
 
@@ -83,9 +86,5 @@ export function JobsProvider({ children }: { children: ReactNode }) {
     [state, setSelectedJob, updateFilters, clearFilters],
   );
 
-  return (
-    <JobsContext.Provider value={value}>
-      {children}
-    </JobsContext.Provider>
-  );
+  return <JobsContext.Provider value={value}>{children}</JobsContext.Provider>;
 }

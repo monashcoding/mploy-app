@@ -8,7 +8,11 @@ interface DropdownFilterProps {
   options: string[];
 }
 
-export default function DropdownFilter({ label, filterKey, options }: DropdownFilterProps) {
+export default function DropdownFilter({
+  label,
+  filterKey,
+  options,
+}: DropdownFilterProps) {
   const { updateFilters } = useJobsContext();
 
   return (
