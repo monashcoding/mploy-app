@@ -75,7 +75,7 @@ export default function JobDetails({ job }: JobDetailsProps) {
                 mt="12px"
                 style={{
                   textDecoration: "underline",
-                  textDecorationColor: "rgb(255, 226, 47)",
+                  textDecorationColor: "var(--accent)",
                   textUnderlineOffset: "6px",
                   textDecorationThickness: "1px",
                 }}
@@ -87,7 +87,7 @@ export default function JobDetails({ job }: JobDetailsProps) {
             {/* Apply Now Button */}
             <Button
               variant="filled"
-              color="rgb(255, 226, 47)"
+              color="accent"
               radius="md"
               onClick={handleApplyClick}
             >
@@ -120,7 +120,7 @@ export default function JobDetails({ job }: JobDetailsProps) {
               </Badge>
             ))}
             <Divider
-              color="rgb(255, 226, 47)"
+              color="accent"
               orientation="vertical"
               style={(theme) => ({
                 display: "block",
@@ -132,7 +132,7 @@ export default function JobDetails({ job }: JobDetailsProps) {
 
             {/* Post Date */}
             <Text size="sm">Posted {formatISODate(job.createdAt)}</Text>
-            <Divider color="rgb(255, 226, 47)" orientation="vertical" />
+            <Divider color="accent" orientation="vertical" />
 
             {/* Job Type */}
             <Text size="sm">{job.type}</Text>
@@ -147,7 +147,7 @@ export default function JobDetails({ job }: JobDetailsProps) {
               order={4}
               style={{
                 textDecoration: "underline",
-                textDecorationColor: "rgb(255, 226, 47)",
+                textDecorationColor: "var(--accent)",
                 textUnderlineOffset: "6px",
                 textDecorationThickness: "1px",
               }}
@@ -191,7 +191,7 @@ export default function JobDetails({ job }: JobDetailsProps) {
               order={4}
               style={{
                 textDecoration: "underline",
-                textDecorationColor: "rgb(255, 226, 47)",
+                textDecorationColor: "var(--accent)",
                 textUnderlineOffset: "6px",
                 textDecorationThickness: "1px",
               }}
@@ -216,7 +216,7 @@ export default function JobDetails({ job }: JobDetailsProps) {
               order={4}
               style={{
                 textDecoration: "underline",
-                textDecorationColor: "rgb(255, 226, 47)",
+                textDecorationColor: "var(--accent)",
                 textUnderlineOffset: "6px",
                 textDecorationThickness: "1px",
               }}
