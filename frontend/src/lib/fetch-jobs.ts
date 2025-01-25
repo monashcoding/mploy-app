@@ -1,50 +1,60 @@
 import { Job } from "@/types/job";
-import { JobFilters } from "@/types/filters";
+import { JobFilters, SortBy } from "@/types/filters";
+
+const PAGE_SIZE = 20; // Number of jobs per page
 
 /**
- * This function would handle fetching jobs from the API and type conversion
- *
+ * Fetches jobs from the API with applied filters and pagination
+ * 
  * @param filters - Filters to apply to the job search
- * @returns - A list of jobs and the total number of jobs
+ * @returns - A list of jobs and the total number of matching jobs
  */
 export async function fetchJobs(filters: Partial<JobFilters>): Promise<{ jobs: Job[]; total: number }> {
   try {
-    const url = new URL(window.location.href + "/api/jobs");
-    // Add Offset. e.g. Only want listings after the first 10
-    url.searchParams.set("offset", "10");
+    const url = new URL("/api/jobs", window.location.origin);
 
-    // Add Offset. e.g. Only want api to return a max of 100 listings
-    url.searchParams.set("limit", "100");
+    // Pagination
+    const page = filters.page || 1;
+    url.searchParams.set("offset", String((page - 1) * PAGE_SIZE));
+    url.searchParams.set("limit", String(PAGE_SIZE));
 
-    // By default the api will not return outdated listings, you can provide outdated = true to get outdated listings
-    url.searchParams.set("outdated", "false");
+    // Filters
+    if (filters.search) {
+      url.searchParams.set("keyword", filters.search);
+    }
 
-    // Filter by working rights
-    url.searchParams.set(
-      "working_rights",
-      "aus_citizen,other_rights,visa_sponsored",
-    );
+    if (filters.jobTypes?.length) {
+      url.searchParams.set("types", filters.jobTypes.join(","));
+    }
 
-    // Filter by job types
-    url.searchParams.set("types", "graduate,intern");
+    if (filters.studyFields?.length) {
+      url.searchParams.set("industry_fields", filters.studyFields.join(","));
+    }
 
-    // Filter by industry fields
-    url.searchParams.set("industry_fields", "banks,tech");
+    if (filters.workingRights?.length) {
+      url.searchParams.set("working_rights", filters.workingRights.join(","));
+    }
 
-    // Search for keyword in job title or company name
-    url.searchParams.set("keyword", "developer");
+    // Sorting
+    if (filters.sortBy === SortBy.RECENT) {
+      // API should sort by createdAt descending by default
+    } else if (filters.sortBy === SortBy.RELEVANT) {
+      // API should implement relevance scoring
+    }
 
-    // Handle Reponse
     const response = await fetch(url.toString());
-
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
+    
+    // Note: The API currently doesn't return total count in the response
+    // You might want to modify the API to include X-Total-Count header
     return {
       jobs: data,
-      total: data.length,
+      total: data.length, // This is temporary - should be replaced with actual total count
     };
   } catch (error) {
     console.error("Failed to fetch jobs:", error);
