@@ -96,14 +96,6 @@ export function JobsProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "UPDATE_FILTERS", payload: urlFilters });
   }, [searchParams]);
 
-  useEffect(() => {
-    dispatch({ type: "SET_LOADING", payload: true });
-    const filtered = filterJobs(MOCK_JOBS, state.filters);
-    dispatch({
-      type: "SET_JOBS",
-      payload: { jobs: filtered, total: filtered.length },
-    });
-  }, [state.filters]);
 
   const value = useMemo(
     () => ({

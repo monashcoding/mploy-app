@@ -3,16 +3,15 @@
 import DropdownFilter from "@/components/jobs/filters/dropdown-filter";
 import DropdownSort from "@/components/jobs/filters/dropdown-sort";
 import { Text } from "@mantine/core";
-import { useJobsContext } from "@/context/jobs/jobs-context";
+import { useJobsContext, initialFilters } from "@/context/jobs/jobs-context";
 
 export default function FilterSection() {
   const { state } = useJobsContext();
   
-  // Get filter options from context
-  const { state: { filters } } = useJobsContext();
-  const studyFields = filters.studyFields;
-  const jobTypes = filters.jobTypes;
-  const locations = filters.locations;
+  // Get filter options from initial filters
+  const studyFields = initialFilters.studyFields;
+  const jobTypes = initialFilters.jobTypes;
+  const locations = initialFilters.locations;
 
   return (
     <div className="flex flex-row justify-between items-center my-4 w-full">
