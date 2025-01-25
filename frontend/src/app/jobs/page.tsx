@@ -3,14 +3,16 @@ import FilterSection from "@/components/jobs/filters/filter-section";
 import JobList from "@/components/jobs/details/job-list";
 import JobDetails from "@/components/jobs/details/job-details";
 import { Title } from "@mantine/core";
-import { JobFilters } from "@/types/filters";
 import { fetchJobs } from "@/app/api/fetchJobs";
+import { JobFilters } from "@/types/filters";
 
-interface JobsPageProps {
-  searchParams: JobFilters;
-}
-export default async function JobsPage({ searchParams }: JobsPageProps) {
-  await fetchJobs(searchParams);
+export default async function JobsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Partial<JobFilters>>;
+}) {
+  const params = await searchParams;
+  await fetchJobs(params);
 
   return (
     <div className="space-y-4">
