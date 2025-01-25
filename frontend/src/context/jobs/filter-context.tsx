@@ -2,7 +2,7 @@
 
 // frontend/src/context/jobs/filter-context.tsx
 import { createContext, useContext } from "react";
-import { JobFilters } from "@/types/filters";
+import { JobFilters, SortBy } from "@/types/filters";
 
 export interface FilterState {
   filters: JobFilters;
@@ -19,12 +19,12 @@ interface FilterContextType {
 export const initialState: FilterState = {
   filters: {
     search: "",
-    studyFields: [],
+    industryFields: [],
     jobTypes: [],
     locations: [],
     workingRights: [],
     page: 1,
-    sortBy: "recent",
+    sortBy: SortBy.RECENT,
   },
   totalJobs: 0,
   isLoading: false,
