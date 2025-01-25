@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Stack, Title, Center, Group } from "@mantine/core";
+import { Button, Title, Center, Group } from "@mantine/core";
 
 export default function Page() {
   const handleGradJobsClick = () => {
