@@ -23,7 +23,8 @@ pre-commit:
     - name: format
       run: cd frontend && npm run format
     - name: lint
-      run: cd frontend && npm run lint
+      run: cd frontend && eslint {staged_files}
+      glob: "*.{js,ts,jsx,tsx}"
 #
 #     - name: rubocop
 #       glob: "*.rb"

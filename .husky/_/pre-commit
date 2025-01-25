@@ -17,7 +17,7 @@ call_lefthook()
   then
     lefthook "$@"
   else
-    dir="$(git rev-parse --show-toplevel)"
+    dir="$(git rev-parse --show-toplevel)/frontend"
     osArch=$(uname | tr '[:upper:]' '[:lower:]')
     cpuArch=$(uname -m | sed 's/aarch64/arm64/;s/x86_64/x64/')
     if test -f "$dir/node_modules/lefthook-${osArch}-${cpuArch}/bin/lefthook"
