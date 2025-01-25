@@ -54,6 +54,80 @@ function formatISODate(isoDate: string): string {
 function sanitizeHtml(html: string) {
   return DOMPurify.sanitize(html);
 }
+"use client";
+
+import {
+  Text,
+  Title,
+  Badge,
+  Group,
+  Button,
+  Card,
+  Stack,
+  Image,
+  Divider,
+  ScrollArea,
+  Box,
+  Flex,
+} from "@mantine/core";
+import {
+  IconMapPin,
+  IconPencil,
+  IconBook2,
+  IconBriefcase2,
+} from "@tabler/icons-react";
+import DOMPurify from "isomorphic-dompurify";
+
+interface JobDetailsProps {
+  id: string;
+  title: string;
+  company: {
+    name: string;
+    website: string;
+    logo?: string;
+  };
+  description: string;
+  type: string;
+  locations: string[];
+  studyFields: string[];
+  workingRights: string[];
+  applicationUrl: string;
+  closeDate: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+function formatISODate(isoDate: string): string {
+  const date = new Date(isoDate);
+
+  const day = date.getDate();
+  const month = date.toLocaleString("en-US", { month: "short" });
+  const year = date.getFullYear();
+
+  return `${day} ${month} ${year}`;
+}
+
+function sanitizeHtml(html: string) {
+  return DOMPurify.sanitize(html);
+}
+
+export default function JobDetails({
+  //id,
+  title,
+  company,
+  description,
+  type,
+  locations,
+  studyFields,
+  workingRights,
+  applicationUrl,
+  //closeDate,
+  createdAt,
+  //updatedAt,
+}: JobDetailsProps) {
+  const handleApplyClick = () => {
+    window.open(applicationUrl, "_blank"); // Open link in a new tab
+  };
 
 export default function JobDetails({
   //id,
