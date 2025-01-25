@@ -4,7 +4,6 @@
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { JobsContext, initialState } from "./jobs-context";
 import { JobFilters } from "@/types/filters";
-import { Job } from "@/types/job";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export function JobsProvider({ children }: { children: ReactNode }) {
