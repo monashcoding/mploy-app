@@ -18,7 +18,8 @@ const PAGE_SIZE = 20; // Number of jobs per page
  */
 export async function fetchJobs(filters: Partial<JobFilters>): Promise<JobsApiResponse> {
   try {
-    const url = new URL("/api/jobs", window.location.origin);
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const url = new URL("/api/jobs", baseUrl);
 
     // Pagination
     const page = filters.page || 1;
