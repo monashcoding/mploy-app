@@ -14,7 +14,9 @@ export default function Page() {
   };
   return (
     <Center style={{ height: "100vh", flexDirection: "column"}}>
-      <Title order={1} mb="xl">
+      <Title order={1} mb="xl" style={(theme) => ({
+    variant: theme.colors.blue[6], 
+  })}>
         Discover your Dream Job
       </Title>
       <Group gap="xl" align="center">
