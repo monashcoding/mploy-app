@@ -1,5 +1,5 @@
 import { Select } from "@mantine/core";
-import { useJobsContext } from "@/context/jobs/jobs-context";
+import { useJobsContext } from "@/context/jobs/filter-context";
 import { JobFilters } from "@/types/job";
 
 interface DropdownFilterProps {
