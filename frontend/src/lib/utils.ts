@@ -7,7 +7,7 @@ export function CreateQueryString(filters: Partial<FilterState>): string {
     if (!value) continue;
 
     if (Array.isArray(value)) {
-      value.forEach(v => params.append(key, v));
+      value.forEach((v) => params.append(key, v));
     } else {
       params.set(key, value.toString());
     }

@@ -17,14 +17,15 @@ interface FilterContextType {
 }
 
 export const initialState: FilterState = {
-  filters: {   
+  filters: {
     search: "",
     industry: [],
     jobTypes: [],
     locations: [],
     workingRights: [],
     page: 1,
-    sortBy: "recent", },
+    sortBy: "recent",
+  },
   totalJobs: 0,
   isLoading: false,
   error: null,
@@ -34,7 +35,7 @@ export const FilterContext = createContext<FilterContextType | undefined>(
   undefined,
 );
 
-export function useJobsContext() {
+export function useFilterContext() {
   const context = useContext(FilterContext);
   if (!context) {
     throw new Error("useJobsContext must be used within JobsProvider");

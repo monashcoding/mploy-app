@@ -1,8 +1,8 @@
 import { Select } from "@mantine/core";
-import { useJobsContext } from "@/context/jobs/filter-context";
+import { useFilterContext } from "@/context/jobs/filter-context";
 
 export default function DropdownSort() {
-  const { filters, updateFilters } = useJobsContext();
+  const { filters } = useFilterContext();
 
   return (
     <Select
@@ -12,9 +12,6 @@ export default function DropdownSort() {
       ]}
       value={filters.filters.sortBy}
       allowDeselect={false}
-      onChange={(value) =>
-        updateFilters({ sortBy: value as "recent" | "relevant" })
-      }
       placeholder="Sort by"
       aria-label="Sort jobs"
     />

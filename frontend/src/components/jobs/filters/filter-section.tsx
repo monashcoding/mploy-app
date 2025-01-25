@@ -3,11 +3,11 @@
 import DropdownFilter from "@/components/jobs/filters/dropdown-filter";
 import DropdownSort from "@/components/jobs/filters/dropdown-sort";
 import { Text } from "@mantine/core";
-import { useJobsContext } from "@/context/jobs/filter-context";
+import { useFilterContext } from "@/context/jobs/filter-context";
 import { JOB_TYPES, STUDY_FIELDS } from "@/types/filters";
 
 export default function FilterSection() {
-  const { filters } = useJobsContext();
+  const { filters } = useFilterContext();
 
   return (
     <div className="flex flex-row justify-between items-center my-4 w-full">

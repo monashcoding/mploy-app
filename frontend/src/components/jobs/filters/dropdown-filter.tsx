@@ -1,6 +1,6 @@
 import { Select } from "@mantine/core";
-import { useJobsContext } from "@/context/jobs/filter-context";
-import { JobFilters } from "@/types/job";
+import { useFilterContext } from "@/context/jobs/filter-context";
+import { JobFilters } from "@/types/filters";
 
 interface DropdownFilterProps {
   label: string;
@@ -13,7 +13,7 @@ export default function DropdownFilter({
   filterKey,
   options,
 }: DropdownFilterProps) {
-  const { updateFilters } = useJobsContext();
+  const { updateFilters } = useFilterContext();
 
   return (
     <Select

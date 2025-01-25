@@ -7,7 +7,7 @@ export async function fetchJobs(filters: JobFilters): Promise<Job[]> {
     // For now return empty array
     return [];
   } catch (error) {
-    console.error('Failed to fetch jobs:', error);
-    throw new Error('Failed to fetch jobs');
+    console.error("Failed to fetch jobs:", error);
+    throw new Error("Failed to fetch jobs");
   }
 }

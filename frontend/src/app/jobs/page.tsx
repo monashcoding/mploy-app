@@ -3,16 +3,14 @@ import FilterSection from "@/components/jobs/filters/filter-section";
 import JobList from "@/components/jobs/details/job-list";
 import JobDetails from "@/components/jobs/details/job-details";
 import { Title } from "@mantine/core";
-import { ReadonlyURLSearchParams } from "next/navigation";
+import { JobFilters } from "@/types/filters";
+import { fetchJobs } from "@/app/api/fetchJobs";
 
-export default async function JobsPage({
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-  searchParams,
-}: {
-  searchParams: ReadonlyURLSearchParams;
-}) {
-  // const initialFilters = parseUrlFilters(searchParams);
-  // await fetchJobs(initialFilters);
+interface JobsPageProps {
+  searchParams: JobFilters;
+}
+export default async function JobsPage({ searchParams }: JobsPageProps) {
+  await fetchJobs(searchParams);
 
   return (
     <div className="space-y-4">
