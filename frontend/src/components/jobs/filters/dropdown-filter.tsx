@@ -1,5 +1,6 @@
 import { Select } from "@mantine/core";
-import { useJobFilters } from "@/hooks/use-job-filters";
+import { useJobsContext } from "@/context/jobs/jobs-context";
+import { JobFilters } from "@/types/job";
 
 interface DropdownFilterProps {
   label: string;
@@ -8,7 +9,7 @@ interface DropdownFilterProps {
 }
 
 export default function DropdownFilter({ label, filterKey, options }: DropdownFilterProps) {
-  const { handleFilterChange } = useJobFilters();
+  const { updateFilters } = useJobsContext();
 
   return (
     <Select
@@ -17,7 +18,7 @@ export default function DropdownFilter({ label, filterKey, options }: DropdownFi
       multiple={true}
       variant="unstyled"
       searchable
-      onChange={(value) => handleFilterChange({ [filterKey]: value })}
+      onChange={(value) => updateFilters({ [filterKey]: value })}
     />
   );
 }

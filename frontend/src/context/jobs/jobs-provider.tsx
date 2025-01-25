@@ -2,11 +2,12 @@
 "use client";
 
 import { ReactNode, useCallback, useEffect, useMemo, useReducer } from "react";
-import { useUrlState } from "@/hooks/use-url-state";
 import { JobsContext, initialState } from "./jobs-context";
 import { JobFilters } from "@/types/filters";
 import { Job } from "@/types/job";
 import { MOCK_JOBS } from "@/lib/mock-data";
+import { useRouter, useSearchParams } from "next/navigation";
+import { filterJobs } from "@/lib/filter-jobs";
 
 type JobsAction =
   | { type: "SET_JOBS"; payload: { jobs: Job[]; total: number } }
@@ -50,16 +51,30 @@ function jobsReducer(state: typeof initialState, action: JobsAction) {
 
 export function JobsProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(jobsReducer, initialState);
-  const { updateUrlState, getStateFromUrl } = useUrlState();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const setSelectedJob = useCallback((jobId: string | null) => {
     dispatch({ type: "SET_SELECTED_JOB", payload: jobId });
   }, []);
 
   const updateFilters = useCallback((filters: Partial<JobFilters>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    Object.entries(filters).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        params.delete(key);
+        value.forEach((v) => params.append(key, v));
+      } else if (value) {
+        params.set(key, String(value));
+      } else {
+        params.delete(key);
+      }
+    });
+
+    router.push(`?${params.toString()}`);
     dispatch({ type: "UPDATE_FILTERS", payload: filters });
-    updateUrlState(filters);
-  }, [updateUrlState]);
+  }, [router, searchParams]);
 
   const clearFilters = useCallback(() => {
     dispatch({ type: "CLEAR_FILTERS" });
@@ -67,36 +82,27 @@ export function JobsProvider({ children }: { children: ReactNode }) {
 
   // Initialize state from URL on mount
   useEffect(() => {
-    const urlFilters = getStateFromUrl();
+    const params = new URLSearchParams(searchParams.toString());
+    const urlFilters = {
+      search: params.get("search") || "",
+      studyFields: params.getAll("studyFields"),
+      jobTypes: params.getAll("jobTypes"),
+      locations: params.getAll("locations"),
+      workingRights: params.getAll("workingRights"),
+      page: Number(params.get("page")) || 1,
+      sortBy: (params.get("sortBy") as "recent" | "relevant") || "recent",
+    };
+    
     dispatch({ type: "UPDATE_FILTERS", payload: urlFilters });
-  }, [getStateFromUrl]);
+  }, [searchParams]);
 
   useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        dispatch({ type: "SET_LOADING", payload: true });
-        // Mock search implementation directly in provider
-        const filtered = MOCK_JOBS.filter(
-          (job) =>
-            job.title
-              .toLowerCase()
-              .includes(state.filters.search.toLowerCase()) ||
-            job.company.name
-              .toLowerCase()
-              .includes(state.filters.search.toLowerCase()),
-        );
-        dispatch({
-          type: "SET_JOBS",
-          payload: { jobs: filtered, total: filtered.length },
-        });
-      } catch (error) {
-        dispatch({
-          type: "SET_ERROR",
-          payload: error instanceof Error ? error : new Error("Unknown error"),
-        });
-      }
-    };
-    fetchJobs();
+    dispatch({ type: "SET_LOADING", payload: true });
+    const filtered = filterJobs(MOCK_JOBS, state.filters);
+    dispatch({
+      type: "SET_JOBS",
+      payload: { jobs: filtered, total: filtered.length },
+    });
   }, [state.filters]);
 
   const value = useMemo(

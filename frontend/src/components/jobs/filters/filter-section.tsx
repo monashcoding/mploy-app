@@ -8,10 +8,11 @@ import { useJobsContext } from "@/context/jobs/jobs-context";
 export default function FilterSection() {
   const { state } = useJobsContext();
   
-  // These would ideally come from constants or API
-  const studyFields = ["Computer Science", "Engineering", "Business"];
-  const jobTypes = ["Internship", "Part-time", "Full-time"];
-  const locations = ["Sydney", "Melbourne", "Brisbane"];
+  // Get filter options from context
+  const { state: { filters } } = useJobsContext();
+  const studyFields = filters.studyFields;
+  const jobTypes = filters.jobTypes;
+  const locations = filters.locations;
 
   return (
     <div className="flex flex-row justify-between items-center my-4 w-full">

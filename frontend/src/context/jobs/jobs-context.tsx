@@ -23,9 +23,9 @@ interface JobsContextType {
 
 export const initialFilters: JobFilters = {
   search: "",
-  studyFields: [],
-  jobTypes: [],
-  locations: [],
+  studyFields: ["Computer Science", "Engineering", "Business"],
+  jobTypes: ["Internship", "Part-time", "Full-time"],
+  locations: ["Sydney", "Melbourne", "Brisbane"],
   workingRights: [],
   page: 1,
   sortBy: "recent",

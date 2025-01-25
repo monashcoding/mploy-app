@@ -1,8 +1,8 @@
 import { Select } from "@mantine/core";
-import { useJobFilters } from "@/hooks/use-job-filters";
+import { useJobsContext } from "@/context/jobs/jobs-context";
 
 export default function DropdownSort() {
-  const { handleFilterChange } = useJobFilters();
+  const { updateFilters } = useJobsContext();
 
   return (
     <Select
