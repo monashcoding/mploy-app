@@ -13,6 +13,9 @@
     "@mantine/core": "^7.16.1",
     "@mantine/hooks": "^7.16.1",
     "@tabler/icons-react": "^3.28.1",
+    "dompurify": "^3.2.3",
+    "isomorphic-dompurify": "^2.20.0",
+    "jsdom": "^26.0.0",
     "next": "15.1.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
