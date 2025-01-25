@@ -2,6 +2,7 @@
 "use client";
 
 import { ReactNode, useCallback, useEffect, useMemo, useReducer } from "react";
+import { useUrlState } from "@/hooks/use-url-state";
 import { JobsContext, initialState } from "./jobs-context";
 import { JobFilters } from "@/types/filters";
 import { Job } from "@/types/job";
@@ -49,6 +50,7 @@ function jobsReducer(state: typeof initialState, action: JobsAction) {
 
 export function JobsProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(jobsReducer, initialState);
+  const { updateUrlState, getStateFromUrl } = useUrlState();
 
   const setSelectedJob = useCallback((jobId: string | null) => {
     dispatch({ type: "SET_SELECTED_JOB", payload: jobId });
@@ -56,11 +58,18 @@ export function JobsProvider({ children }: { children: ReactNode }) {
 
   const updateFilters = useCallback((filters: Partial<JobFilters>) => {
     dispatch({ type: "UPDATE_FILTERS", payload: filters });
-  }, []);
+    updateUrlState(filters);
+  }, [updateUrlState]);
 
   const clearFilters = useCallback(() => {
     dispatch({ type: "CLEAR_FILTERS" });
   }, []);
+
+  // Initialize state from URL on mount
+  useEffect(() => {
+    const urlFilters = getStateFromUrl();
+    dispatch({ type: "UPDATE_FILTERS", payload: urlFilters });
+  }, [getStateFromUrl]);
 
   useEffect(() => {
     const fetchJobs = async () => {
