@@ -37,7 +37,7 @@ export default function JobsPage() {
         </div>
 
         {/* Sticky Job Details - hidden on mobile, 70% on desktop */}
-        <div className=" lg:block lg:w-[65%]">
+        <div className="hidden lg:block lg:w-[65%]">
           <div className="overflow-y-auto h-[calc(100vh-330px)]">
             <JobDetails {...mockJobDetails} />
           </div>

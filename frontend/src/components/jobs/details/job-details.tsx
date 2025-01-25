@@ -77,14 +77,9 @@ export default function JobDetails({
     <Card shadow="sm" padding="lg" radius="md" className="h-full">
       <ScrollArea
         style={(theme) => ({
-          maxHeight: "500px",
-          paddingLeft: theme.spacing.sm,
+          paddingLeft: theme.spacing.md,
           paddingRight: theme.spacing.xl,
-          [`@media (maxWidth: ${theme.breakpoints.sm}px)`]: {
-            maxHeight: "400px",
-            paddingLeft: theme.spacing.xs,
-            paddingRight: theme.spacing.xs,
-          },
+          paddingBottom: theme.spacing.md,
         })}
         type="hover"
       >
