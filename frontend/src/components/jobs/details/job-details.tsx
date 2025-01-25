@@ -21,24 +21,10 @@ import {
   IconBriefcase2,
 } from "@tabler/icons-react";
 import DOMPurify from "isomorphic-dompurify";
+import { Job } from "@/types/job";
 
 interface JobDetailsProps {
-  id: string;
-  title: string;
-  company: {
-    name: string;
-    website: string;
-    logo?: string;
-  };
-  description: string;
-  type: string;
-  locations: string[];
-  studyFields: string[];
-  workingRights: string[];
-  applicationUrl: string;
-  closeDate: string;
-  createdAt: string;
-  updatedAt: string;
+  job: Job;
 }
 
 function formatISODate(isoDate: string): string {
@@ -55,22 +41,9 @@ function sanitizeHtml(html: string) {
   return DOMPurify.sanitize(html);
 }
 
-export default function JobDetails({
-  //id,
-  title,
-  company,
-  description,
-  type,
-  locations,
-  studyFields,
-  workingRights,
-  applicationUrl,
-  //closeDate,
-  createdAt,
-  //updatedAt,
-}: JobDetailsProps) {
+export default function JobDetails({job}: JobDetailsProps) {
   const handleApplyClick = () => {
-    window.open(applicationUrl, "_blank"); // Open link in a new tab
+    window.open(job.applicationUrl, "_blank"); // Open link in a new tab
   };
 
   return (
@@ -89,8 +62,8 @@ export default function JobDetails({
             {/* Logo and Company Name */}
             <Group align="top" wrap="nowrap">
               <Image
-                alt={company.name}
-                src={company.logo}
+                alt={job.company.name}
+                src={job.company.logo}
                 radius="20%"
                 fit="contain"
                 h={60}
@@ -107,7 +80,7 @@ export default function JobDetails({
                   textDecorationThickness: "1px",
                 }}
               >
-                {company.name}
+                {job.company.name}
               </Text>
             </Group>
 
@@ -123,7 +96,7 @@ export default function JobDetails({
           </Group>
 
           {/* Job Title */}
-          <Title order={2}>{title}</Title>
+          <Title order={2}>{job.title}</Title>
 
           {/* Job Information section */}
           <Flex
@@ -141,7 +114,7 @@ export default function JobDetails({
             {/* Locations */}
 
             <IconMapPin size={20} stroke={1.5} />
-            {locations.map((location) => (
+            {job.locations.map((location) => (
               <Badge key={location} color="dark.4" size="lg" radius="lg">
                 {location}
               </Badge>
@@ -158,11 +131,11 @@ export default function JobDetails({
             />
 
             {/* Post Date */}
-            <Text size="sm">Posted {formatISODate(createdAt)}</Text>
+            <Text size="sm">Posted {formatISODate(job.createdAt)}</Text>
             <Divider color="rgb(255, 226, 47)" orientation="vertical" />
 
             {/* Job Type */}
-            <Text size="sm">{type}</Text>
+            <Text size="sm">{job.type}</Text>
           </Flex>
         </Stack>
 
@@ -204,7 +177,7 @@ export default function JobDetails({
           >
             <div
               dangerouslySetInnerHTML={{
-                __html: sanitizeHtml(description),
+                __html: sanitizeHtml(job.description || ""),
               }}
             />
           </Box>
@@ -227,7 +200,7 @@ export default function JobDetails({
             </Title>
           </Group>
           <Group gap="xs" wrap="wrap">
-            {studyFields.map((field) => (
+            {job.studyFields.map((field) => (
               <Badge key={field} color="dark.4" size="lg" radius="md">
                 {field}
               </Badge>
@@ -252,7 +225,7 @@ export default function JobDetails({
             </Title>
           </Group>
           <Group gap="xs" wrap="wrap">
-            {workingRights.map((rights) => (
+            {job.workingRights.map((rights) => (
               <Badge key={rights} color="dark.4" size="lg" radius="md">
                 {rights}
               </Badge>

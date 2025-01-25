@@ -9,7 +9,9 @@ export interface JobsApiResponse {
 const PAGE_SIZE = 20; // Number of jobs per page
 
 /**
- * Fetches jobs from the API with applied filters and pagination
+ * Fetches jobs from the API given a set of filters
+ * This should not be manually called, rather done through the JobsPage component
+ * See api/jobs/route.ts for the API implementation details
  * 
  * @param filters - Filters to apply to the job search
  * @returns - A list of jobs and the total number of matching jobs
