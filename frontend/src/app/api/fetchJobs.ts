@@ -1,4 +1,5 @@
-import { Job, JobFilters } from "@/types/job";
+import { Job } from "@/types/job";
+import { JobFilters } from "@/types/filters";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function fetchJobs(filters: JobFilters): Promise<Job[]> {
