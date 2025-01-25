@@ -20,6 +20,7 @@
     --primary: #fce02c;
     --secondary: #c4c4c4;
     --accent: #fce02c;
+    --underline: rgba(252, 224, 44, 0.9);
   }
   .dark {
     --text: #ffffff;
@@ -27,5 +28,13 @@
     --primary: #d3b703;
     --secondary: #3b3b3b;
     --accent: #d3b703;
+    --underline: rgba(211, 183, 3, 0.9);
   }
+}
+
+.underline-fancy {
+  text-decoration: underline;
+  text-decoration-color: var(--underline);
+  text-underline-offset: 4px;
+  text-decoration-thickness: 3px;
 }
