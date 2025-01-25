@@ -76,10 +76,11 @@ export default function JobDetails({
   return (
     <Card shadow="sm" padding="lg" radius="md" className="h-full">
       <ScrollArea
-        style={ (theme) => ({
+        style={(theme) => ({
           paddingLeft: theme.spacing.md,
           paddingRight: theme.spacing.xl,
-          paddingBottom: theme.spacing.md})}
+          paddingBottom: theme.spacing.md,
+        })}
         type="hover"
       >
         {/* Header Section */}
