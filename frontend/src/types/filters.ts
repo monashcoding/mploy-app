@@ -1,7 +1,7 @@
 // frontend/src/types/filters.ts
 export interface JobFilters {
   search: string;
-  studyFields: string[];
+  industry: string[];
   jobTypes: string[];
   locations: string[];
   workingRights: string[];
