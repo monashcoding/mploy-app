@@ -12,11 +12,13 @@ const PAGE_SIZE = 20; // Number of jobs per page
  * Fetches jobs from the API given a set of filters
  * This should not be manually called, rather done through the JobsPage component
  * See api/jobs/route.ts for the API implementation details
- * 
+ *
  * @param filters - Filters to apply to the job search
  * @returns - A list of jobs and the total number of matching jobs
  */
-export async function fetchJobs(filters: Partial<JobFilters>): Promise<JobsApiResponse> {
+export async function fetchJobs(
+  filters: Partial<JobFilters>,
+): Promise<JobsApiResponse> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
     const url = new URL("/api/jobs", baseUrl);
@@ -52,16 +54,16 @@ export async function fetchJobs(filters: Partial<JobFilters>): Promise<JobsApiRe
     }
 
     const response = await fetch(url.toString());
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const { jobs, total } = await response.json() as JobsApiResponse;
-    
+    const { jobs, total } = (await response.json()) as JobsApiResponse;
+
     return {
       jobs,
-      total
+      total,
     };
   } catch (error) {
     console.error("Failed to fetch jobs:", error);

@@ -13,10 +13,10 @@ export default async function JobsPage({
   searchParams: Promise<Partial<JobFilters>>;
 }) {
   const params = await searchParams;
-  
+
   // This try catch block can be removed once the app is stable
   // The console.log is only visible on the server (React server component thing)
-  let testJobDetails: Job|null = null;
+  let testJobDetails: Job | null = null;
   try {
     const response = await fetchJobs(params);
     testJobDetails = response.jobs[0];
@@ -48,7 +48,6 @@ export default async function JobsPage({
   if (testJobDetails) {
     mockJobDetails = testJobDetails;
   }
-  
 
   return (
     <div className="space-y-4">

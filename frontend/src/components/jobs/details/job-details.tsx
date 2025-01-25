@@ -41,7 +41,7 @@ function sanitizeHtml(html: string) {
   return DOMPurify.sanitize(html);
 }
 
-export default function JobDetails({job}: JobDetailsProps) {
+export default function JobDetails({ job }: JobDetailsProps) {
   const handleApplyClick = () => {
     window.open(job.applicationUrl, "_blank"); // Open link in a new tab
   };

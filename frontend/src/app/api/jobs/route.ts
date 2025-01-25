@@ -127,12 +127,15 @@ export async function GET(request: Request) {
 
     // Get total count before applying limit
     const total = await collection.countDocuments(query);
-    
+
     const jobs = await cursor.toArray();
 
-    return NextResponse.json({ jobs, total }, {
-      headers: { "Content-Type": "application/json" },
-    });
+    return NextResponse.json(
+      { jobs, total },
+      {
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   } catch (error) {
     console.error(error);
     return NextResponse.error();

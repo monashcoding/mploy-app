@@ -1,9 +1,33 @@
 // frontend/src/types/job.ts
 export type JobType = "EOI" | "FIRST_YEAR" | "INTERN" | "GRADUATE" | "OTHER";
-export type LocationType = "VIC" | "NSW" | "QLD" | "WA" | "NT" | "SA" | "ACT" | "TAS" | "AUSTRALIA" | "OTHERS";
+export type LocationType =
+  | "VIC"
+  | "NSW"
+  | "QLD"
+  | "WA"
+  | "NT"
+  | "SA"
+  | "ACT"
+  | "TAS"
+  | "AUSTRALIA"
+  | "OTHERS";
 export type WFHStatus = "HYBRID" | "REMOTE" | "OFFICE";
-export type WorkingRight = "AUS_CITIZEN" | "AUS_PR" | "NZ_CITIZEN" | "NZ_PR" | "INTERNATIONAL" | "WORK_VISA" | "VISA_SPONSORED" | "OTHER_RIGHTS";
-export type IndustryField = "CONSULTING" | "BANKS" | "BIG_TECH" | "TECH" | "QUANT_TRADING" | "OTHER_INDUSTRY";
+export type WorkingRight =
+  | "AUS_CITIZEN"
+  | "AUS_PR"
+  | "NZ_CITIZEN"
+  | "NZ_PR"
+  | "INTERNATIONAL"
+  | "WORK_VISA"
+  | "VISA_SPONSORED"
+  | "OTHER_RIGHTS";
+export type IndustryField =
+  | "CONSULTING"
+  | "BANKS"
+  | "BIG_TECH"
+  | "TECH"
+  | "QUANT_TRADING"
+  | "OTHER_INDUSTRY";
 
 export interface Company {
   name: string;
