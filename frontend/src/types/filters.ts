@@ -1,8 +1,5 @@
 // frontend/src/types/filters.ts
-
-type StudyField = "Computer Science" | "Software Engineering" | "Information Technology" | "Business" | "Engineering";
-type JobType = "Full-time" | "Part-time" | "Internship" | "Graduate Program";
-type WorkingRight = "Australian Citizen" | "Permanent Resident" | "Student Visa" | "Working Holiday";
+import { JobType, StudyField, LocationType, WorkingRight } from "./job";
 
 /**
  * JobFilters is a type that represents the filters that can be applied to the job search
@@ -11,7 +8,7 @@ export interface JobFilters {
   search: string;
   studyFields: StudyField[];
   jobTypes: JobType[];
-  locations: string[];
+  locations: LocationType[];
   workingRights: WorkingRight[];
   page: number;
   sortBy: SortBy;
@@ -24,23 +21,34 @@ export enum SortBy {
 
 // These are commonly used filter options that will be used across components
 export const STUDY_FIELDS: readonly StudyField[] = [
-  "Computer Science",
-  "Software Engineering", 
-  "Information Technology",
-  "Business",
-  "Engineering",
+  "SOFTWARE",
+  "CYBERSECURITY",
+  "DATA_SCIENCE",
 ] as const;
 
 export const JOB_TYPES: readonly JobType[] = [
-  "Full-time",
-  "Part-time",
-  "Internship",
-  "Graduate Program",
+  "EOI",
+  "FIRST_YEAR",
+  "INTERN",
+  "GRADUATE",
 ] as const;
 
 export const WORKING_RIGHTS: readonly WorkingRight[] = [
-  "Australian Citizen",
-  "Permanent Resident",
-  "Student Visa",
-  "Working Holiday",
+  "AUS_CITIZEN",
+  "AUS_PR",
+  "NZ_CITIZEN",
+  "NZ_PR",
+  "INTERNATIONAL",
+] as const;
+
+export const LOCATIONS: readonly LocationType[] = [
+  "VIC",
+  "NSW",
+  "QLD",
+  "WA",
+  "NT",
+  "SA",
+  "HYBRID",
+  "REMOTE",
+  "AUSTRALIA",
 ] as const;
