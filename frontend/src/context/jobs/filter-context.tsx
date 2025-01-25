@@ -19,7 +19,7 @@ interface FilterContextType {
 export const initialState: FilterState = {
   filters: {
     search: "",
-    industry: [],
+    studyFields: [],
     jobTypes: [],
     locations: [],
     workingRights: [],

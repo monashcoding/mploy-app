@@ -6,7 +6,7 @@ export function parseUrlFilters(
 ): JobFilters {
   return {
     search: searchParams.get("search") || "",
-    industry: searchParams.getAll("studyFields"),
+    studyFields: searchParams.getAll("studyFields"),
     jobTypes: searchParams.getAll("jobTypes"),
     locations: searchParams.getAll("locations"),
     workingRights: searchParams.getAll("workingRights"),
