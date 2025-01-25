@@ -1,12 +1,19 @@
 import { Select } from "@mantine/core";
+import { useFilterContext } from "@/context/jobs/filter-context";
 
-// combobox mantine?
 export default function DropdownSort() {
+  const { filters } = useFilterContext();
+
   return (
     <Select
-      data={["Ascending", "Descending"]}
-      defaultValue="Ascending"
+      data={[
+        { value: "recent", label: "Most Recent" },
+        { value: "relevant", label: "Most Relevant" },
+      ]}
+      value={filters.filters.sortBy}
       allowDeselect={false}
+      placeholder="Sort by"
+      aria-label="Sort jobs"
     />
   );
 }
