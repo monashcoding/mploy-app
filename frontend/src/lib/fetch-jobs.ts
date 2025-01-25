@@ -1,6 +1,11 @@
 import { Job } from "@/types/job";
 import { JobFilters, SortBy } from "@/types/filters";
 
+export interface JobsApiResponse {
+  jobs: Job[];
+  total: number;
+}
+
 const PAGE_SIZE = 20; // Number of jobs per page
 
 /**
@@ -9,7 +14,7 @@ const PAGE_SIZE = 20; // Number of jobs per page
  * @param filters - Filters to apply to the job search
  * @returns - A list of jobs and the total number of matching jobs
  */
-export async function fetchJobs(filters: Partial<JobFilters>): Promise<{ jobs: Job[]; total: number }> {
+export async function fetchJobs(filters: Partial<JobFilters>): Promise<JobsApiResponse> {
   try {
     const url = new URL("/api/jobs", window.location.origin);
 
@@ -27,14 +32,15 @@ export async function fetchJobs(filters: Partial<JobFilters>): Promise<{ jobs: J
       url.searchParams.set("types", filters.jobTypes.join(","));
     }
 
-    if (filters.studyFields?.length) {
-      url.searchParams.set("industry_fields", filters.studyFields.join(","));
+    if (filters.industryFields?.length) {
+      url.searchParams.set("industry_fields", filters.industryFields.join(","));
     }
 
     if (filters.workingRights?.length) {
       url.searchParams.set("working_rights", filters.workingRights.join(","));
     }
 
+    // TODO: implement sorting
     // Sorting
     if (filters.sortBy === SortBy.RECENT) {
       // API should sort by createdAt descending by default
@@ -48,13 +54,11 @@ export async function fetchJobs(filters: Partial<JobFilters>): Promise<{ jobs: J
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
+    const { jobs, total } = await response.json() as JobsApiResponse;
     
-    // Note: The API currently doesn't return total count in the response
-    // You might want to modify the API to include X-Total-Count header
     return {
-      jobs: data,
-      total: data.length, // This is temporary - should be replaced with actual total count
+      jobs,
+      total
     };
   } catch (error) {
     console.error("Failed to fetch jobs:", error);

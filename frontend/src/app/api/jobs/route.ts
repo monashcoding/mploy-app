@@ -125,9 +125,12 @@ export async function GET(request: Request) {
       cursor = cursor.limit(limit);
     }
 
-    const allData = await cursor.toArray();
+    // Get total count before applying limit
+    const total = await collection.countDocuments(query);
+    
+    const jobs = await cursor.toArray();
 
-    return NextResponse.json(allData, {
+    return NextResponse.json({ jobs, total }, {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
