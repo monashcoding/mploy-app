@@ -10,7 +10,6 @@ import { Job } from "@/types/job";
 export function JobsProvider({
   children,
   initialFilters,
-  initialJobs = [],
 }: {
   children: ReactNode;
   initialFilters?: JobFilters;
@@ -19,7 +18,6 @@ export function JobsProvider({
   const [state, setState] = useState({
     ...initialState,
     filters: initialFilters || initialState.filters,
-    jobs: initialJobs,
   });
   const router = useRouter();
   const searchParams = useSearchParams();
