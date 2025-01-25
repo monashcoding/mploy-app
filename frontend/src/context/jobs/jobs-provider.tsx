@@ -65,7 +65,6 @@ export function JobsProvider({
     setState((prev) => ({ ...prev, filters: initialState.filters }));
   }, []);
 
-
   // Memoized context value to prevent unnecessary re-renders
   const value = useMemo(
     () => ({

@@ -1,7 +1,9 @@
 import { JobFilters } from "@/types/filters";
 import { ReadonlyURLSearchParams } from "next/navigation";
 
-export function parseUrlFilters(searchParams: ReadonlyURLSearchParams): JobFilters {
+export function parseUrlFilters(
+  searchParams: ReadonlyURLSearchParams,
+): JobFilters {
   return {
     search: searchParams.get("search") || "",
     studyFields: searchParams.getAll("studyFields"),

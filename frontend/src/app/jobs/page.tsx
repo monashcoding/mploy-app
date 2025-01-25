@@ -21,8 +21,7 @@ export default async function JobsPage({
   const initialFilters = parseUrlFilters(searchParams);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const jobs = await fetchJobs(initialFilters);
-  
-  
+
   return (
     <div className="space-y-4">
       <Title>Find Internships and Student Jobs</Title>
