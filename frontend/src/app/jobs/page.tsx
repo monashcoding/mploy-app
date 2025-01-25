@@ -3,8 +3,26 @@ import FilterSection from "@/components/jobs/filters/filter-section";
 import JobList from "@/components/jobs/details/job-list";
 import JobDetails from "@/components/jobs/details/job-details";
 import { Title } from "@mantine/core";
+import { parseUrlFilters } from "@/lib/parse-url-filters";
+import { ReadonlyURLSearchParams } from "next/navigation";
+import { Job, JobFilters } from "@/types/job";
 
-export default function JobsPage() {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function fetchJobs(filters: JobFilters): Promise<Job[]> {
+  // TODO: Implement actual data fetching
+  return [];
+}
+
+export default async function JobsPage({
+  searchParams,
+}: {
+  searchParams: ReadonlyURLSearchParams;
+}) {
+  const initialFilters = parseUrlFilters(searchParams);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const jobs = await fetchJobs(initialFilters);
+  
+  
   return (
     <div className="space-y-4">
       <Title>Find Internships and Student Jobs</Title>

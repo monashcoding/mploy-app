@@ -1,13 +1,26 @@
 // frontend/src/context/jobs/jobs-provider.tsx
 "use client";
 
-import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { ReactNode, useCallback, useMemo, useState } from "react";
 import { JobsContext, initialState } from "./jobs-context";
 import { JobFilters } from "@/types/filters";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Job } from "@/types/job";
 
-export function JobsProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState(initialState);
+export function JobsProvider({
+  children,
+  initialFilters,
+  initialJobs = [],
+}: {
+  children: ReactNode;
+  initialFilters?: JobFilters;
+  initialJobs?: Job[];
+}) {
+  const [state, setState] = useState({
+    ...initialState,
+    filters: initialFilters || initialState.filters,
+    jobs: initialJobs,
+  });
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -52,27 +65,6 @@ export function JobsProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, filters: initialState.filters }));
   }, []);
 
-  // Initialize state from URL parameters on component mount
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    const urlFilters = {
-      search: params.get("search") || "",
-      studyFields: params.getAll("studyFields"),
-      jobTypes: params.getAll("jobTypes"),
-      locations: params.getAll("locations"),
-      workingRights: params.getAll("workingRights"),
-      page: Number(params.get("page")) || 1,
-      sortBy: (params.get("sortBy") as "recent" | "relevant") || "recent",
-    };
-
-    setState((prev) => ({
-      ...prev,
-      filters: {
-        ...prev.filters,
-        ...urlFilters,
-      },
-    }));
-  }, [searchParams]);
 
   // Memoized context value to prevent unnecessary re-renders
   const value = useMemo(
