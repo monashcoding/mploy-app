@@ -187,7 +187,24 @@ export default function JobDetails({
               Job Description
             </Title>
           </Group>
-          <Box>
+          <Box style={{
+    lineHeight: 1.6, // Adjust line height for better readability
+    "& p": {
+      mb: "100rem", // Add spacing between paragraphs
+    },
+    "& ul": {
+      mb: "100rem", // Add spacing below unordered lists
+      paddingLeft: "1.5rem", // Add left padding for list items
+    },
+    "& li": {
+      marginBottom: "0.5rem", // Add spacing between list items
+    },
+    "& h2": {
+      marginTop: "1.5rem", // Add spacing above headings
+      marginBottom: "1rem", // Add spacing below headings
+      fontSize: "1.5rem", // Adjust font size for headings
+    },
+  }}>
             <div
               dangerouslySetInnerHTML={{
                 __html: sanitizeHtml(description),
