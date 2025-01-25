@@ -64,3 +64,4 @@ pnpm-lock.yaml
 
 
 /repo-to-text/
+.aider*

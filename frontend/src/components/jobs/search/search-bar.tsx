@@ -1,3 +1,4 @@
+"use client";
 import { Input } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
 
