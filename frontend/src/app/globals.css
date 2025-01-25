@@ -12,3 +12,20 @@
     scrollbar-width: none; /* Firefox */
   }
 }
+
+@layer base {
+  :root {
+    --text: #000000;
+    --background: #ffffff;
+    --primary: #fce02c;
+    --secondary: #c4c4c4;
+    --accent: #fce02c;
+  }
+  .dark {
+    --text: #ffffff;
+    --background: #000000;
+    --primary: #d3b703;
+    --secondary: #3b3b3b;
+    --accent: #d3b703;
+  }
+}

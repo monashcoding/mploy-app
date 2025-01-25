@@ -9,7 +9,7 @@ import { theme } from "@/lib/theme";
 
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="dark">
       <Head>
         <ColorSchemeScript defaultColorScheme="dark" />
       </Head>
