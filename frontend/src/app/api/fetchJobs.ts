@@ -3,16 +3,11 @@ import { JobFilters } from "@/types/filters";
 
 /**
  * This function would handle fetching jobs from the API and type conversion
- * Filters supported: @see JobFilters
  *
- * 
  * @param filters - Filters to apply to the job search
  * @returns - A list of jobs and the total number of jobs
  */
-export async function fetchJobs(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  filters: Partial<JobFilters>,
-): Promise<{ jobs: Job[]; total: number }> {
+export async function fetchJobs(filters: Partial<JobFilters>): Promise<{ jobs: Job[]; total: number }> {
   try {
     // TODO: Implement actual API call
     // For now return mock data
