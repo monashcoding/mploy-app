@@ -2,7 +2,7 @@ import { Select } from "@mantine/core";
 import { useJobsContext } from "@/context/jobs/jobs-context";
 
 export default function DropdownSort() {
-  const { updateFilters } = useJobsContext();
+  const { state, updateFilters } = useJobsContext();
 
   return (
     <Select
@@ -10,11 +10,13 @@ export default function DropdownSort() {
         { value: "recent", label: "Most Recent" },
         { value: "relevant", label: "Most Relevant" },
       ]}
-      defaultValue="recent"
+      value={state.filters.sortBy}
       allowDeselect={false}
       onChange={(value) => 
-        handleFilterChange({ sortBy: value as "recent" | "relevant" })
+        updateFilters({ sortBy: value as "recent" | "relevant" })
       }
+      placeholder="Sort by"
+      aria-label="Sort jobs"
     />
   );
 }
