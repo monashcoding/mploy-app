@@ -114,7 +114,7 @@ export default function JobDetails({job}: JobDetailsProps) {
             {/* Locations */}
 
             <IconMapPin size={20} stroke={1.5} />
-            {job.locations.map((location) => (
+            {job.locations?.map((location) => (
               <Badge key={location} color="dark.4" size="lg" radius="lg">
                 {location}
               </Badge>
@@ -200,7 +200,7 @@ export default function JobDetails({job}: JobDetailsProps) {
             </Title>
           </Group>
           <Group gap="xs" wrap="wrap">
-            {job.studyFields.map((field) => (
+            {job.studyFields?.map((field) => (
               <Badge key={field} color="dark.4" size="lg" radius="md">
                 {field}
               </Badge>
@@ -225,7 +225,7 @@ export default function JobDetails({job}: JobDetailsProps) {
             </Title>
           </Group>
           <Group gap="xs" wrap="wrap">
-            {job.workingRights.map((rights) => (
+            {job.workingRights?.map((rights) => (
               <Badge key={rights} color="dark.4" size="lg" radius="md">
                 {rights}
               </Badge>
