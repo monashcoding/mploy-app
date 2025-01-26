@@ -32,7 +32,6 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "lefthook": "^1.10.10",
     "postcss": "^8.5.1",
-    "lint-staged": "^15.4.2",
     "postcss-preset-mantine": "^1.17.0",
     "postcss-simple-vars": "^7.0.1",
     "pre-commit": "^1.2.2",
