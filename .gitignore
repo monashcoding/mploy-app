@@ -4,6 +4,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Lock file for pnpm
+pnpm-lock.yaml*
+
 # MonoRepo Specific
 /packages/*/node_modules/
 **/dist/
@@ -59,8 +62,6 @@ desktop.ini
 *.bak
 *.backup
 
-# Lock file for pnpm
-pnpm-lock.yaml
 
 
 /repo-to-text/
