@@ -2,6 +2,10 @@ name: Frontend Lint Checker
 
 on:
   push:
+    branches:
+      - '**'            # Match all branches
+      - '!production'   # Exclude main branch
+      - '!development'  # Exclude develop branch
     paths:
       - 'frontend/**'
   pull_request:
