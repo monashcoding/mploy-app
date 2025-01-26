@@ -1,5 +1,6 @@
 import { Job } from "@/types/job";
 import { JobFilters, SortBy } from "@/types/filters";
+import { headers } from "next/headers";
 
 export interface JobsApiResponse {
   jobs: Job[];
@@ -7,6 +8,7 @@ export interface JobsApiResponse {
 }
 
 const PAGE_SIZE = 20; // Number of jobs per page
+const MONGODB_URI = process.env.MONGODB_URI;
 
 /**
  * Fetches jobs from the API given a set of filters
@@ -20,6 +22,12 @@ export async function fetchJobs(
   filters: Partial<JobFilters>,
 ): Promise<JobsApiResponse> {
   try {
+    if (!MONGODB_URI) {
+      throw new Error(
+        "MongoDB URI is not configured. Please check environment variables.",
+      );
+    }
+
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
     const url = new URL("/api/jobs", baseUrl);
 
@@ -56,7 +64,9 @@ export async function fetchJobs(
     const response = await fetch(url.toString());
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(
+        `[${response.status}] Unable to fetch from MongoDB. ${response.body}. URL Used ${url.toString()}`,
+      );
     }
 
     const { jobs, total } = (await response.json()) as JobsApiResponse;
@@ -66,7 +76,13 @@ export async function fetchJobs(
       total,
     };
   } catch (error) {
-    console.error("Failed to fetch jobs:", error);
-    throw new Error("Failed to fetch jobs");
+    console.error("Server Error:", {
+      error,
+      timestamp: new Date().toISOString(),
+      filters,
+    });
+    throw new Error(
+      "Failed to fetch jobs from the server. Check the server console for more details.",
+    );
   }
 }
