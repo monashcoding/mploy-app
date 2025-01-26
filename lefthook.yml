@@ -23,7 +23,7 @@ pre-commit:
     - name: format
       run: cd frontend && npm run format
     - name: type
-      run: cd frontend && npx tsc --noEmit
+      run: cd frontend && npx tsc --noEmit --extendedDiagnostics --incremental false
     - name: lint
       run: cd frontend && npm run lint
 #
