@@ -24,9 +24,10 @@
   }
   .dark {
     --text: #ffffff;
-    --background: #000000;
+    --background: #1f1f1f;
     --primary: #d3b703;
-    --secondary: #3b3b3b;
+    --secondary: #2e2e2e;
+    --selected: #3a3a3a;
     --accent: #d3b703;
     --underline: rgba(211, 183, 3, 0.9);
   }

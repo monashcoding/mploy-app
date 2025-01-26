@@ -12,7 +12,9 @@ export interface MongoJob extends Omit<Job, "id"> {
   _id: ObjectId;
 }
 
-export async function getJobs(filters: Partial<JobFilters>): Promise<Job[]> {
+export async function getJobs(
+  filters: Partial<JobFilters>,
+): Promise<{ jobs: Job[]; total: number }> {
   if (!process.env.MONGODB_URI) {
     throw new Error(
       "MongoDB URI is not configured. Please check environment variables.",
@@ -45,13 +47,15 @@ export async function getJobs(filters: Partial<JobFilters>): Promise<Job[]> {
     const page = filters.page || 1;
     const skip = (page - 1) * PAGE_SIZE;
 
-    const jobs = (await collection
-      .find(query)
-      .skip(skip)
-      .limit(PAGE_SIZE)
-      .toArray()) as MongoJob[];
+    const [jobs, total] = await Promise.all([
+      collection.find(query).skip(skip).limit(PAGE_SIZE).toArray(),
+      collection.countDocuments(query),
+    ]);
 
-    return jobs.map(serializeJob);
+    return {
+      jobs: (jobs as MongoJob[]).map(serializeJob),
+      total,
+    };
   } catch (error) {
     console.error("Server Error:", {
       error,

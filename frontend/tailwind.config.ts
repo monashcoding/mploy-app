@@ -16,6 +16,7 @@ export default {
         secondary: "var(--secondary)",
         accent: "var(--accent)",
         underline: "var(--underline)",
+        selected: "var(--selected)",
       },
     },
   },

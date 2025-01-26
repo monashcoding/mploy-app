@@ -14,18 +14,10 @@ import {
   Box,
   Flex,
 } from "@mantine/core";
-import {
-  IconMapPin,
-  IconPencil,
-  IconBook2,
-  IconBriefcase2,
-} from "@tabler/icons-react";
+import { IconMapPin, IconPencil, IconBriefcase2 } from "@tabler/icons-react";
 import DOMPurify from "isomorphic-dompurify";
-import { Job } from "@/types/job";
-
-interface JobDetailsProps {
-  job: Job;
-}
+import { useFilterContext } from "@/context/filter/filter-context";
+import { useEffect } from "react";
 
 function formatISODate(isoDate: string): string {
   const date = new Date(isoDate);
@@ -41,13 +33,22 @@ function sanitizeHtml(html: string) {
   return DOMPurify.sanitize(html);
 }
 
-export default function JobDetails({ job }: JobDetailsProps) {
+export default function JobDetails() {
+  const { selectedJob, isLoading } = useFilterContext();
+  if (!selectedJob || isLoading) {
+    return (
+      <div className="hidden lg:block">
+        <div className="h-[calc(100vh-330px)] bg-secondary rounded-xl animate-pulse" />
+      </div>
+    );
+  }
+
   const handleApplyClick = () => {
-    window.open(job.applicationUrl, "_blank"); // Open link in a new tab
+    window.open(selectedJob.application_url, "_blank"); // Open link in a new tab
   };
 
   return (
-    <Card shadow="sm" padding="lg" radius="md" className="h-full">
+    <Card shadow="sm" padding="lg" radius="lg" className="h-full">
       <ScrollArea
         style={(theme) => ({
           paddingLeft: theme.spacing.md,
@@ -62,8 +63,8 @@ export default function JobDetails({ job }: JobDetailsProps) {
             {/* Logo and Company Name */}
             <Group align="top" wrap="nowrap">
               <Image
-                alt={job.company.name}
-                src={job.company.logo}
+                alt={selectedJob.company.name}
+                src={selectedJob.company.logo}
                 radius="20%"
                 fit="contain"
                 h={60}
@@ -80,7 +81,7 @@ export default function JobDetails({ job }: JobDetailsProps) {
                   textDecorationThickness: "1px",
                 }}
               >
-                {job.company.name}
+                {selectedJob.company.name}
               </Text>
             </Group>
 
@@ -96,7 +97,7 @@ export default function JobDetails({ job }: JobDetailsProps) {
           </Group>
 
           {/* Job Title */}
-          <Title order={2}>{job.title}</Title>
+          <Title order={2}>{selectedJob.title}</Title>
 
           {/* Job Information section */}
           <Flex
@@ -114,7 +115,7 @@ export default function JobDetails({ job }: JobDetailsProps) {
             {/* Locations */}
 
             <IconMapPin size={20} stroke={1.5} />
-            {job.locations?.map((location) => (
+            {selectedJob.locations?.map((location) => (
               <Badge key={location} color="dark.4" size="lg" radius="lg">
                 {location}
               </Badge>
@@ -131,11 +132,13 @@ export default function JobDetails({ job }: JobDetailsProps) {
             />
 
             {/* Post Date */}
-            <Text size="sm">Posted {formatISODate(job.createdAt)}</Text>
+            <Text size="sm">
+              Posted {formatISODate(selectedJob.created_at)}
+            </Text>
             <Divider color="accent" orientation="vertical" />
 
             {/* Job Type */}
-            <Text size="sm">{job.type}</Text>
+            <Text size="sm">{selectedJob.type}</Text>
           </Flex>
         </Stack>
 
@@ -177,35 +180,10 @@ export default function JobDetails({ job }: JobDetailsProps) {
           >
             <div
               dangerouslySetInnerHTML={{
-                __html: sanitizeHtml(job.description || ""),
+                __html: sanitizeHtml(selectedJob.description || ""),
               }}
             />
           </Box>
-        </Stack>
-
-        {/* Study Field Section */}
-        <Stack gap="sm" mt="md" mb="md">
-          <Group gap="xs">
-            <IconBook2 size={20} stroke={1.5} />
-            <Title
-              order={4}
-              style={{
-                textDecoration: "underline",
-                textDecorationColor: "var(--accent)",
-                textUnderlineOffset: "6px",
-                textDecorationThickness: "1px",
-              }}
-            >
-              Study Fields
-            </Title>
-          </Group>
-          <Group gap="xs" wrap="wrap">
-            {job.studyFields?.map((field) => (
-              <Badge key={field} color="dark.4" size="lg" radius="md">
-                {field}
-              </Badge>
-            ))}
-          </Group>
         </Stack>
 
         {/* Working Rights Section */}
@@ -225,7 +203,7 @@ export default function JobDetails({ job }: JobDetailsProps) {
             </Title>
           </Group>
           <Group gap="xs" wrap="wrap">
-            {job.workingRights?.map((rights) => (
+            {selectedJob.working_rights?.map((rights) => (
               <Badge key={rights} color="dark.4" size="lg" radius="md">
                 {rights}
               </Badge>

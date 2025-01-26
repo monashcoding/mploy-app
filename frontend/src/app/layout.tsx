@@ -13,7 +13,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
       <Head>
         <ColorSchemeScript defaultColorScheme="dark" />
       </Head>
-      <body className="text-text dark">
+      <body className="text-text dark bg-background">
         <MantineProvider theme={theme} defaultColorScheme="dark">
           <div className="min-h-screen flex flex-col">
             <NavBar />

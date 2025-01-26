@@ -3,10 +3,14 @@
 // frontend/src/context/jobs/filter-context.tsx
 import { createContext, useContext } from "react";
 import { FilterState } from "@/types/filters";
+import { Job } from "@/types/job";
 
 interface FilterContextType {
   filters: FilterState;
   updateFilters: (filters: Partial<FilterState>) => void;
+  selectedJob: Job | null;
+  setSelectedJob: (job: Job | null) => void;
+  isLoading: boolean;
 }
 
 export const FilterContext = createContext<FilterContextType | undefined>(
