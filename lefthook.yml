@@ -22,9 +22,10 @@ pre-commit:
   jobs:
     - name: format
       run: cd frontend && npm run format
+    - name: type
+      run: cd frontend && npx tsc --noEmit
     - name: lint
-      run: cd frontend && eslint {staged_files}
-      glob: "*.{js,ts,jsx,tsx}"
+      run: cd frontend && npm run lint
 #
 #     - name: rubocop
 #       glob: "*.rb"
