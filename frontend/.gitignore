@@ -87,3 +87,6 @@ coverage/
 desktop.ini
 
 /repo-to-text/
+
+# TypeScript build info
+tsconfig.tsbuildinfo

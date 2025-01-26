@@ -2,12 +2,28 @@
 "use client";
 
 import { ReactNode, useState } from "react";
-import { FilterContext, FilterState, initialState } from "./filter-context";
+import { FilterContext } from "./filter-context";
 import { useRouter } from "next/navigation";
 import { CreateQueryString } from "@/lib/utils";
+import { FilterState, SortBy } from "@/types/filters";
+
+const emptyFilterState: FilterState = {
+  filters: {
+    search: "",
+    industryFields: [],
+    jobTypes: [],
+    locations: [],
+    workingRights: [],
+    page: 1,
+    sortBy: SortBy.RECENT,
+  },
+  totalJobs: 0,
+  isLoading: false,
+  error: null,
+};
 
 export function FilterProvider({ children }: { children: ReactNode }) {
-  const [filters, setFilters] = useState<FilterState>(initialState);
+  const [filters, setFilters] = useState<FilterState>(emptyFilterState);
   const router = useRouter();
 
   const updateFilters = (newFilters: Partial<FilterState>) => {

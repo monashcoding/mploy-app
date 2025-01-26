@@ -1,33 +1,27 @@
 // frontend/src/types/filters.ts
+import { JobType, LocationType, WorkingRight, IndustryField } from "./job";
+
+/**
+ * JobFilters is a type that represents the filters that can be applied to the job search
+ */
 export interface JobFilters {
   search: string;
-  industry: string[];
-  jobTypes: string[];
-  locations: string[];
-  workingRights: string[];
+  jobTypes: JobType[];
+  locations: LocationType[];
+  workingRights: WorkingRight[];
+  industryFields: IndustryField[];
   page: number;
-  sortBy: "recent" | "relevant";
+  sortBy: SortBy;
 }
 
-// These are commonly used filter options that will be used across components
-export const STUDY_FIELDS = [
-  "Computer Science",
-  "Software Engineering",
-  "Information Technology",
-  "Business",
-  "Engineering",
-];
+export enum SortBy {
+  RECENT = "recent",
+  RELEVANT = "relevant",
+}
 
-export const JOB_TYPES = [
-  "Full-time",
-  "Part-time",
-  "Internship",
-  "Graduate Program",
-];
-
-export const WORKING_RIGHTS = [
-  "Australian Citizen",
-  "Permanent Resident",
-  "Student Visa",
-  "Working Holiday",
-];
+export interface FilterState {
+  filters: JobFilters;
+  totalJobs: number;
+  isLoading: boolean;
+  error: Error | null;
+}
