@@ -1,4 +1,4 @@
-import { FilterProvider } from "@/context/jobs/filter-provider";
+import { FilterProvider } from "@/context/filter/filter-provider";
 import { PropsWithChildren } from "react";
 
 export default function JobsLayout({ children }: PropsWithChildren) {

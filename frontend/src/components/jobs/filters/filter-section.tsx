@@ -2,7 +2,7 @@
 
 import DropdownSort from "@/components/jobs/filters/dropdown-sort";
 import { Text } from "@mantine/core";
-import { useFilterContext } from "@/context/jobs/filter-context";
+import { useFilterContext } from "@/context/filter/filter-context";
 
 export default function FilterSection() {
   const { filters } = useFilterContext();
