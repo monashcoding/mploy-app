@@ -19,44 +19,9 @@ export enum SortBy {
   RELEVANT = "relevant",
 }
 
-// These are commonly used filter options that will be used across components
-export const JOB_TYPES: readonly JobType[] = [
-  "EOI",
-  "FIRST_YEAR",
-  "INTERN",
-  "GRADUATE",
-  "OTHER",
-] as const;
-
-export const WORKING_RIGHTS: readonly WorkingRight[] = [
-  "AUS_CITIZEN",
-  "AUS_PR",
-  "NZ_CITIZEN",
-  "NZ_PR",
-  "INTERNATIONAL",
-  "WORK_VISA",
-  "VISA_SPONSORED",
-  "OTHER_RIGHTS",
-] as const;
-
-export const LOCATIONS: readonly LocationType[] = [
-  "VIC",
-  "NSW",
-  "QLD",
-  "WA",
-  "NT",
-  "SA",
-  "ACT",
-  "TAS",
-  "AUSTRALIA",
-  "OTHERS",
-] as const;
-
-export const INDUSTRY_FIELDS: readonly IndustryField[] = [
-  "CONSULTING",
-  "BANKS",
-  "BIG_TECH",
-  "TECH",
-  "QUANT_TRADING",
-  "OTHER_INDUSTRY",
-] as const;
+export interface FilterState {
+  filters: JobFilters;
+  totalJobs: number;
+  isLoading: boolean;
+  error: Error | null;
+}
