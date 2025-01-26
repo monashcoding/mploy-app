@@ -7,12 +7,18 @@ export default function NavBar() {
     <nav className="p-4">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <Logo />
-        <div className="flex gap-4">
+        <div className="flex">
           <Link href="/">
-            <Button variant="transparent">Home</Button>
+            <Button variant="transparent" size="lg">
+              <span className="text-text font-light">Home</span>
+            </Button>
           </Link>
           <Link href="/jobs">
-            <Button variant="transparent">Jobs</Button>
+            <Button variant="transparent" size="lg">
+              <span className="text-text underline-fancy">
+                Current Openings
+              </span>
+            </Button>
           </Link>
         </div>
       </div>

@@ -18,7 +18,12 @@ export default async function JobsPage({
 
   return (
     <div className="space-y-4">
-      <Title>Find Internships and Student Jobs</Title>
+      <Title>
+        <span className="font-light">Find</span>{" "}
+        <span className="underline-fancy">Internships</span>{" "}
+        <span className="font-light">and</span>{" "}
+        <span className="underline-fancy">Student Jobs</span>
+      </Title>
       <SearchBar />
       <FilterSection />
 
