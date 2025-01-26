@@ -3,8 +3,8 @@ import FilterSection from "@/components/jobs/filters/filter-section";
 import JobList from "@/components/jobs/details/job-list";
 import JobDetails from "@/components/jobs/details/job-details";
 import { Title } from "@mantine/core";
-import { fetchJobs } from "@/lib/fetch-jobs";
 import { JobFilters } from "@/types/filters";
+import { getJobs } from "@/app/jobs/actions";
 
 export default async function JobsPage({
   searchParams,
@@ -14,7 +14,7 @@ export default async function JobsPage({
   // https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional
   // searchParams is a promise that resolves to an object containing the search
   // parameters of the current URL.
-  const { jobs } = await fetchJobs(await searchParams);
+  const jobs = await getJobs(await searchParams);
 
   return (
     <div className="space-y-4">
@@ -27,7 +27,6 @@ export default async function JobsPage({
           <JobList />
         </div>
 
-        {/* Sticky Job Details - hidden on mobile, 70% on desktop */}
         <div className="hidden lg:block lg:w-[65%]">
           <div className="overflow-y-auto h-[calc(100vh-330px)]">
             <JobDetails job={jobs[0]} />
