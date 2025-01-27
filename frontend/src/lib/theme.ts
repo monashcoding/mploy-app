@@ -4,6 +4,7 @@ import tailwindConfig from "@/../tailwind.config";
 const twConfig = resolveConfig(tailwindConfig);
 
 const theme = createTheme({
+  fontFamily: "Poppins",
   colors: {
     primary: colorsTuple(twConfig.theme.colors.primary),
     text: colorsTuple(twConfig.theme.colors.text),
