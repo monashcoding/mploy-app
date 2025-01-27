@@ -28,10 +28,10 @@ export default async function JobsPage({
       <Suspense fallback={<Loading />}>
         <div className="mt-4 flex flex-col lg:flex-row gap-2">
           <div className="w-full lg:w-[35%]">
-            <div className="overflow-y-auto pr-2 no-scrollbar h-[calc(100vh-380px)]">
+            <div className="overflow-y-auto pr-2 no-scrollbar h-[calc(100vh-330px)]">
               <JobList jobs={jobs} />
+              <JobPagination />
             </div>
-            <JobPagination />
           </div>
 
           <div className="hidden lg:block lg:w-[65%]">
