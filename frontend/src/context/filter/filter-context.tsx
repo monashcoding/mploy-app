@@ -10,6 +10,8 @@ interface FilterContextType {
   updateFilters: (filters: Partial<FilterState>) => void;
   selectedJob: Job | null;
   setSelectedJob: (job: Job | null) => void;
+  totalJobs: number;
+  setTotalJobs: (totalJobs: number) => void;
   isLoading: boolean;
 }
 

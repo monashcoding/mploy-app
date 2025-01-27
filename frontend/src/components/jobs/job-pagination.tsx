@@ -5,15 +5,11 @@ import { Pagination } from "@mantine/core";
 import { useFilterContext } from "@/context/filter/filter-context";
 
 interface JobPaginationProps {
-  totalJobs: number;
   pageSize?: number;
 }
 
-export default function JobPagination({
-  totalJobs,
-  pageSize = 20,
-}: JobPaginationProps) {
-  const { filters, updateFilters } = useFilterContext();
+export default function JobPagination({ pageSize = 20 }: JobPaginationProps) {
+  const { filters, updateFilters, totalJobs } = useFilterContext();
   const totalPages = Math.ceil(totalJobs / pageSize);
 
   if (totalPages <= 1) return null;

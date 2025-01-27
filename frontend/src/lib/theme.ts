@@ -1,4 +1,4 @@
-import { createTheme, colorsTuple, Badge } from "@mantine/core";
+import { createTheme, colorsTuple } from "@mantine/core";
 
 const theme = createTheme({
   fontFamily: "Poppins",
@@ -28,19 +28,31 @@ const theme = createTheme({
       "#2e2e2e",
     ],
     selected: [
-      "#e8e8e8",
-      "#e8e8e8",
-      "#e8e8e8",
-      "#e8e8e8",
-      "#e8e8e8",
-      "#e8e8e8",
-      "#e8e8e8",
+      "#f1f3f5",
+      "#f1f3f5",
+      "#f1f3f5",
+      "#f1f3f5",
+      "#f1f3f5",
+      "#f1f3f5",
+      "#f1f3f5",
       "#3a3a3a",
       "#3a3a3a",
       "#3a3a3a",
     ],
+    dark: [
+      "#c9c9c9",
+      "#b8b8b8",
+      "#828282",
+      "#696969",
+      "#424242",
+      "#2e2e2e",
+      "#2e2e2e",
+      "#242424",
+      "#1f1f1f",
+      "#141414",
+    ],
     accent: colorsTuple("#ffe22f"),
   },
-  primaryColor: "secondary",
+  primaryColor: "dark",
 });
 export { theme };

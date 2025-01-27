@@ -18,7 +18,6 @@ const emptyFilterState: FilterState = {
     page: 1,
     sortBy: SortBy.RECENT,
   },
-  totalJobs: 0,
   isLoading: false,
   error: null,
 };
@@ -27,6 +26,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   const [filters, setFilters] = useState<FilterState>(emptyFilterState);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [totalJobs, setTotalJobs] = useState<number>(0);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -49,6 +49,8 @@ export function FilterProvider({ children }: { children: ReactNode }) {
         filters,
         selectedJob,
         isLoading,
+        totalJobs,
+        setTotalJobs,
         updateFilters,
         setSelectedJob,
       }}

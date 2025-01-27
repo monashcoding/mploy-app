@@ -2,22 +2,18 @@
 
 import {
   Text,
-  Title,
   Badge,
-  Group,
   Button,
   Card,
-  Stack,
   Image,
   Divider,
   ScrollArea,
-  Box,
-  Flex,
 } from "@mantine/core";
-import { IconMapPin, IconPencil, IconBriefcase2 } from "@tabler/icons-react";
+import { IconMapPin, IconPencil, IconFolderOpen } from "@tabler/icons-react";
 import DOMPurify from "isomorphic-dompurify";
 import { useFilterContext } from "@/context/filter/filter-context";
-import { useEffect } from "react";
+import { formatCapString } from "@/lib/utils";
+import Link from "next/link";
 
 function formatISODate(isoDate: string): string {
   const date = new Date(isoDate);
@@ -48,169 +44,95 @@ export default function JobDetails() {
   };
 
   return (
-    <Card shadow="sm" padding="lg" radius="lg" className="h-full">
-      <ScrollArea
-        style={(theme) => ({
-          paddingLeft: theme.spacing.md,
-          paddingRight: theme.spacing.xl,
-          paddingBottom: theme.spacing.md,
-        })}
-        type="hover"
-      >
-        {/* Header Section */}
-        <Stack gap="sm" mb="md">
-          <Group justify="space-between" align="top" mb="md">
-            {/* Logo and Company Name */}
-            <Group align="top" wrap="nowrap">
-              <Image
-                alt={selectedJob.company.name}
-                src={selectedJob.company.logo}
-                radius="20%"
-                fit="contain"
-                h={60}
-                w={60}
-                style={{ backgroundColor: "white" }}
-              />
-              <Text
-                fw={500}
-                mt="12px"
-                style={{
-                  textDecoration: "underline",
-                  textDecorationColor: "var(--accent)",
-                  textUnderlineOffset: "6px",
-                  textDecorationThickness: "1px",
-                }}
-              >
-                {selectedJob.company.name}
-              </Text>
-            </Group>
+    <Card bd="2px solid selected" className="h-full rounded-xl">
+      <ScrollArea type="hover">
+        <div className={"flex justify-between w-full pr-4"}>
+          <div className={"flex flex-col space-y-1"}>
+            <span className={"text-2xl font-bold"}>{selectedJob.title}</span>
+            <Link href={selectedJob.company.website + ""} target="_blank">
+              <span className={"underline"}>{selectedJob.company.name}</span>
+            </Link>
 
-            {/* Apply Now Button */}
-            <Button
-              variant="filled"
-              color="accent"
-              radius="md"
-              onClick={handleApplyClick}
-            >
-              <Text c="dark">Apply Now</Text>
-            </Button>
-          </Group>
-
-          {/* Job Title */}
-          <Title order={2}>{selectedJob.title}</Title>
-
-          {/* Job Information section */}
-          <Flex
-            gap="xs"
-            wrap="wrap"
-            mb="sm"
-            style={(theme) => ({
-              flexDirection: "row",
-              [`@media (maxWidth: ${theme.breakpoints.sm}px)`]: {
-                flexDirection: "column",
-                alignItems: "center",
-              },
-            })}
-          >
-            {/* Locations */}
-
-            <IconMapPin size={20} stroke={1.5} />
-            {selectedJob.locations?.map((location) => (
-              <Badge key={location} color="dark.4" size="lg" radius="lg">
-                {location}
-              </Badge>
-            ))}
-            <Divider
-              color="accent"
-              orientation="vertical"
-              style={(theme) => ({
-                display: "block",
-                [`@media (maxWidth: ${theme.breakpoints.sm}px)`]: {
-                  display: "none",
-                },
-              })}
-            />
-
-            {/* Post Date */}
-            <Text size="sm">
-              Posted {formatISODate(selectedJob.created_at)}
-            </Text>
-            <Divider color="accent" orientation="vertical" />
-
-            {/* Job Type */}
-            <Text size="sm">{selectedJob.type}</Text>
-          </Flex>
-        </Stack>
-
-        {/* Description Section */}
-        <Stack gap="sm" mt="md" mb="lg">
-          <Group gap="xs">
-            <IconPencil size={20} stroke={1.5} />
-            <Title
-              order={4}
-              style={{
-                textDecoration: "underline",
-                textDecorationColor: "var(--accent)",
-                textUnderlineOffset: "6px",
-                textDecorationThickness: "1px",
-              }}
-            >
-              Job Description
-            </Title>
-          </Group>
-          <Box
-            style={{
-              lineHeight: 1.6, // Adjust line height for better readability
-              "& p": {
-                mb: "100rem", // Add spacing between paragraphs
-              },
-              "& ul": {
-                mb: "100rem", // Add spacing below unordered lists
-                paddingLeft: "1.5rem", // Add left padding for list items
-              },
-              "& li": {
-                marginBottom: "0.5rem", // Add spacing between list items
-              },
-              "& h2": {
-                marginTop: "1.5rem", // Add spacing above headings
-                marginBottom: "1rem", // Add spacing below headings
-                fontSize: "1.5rem", // Adjust font size for headings
-              },
-            }}
-          >
             <div
-              dangerouslySetInnerHTML={{
-                __html: sanitizeHtml(selectedJob.description || ""),
-              }}
-            />
-          </Box>
-        </Stack>
-
-        {/* Working Rights Section */}
-        <Stack gap="sm" mt="md" mb="md">
-          <Group gap="xs">
-            <IconBriefcase2 size={20} stroke={1.5} />
-            <Title
-              order={4}
-              style={{
-                textDecoration: "underline",
-                textDecorationColor: "var(--accent)",
-                textUnderlineOffset: "6px",
-                textDecorationThickness: "1px",
-              }}
+              className={"flex items-center space-y-1 space-x-2 flex-wrap pr-8"}
             >
+              <IconMapPin size={20} stroke={1.5} />
+              {selectedJob.locations?.map((location) => (
+                <Badge
+                  key={location}
+                  fw={300}
+                  tt={"none"}
+                  color="dark.4"
+                  size="lg"
+                  radius="lg"
+                >
+                  {formatCapString(location)}
+                </Badge>
+              ))}
+              <Divider size={2} color="accent" orientation="vertical" />
+              <Text size="sm">
+                Posted {formatISODate(selectedJob.created_at)}
+              </Text>
+              <Divider size={2} color="accent" orientation="vertical" />
+              <Text size="sm">
+                {selectedJob.type && formatCapString(selectedJob.type)} Role
+              </Text>
+            </div>
+          </div>
+          <Image
+            alt={selectedJob.company.name}
+            src={selectedJob.company.logo}
+            className={"h-20 w-20 object-contain rounded-md bg-white"}
+          />
+        </div>
+
+        <div className={"flex flex-col space-y-1 mt-8"}>
+          <div className={"flex items-center mb-2"}>
+            <IconPencil size={16} stroke={1.5} />
+            <span className={"underline-fancy text-lg pl-2"}>
+              Job Description
+            </span>
+          </div>
+          <div
+            dangerouslySetInnerHTML={{
+              __html: sanitizeHtml(selectedJob.description || ""),
+            }}
+            className={"text-sm"}
+          />
+        </div>
+
+        <div className={"flex flex-col space-y-1 mt-2"}>
+          <div className={"flex items-center mb-2"}>
+            <IconPencil size={16} stroke={1.5} />
+            <span className={"underline-fancy text-lg pl-2 "}>
               Working Rights
-            </Title>
-          </Group>
-          <Group gap="xs" wrap="wrap">
+            </span>
+          </div>
+          <div className={"space-x-2"}>
             {selectedJob.working_rights?.map((rights) => (
-              <Badge key={rights} color="dark.4" size="lg" radius="md">
-                {rights}
+              <Badge
+                tt={"none"}
+                fw={300}
+                key={rights}
+                color="dark.4"
+                size="lg"
+                radius="md"
+              >
+                {formatCapString(rights)}
               </Badge>
             ))}
-          </Group>
-        </Stack>
+          </div>
+        </div>
       </ScrollArea>
+      <Button
+        onClick={handleApplyClick}
+        bg={"accent"}
+        c={"black"}
+        leftSection={<IconFolderOpen />}
+        className={"min-h-10 mt-4"}
+      >
+        Apply Now
+      </Button>
     </Card>
   );
 }

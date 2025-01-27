@@ -1,5 +1,4 @@
 // frontend/src/app/jobs/page.tsx
-import { Title } from "@mantine/core";
 import SearchBar from "@/components/jobs/search/search-bar";
 import FilterSection from "@/components/jobs/filters/filter-section";
 import JobList from "@/components/jobs/details/job-list";
@@ -18,15 +17,13 @@ export default async function JobsPage({
   const { jobs, total } = await getJobs(await searchParams);
 
   return (
-    <div className="space-y-4">
-      <Title>
-        <span className="font-light">Find</span>{" "}
-        <span className="underline-fancy">Internships</span>{" "}
-        <span className="font-light">and</span>{" "}
-        <span className="underline-fancy">Student Jobs</span>
-      </Title>
+    <div className="">
+      <span className={"text-3xl "}>
+        Find <span className={"underline-fancy"}>Internships</span> and{" "}
+        <span className={"underline-fancy"}>Student Jobs</span>
+      </span>
       <SearchBar />
-      <FilterSection />
+      <FilterSection _totalJobs={total} />
 
       <Suspense fallback={<Loading />}>
         <div className="mt-4 flex flex-col lg:flex-row gap-2">
@@ -34,7 +31,7 @@ export default async function JobsPage({
             <div className="overflow-y-auto pr-2 no-scrollbar h-[calc(100vh-380px)]">
               <JobList jobs={jobs} />
             </div>
-            <JobPagination totalJobs={total} />
+            <JobPagination />
           </div>
 
           <div className="hidden lg:block lg:w-[65%]">

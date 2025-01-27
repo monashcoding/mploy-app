@@ -14,3 +14,11 @@
     scrollbar-width: none; /* Firefox */
   }
 }
+
+.underline-fancy {
+  text-decoration: underline;
+  font-weight: bold;
+  text-decoration-color: var(--mantine-color-accent-0);
+  text-underline-offset: 4px;
+  text-decoration-thickness: 2px;
+}

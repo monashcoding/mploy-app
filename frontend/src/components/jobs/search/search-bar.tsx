@@ -20,7 +20,12 @@ export default function SearchBar() {
   return (
     <Input
       placeholder="Search for a company or a role..."
-      leftSection={<IconSearch size={20} className="ml-2 stroke-primary" />}
+      leftSection={
+        <IconSearch
+          size={20}
+          className="ml-2 stroke-[--mantine-color-accent-0]"
+        />
+      }
       onChange={(e) => handleSearch(e.currentTarget.value)}
       rightSection={
         <Input.ClearButton
@@ -28,13 +33,13 @@ export default function SearchBar() {
           className="absolute pointer-events-auto z-10 right-2"
         />
       }
+      radius="lg"
       variant="filled"
+      className={"mt-4"}
       styles={{
         input: {
-          borderRadius: "12px",
           padding: "28px",
           paddingLeft: "40px",
-          background: "var(--secondary)",
         },
       }}
     />

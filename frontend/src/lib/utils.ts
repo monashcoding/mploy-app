@@ -23,8 +23,9 @@ export function CreateQueryString(filterState: Partial<FilterState>): string {
       if (!value || (Array.isArray(value) && value.length === 0)) return;
 
       if (Array.isArray(value)) {
-        // Handle array values (e.g., industryFields, jobTypes)
-        value.forEach((v) => params.append(key, v));
+        // For array values, use the same key multiple times
+        // This will create a URL like: key[]=value1&key[]=value2
+        value.forEach((v) => params.append(`${key}[]`, v));
       } else {
         // Handle scalar values (e.g., search, page, sortBy)
         params.set(key, value.toString());
@@ -86,15 +87,6 @@ export default function serializeJob(job: MongoJob): Job {
  * @returns A formatted string in title case
  */
 export function formatCapString(str: string): string {
-  console.log("converting ", str);
-  console.log(
-    "result",
-    str
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(" "),
-  );
-
   return str
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -107,4 +99,12 @@ export function getTimeAgo(dateString: string) {
   const diffTime = Math.abs(now.getTime() - date.getTime());
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   return `${diffDays}d ago`;
+}
+
+export function getPluralLabel(label: string) {
+  const irregularPlurals: Record<string, string> = {
+    Industry: "Industries",
+    // Add more irregular plurals here if needed
+  };
+  return irregularPlurals[label] || `${label}s`;
 }

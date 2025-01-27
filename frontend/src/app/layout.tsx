@@ -12,7 +12,10 @@ import { theme } from "@/lib/theme";
 
 import { Poppins } from "next/font/google";
 
-const poppins = Poppins({ subsets: ["latin"], weight: ["400", "700"] });
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
 
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
@@ -22,7 +25,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
       </Head>
       <body className={`${poppins.className}`}>
         <MantineProvider theme={theme} defaultColorScheme="dark">
-          <div className="min-h-screen flex flex-col">
+          <div className="min-h-screen flex flex-col px-6">
             <NavBar />
             <main className="flex-grow">{children}</main>
           </div>

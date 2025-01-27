@@ -30,11 +30,25 @@ export async function getJobs(
     const query = {
       outdated: false,
       ...(filters.workingRights?.length && {
-        working_rights: { $in: filters.workingRights },
+        working_rights: {
+          $in: Array.isArray(filters.workingRights)
+            ? filters.workingRights
+            : [filters.workingRights],
+        },
       }),
-      ...(filters.jobTypes?.length && { type: { $in: filters.jobTypes } }),
+      ...(filters.jobTypes?.length && {
+        type: {
+          $in: Array.isArray(filters.jobTypes)
+            ? filters.jobTypes
+            : [filters.jobTypes],
+        },
+      }),
       ...(filters.industryFields?.length && {
-        industry_field: { $in: filters.industryFields },
+        industry_field: {
+          $in: Array.isArray(filters.industryFields)
+            ? filters.industryFields
+            : [filters.industryFields],
+        },
       }),
       ...(filters.search && {
         $or: [
