@@ -76,3 +76,35 @@ export default function serializeJob(job: MongoJob): Job {
     close_date: serializeDate(job.close_date),
   };
 }
+
+/**
+ * Converts a capitalized string with underscores to title case with spaces
+ * Example: "VISA_SPONSORED" -> "Visa Sponsored"
+ * Example: "AUSTRALIA" -> "Australia"
+ *
+ * @param str - The uppercase string to convert
+ * @returns A formatted string in title case
+ */
+export function formatCapString(str: string): string {
+  console.log("converting ", str);
+  console.log(
+    "result",
+    str
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" "),
+  );
+
+  return str
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
+export function getTimeAgo(dateString: string) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - date.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return `${diffDays}d ago`;
+}

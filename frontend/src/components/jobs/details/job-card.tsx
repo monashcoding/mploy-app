@@ -1,103 +1,54 @@
 // frontend/src/components/jobs/details/job-card.tsx
-import { Badge, Image } from "@mantine/core";
+import { Badge, Box, Image } from "@mantine/core";
 import { Job } from "@/types/job";
 import { IconMapPin } from "@tabler/icons-react";
+import { formatCapString, getTimeAgo } from "@/lib/utils";
 
 interface JobCardProps {
   job: Job;
   isSelected?: boolean;
 }
 
-function truncateText(text: string, maxLength: number) {
-  if (!text) return "";
-  return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
-}
-
-function getTimeAgo(dateString: string) {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffTime = Math.abs(now.getTime() - date.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return `${diffDays}d ago`;
-}
-
 export default function JobCard({ job, isSelected }: JobCardProps) {
   return (
-    <div
-      className={`h-[152px] p-4 rounded-xl transition-colors ${
-        isSelected ? "bg-selected" : "bg-secondary hover:bg-selected"
-      }`}
+    // Have to use Box here since I can't define bg-[--mantine-color-selected].
+    // It requires a shade e.g. bg-[--mantine-color-selected.0], which results
+    // in breaking changes between light and dark mode.
+    <Box
+      bg={isSelected ? "selected" : "secondary"}
+      bd="1px solid selected"
+      className={`h-[10rem] p-4 rounded-xl transition-colors`}
     >
-      {/* Header Section */}
-      <div className="flex justify-between mb-2">
-        {/* Logo and Title Section */}
-        <div className="flex gap-2 flex-1">
+      <div className={"flex justify-between"}>
+        <div className={"flex"}>
           <Image
             alt={job.company.name}
             src={job.company.logo}
-            radius="md"
-            fit="contain"
-            h={50}
-            w={50}
-            style={{ backgroundColor: "white", marginRight: "0px" }}
+            h={60}
+            w={60}
+            className={"mr-2 object-contain rounded-md bg-white"}
           />
-
-          <div className="flex-1 min-w-0 mt-[-2px]">
-            <p className="text-sm font-bold max-w-72 truncate">{job.title}</p>
-            <p className="text-xs truncate">{job.company.name}</p>
-            <div className="flex items-center gap-1">
-              <IconMapPin size={10} />
-              <p className="text-[10px] font-thin">{job.locations[0]}</p>
-            </div>
+          <div className={"flex justify-center flex-col max-w-64 space-y-0.5"}>
+            <span className="text-md font-bold truncate leading-tight">
+              {job.title}
+            </span>
+            <span className="text-xs truncate">{job.company.name}</span>
+            <span className="text-xs flex items-center gap-1">
+              <IconMapPin size={12} />
+              {job.locations[0]}
+            </span>
           </div>
         </div>
-
-        {/* Posted Time */}
-        <span className="text-xs mt-[-4px] text-gray-400">
-          {getTimeAgo(job.updated_at)}
-        </span>
+        <span className={"text-xs"}>{getTimeAgo(job.updated_at)}</span>
       </div>
-
-      {/* Description Section */}
-      <p className="text-xs mb-3 line-clamp-2">
-        {truncateText(job.description || "", 150)}
-      </p>
-
-      {/* Tags Section */}
-      <div className="flex flex-wrap gap-1">
+      <div className={"text-xs line-clamp-2 mt-2"}>{job.description}</div>
+      <div className={"mt-1"}>
         {job.type && (
-          <Badge
-            style={{ fontWeight: 300 }}
-            color="dark.4"
-            radius="md"
-            size="sm"
-          >
-            {job.type}
-          </Badge>
-        )}
-        {job.working_rights?.[0] && (
-          <Badge
-            style={{ fontWeight: 300 }}
-            color="dark.4"
-            radius="md"
-            size="sm"
-          >
-            {job.working_rights[0] === "VISA_SPONSORED"
-              ? "Visa-Friendly"
-              : "Citizen/PR"}
-          </Badge>
-        )}
-        {job.industry && (
-          <Badge
-            style={{ fontWeight: 300 }}
-            color="dark.4"
-            radius="md"
-            size="sm"
-          >
-            {job.industry}
+          <Badge fw="300" tt="none" color="dark.4" size="sm">
+            {formatCapString(job.type)}
           </Badge>
         )}
       </div>
-    </div>
+    </Box>
   );
 }
