@@ -9,11 +9,11 @@ import { theme } from "@/lib/theme";
 
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="dark">
       <Head>
         <ColorSchemeScript defaultColorScheme="dark" />
       </Head>
-      <body>
+      <body className="text-text dark">
         <MantineProvider theme={theme} defaultColorScheme="dark">
           <div className="min-h-screen flex flex-col">
             <NavBar />

@@ -18,3 +18,12 @@ logging:
 
 server:
   port: 8080
+
+devtools:
+  restart:
+    enabled: true
+
+# Enable LiveReload if needed
+spring.devtools.livereload.enabled: true
+
+spring.devtools.reload.trigger-file: .reloadtrigger
