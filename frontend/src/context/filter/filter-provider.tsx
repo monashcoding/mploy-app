@@ -24,7 +24,7 @@ const emptyFilterState: FilterState = {
 
 export function FilterProvider({ children }: { children: ReactNode }) {
   const [filters, setFilters] = useState<FilterState>(emptyFilterState);
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [selectedJob, setSelectedJobInternal] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [totalJobs, setTotalJobs] = useState<number>(0);
   const router = useRouter();
@@ -43,6 +43,14 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, [pathname, searchParams]);
 
+  // Wrapper for SelectedJob to validate attributes first
+  const setSelectedJob = (job: Job | null) => {
+    // Remove duplicates from working_rights
+    if (job?.working_rights && job.working_rights.length > 0) {
+      job.working_rights = [...new Set(job.working_rights)];
+    }
+    setSelectedJobInternal(job);
+  };
   return (
     <FilterContext.Provider
       value={{
