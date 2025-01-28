@@ -8,4 +8,14 @@ export default {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   plugins: [],
+  theme: {
+    extend: {
+      colors: {
+        selected: "var(--selected)",
+        background: "var(--background)",
+        secondary: "var(--secondary)",
+        accent: "var(--accent)",
+      },
+    },
+  },
 } satisfies Config;
