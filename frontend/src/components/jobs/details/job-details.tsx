@@ -97,7 +97,7 @@ export default function JobDetails() {
             dangerouslySetInnerHTML={{
               __html: sanitizeHtml(selectedJob.description || ""),
             }}
-            className={"text-sm"}
+            className={"text-sm leading-relaxed"}
           />
         </div>
 
