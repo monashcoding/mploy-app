@@ -13,7 +13,8 @@ export default function DropdownSort() {
       value={filters.filters.sortBy}
       allowDeselect={false}
       placeholder="Sort by"
-      aria-label="Sort jobs"
+      radius={"md"}
+      className="max-w-36"
     />
   );
 }

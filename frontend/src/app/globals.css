@@ -1,4 +1,6 @@
-@tailwind base;
+@layer tailwind {
+  @tailwind base;
+}
 @tailwind components;
 @tailwind utilities;
 @layer utilities {
@@ -15,26 +17,23 @@
 
 @layer base {
   :root {
-    --text: #000000;
-    --background: #ffffff;
-    --primary: #fce02c;
-    --secondary: #c4c4c4;
-    --accent: #fce02c;
-    --underline: rgba(252, 224, 44, 0.9);
+    --selected: #3a3a3a;
+    --background: #1f1f1f;
+    --secondary: #2e2e2e;
+    --accent: #ffe22f;
   }
   .dark {
-    --text: #ffffff;
-    --background: #000000;
-    --primary: #d3b703;
-    --secondary: #3b3b3b;
-    --accent: #d3b703;
-    --underline: rgba(211, 183, 3, 0.9);
+    --selected: #3a3a3a;
+    --background: #1f1f1f;
+    --secondary: #2e2e2e;
+    --accent: #ffe22f;
   }
 }
 
 .underline-fancy {
   text-decoration: underline;
-  text-decoration-color: var(--underline);
+  font-weight: bold;
+  text-decoration-color: var(--mantine-color-accent-0);
   text-underline-offset: 4px;
-  text-decoration-thickness: 3px;
+  text-decoration-thickness: 2px;
 }
