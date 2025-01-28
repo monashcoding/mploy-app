@@ -18,6 +18,7 @@ export default function JobList({ jobs }: JobListProps) {
     if (jobs.length > 0 && !selectedJob) {
       setSelectedJob(jobs[0]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobs]);
 
   if (isLoading) {

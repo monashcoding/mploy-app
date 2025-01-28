@@ -42,7 +42,7 @@ export default function DropdownFilter({
     if (urlValues.length > 0) {
       setLocalSelected(urlValues);
     }
-  });
+  }, [searchParams, filterKey]);
 
   // Updates locally selected value & filters
   const handleValueSelect = (value: string) => {
