@@ -100,7 +100,10 @@ const UPPERCASE_WORDS = new Set([
  * @param str - The uppercase string to convert
  * @returns A formatted string in title case
  */
-export function formatCapString(str: string): string {
+export function formatCapString(str: string | undefined): string {
+  if (!str) {
+    return "";
+  }
   return str
     .split("_")
     .map((word) => {

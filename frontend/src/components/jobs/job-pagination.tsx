@@ -1,8 +1,6 @@
 // frontend/src/components/jobs/pagination.tsx
 "use client";
 
-"use client";
-
 import { useEffect, useState } from "react";
 import { Pagination } from "@mantine/core";
 import { useFilterContext } from "@/context/filter/filter-context";
