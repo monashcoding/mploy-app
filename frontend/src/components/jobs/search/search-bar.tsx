@@ -15,7 +15,7 @@ export default function SearchBar() {
         page: 1,
       },
     });
-  }, 300);
+  }, 100);
 
   return (
     <Input
