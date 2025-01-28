@@ -35,7 +35,7 @@ export default function FilterSection({ _totalJobs }: FilterSectionProps) {
           options={[...WORKING_RIGHTS]}
         />
       </div>
-      <DropdownSort />
+      {/*<DropdownSort />*/}
     </div>
   );
 }
