@@ -8,20 +8,21 @@ import { getJobs } from "@/app/jobs/actions";
 import JobPagination from "@/components/jobs/job-pagination";
 import { Suspense } from "react";
 import Loading from "@/app/loading";
+import HeadingText from "@/components/layout/heading-text";
 
 export default async function JobsPage({
   searchParams,
 }: {
   searchParams: Promise<Partial<JobFilters>>;
 }) {
+  // https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional
+  // searchParams is a promise that resolves to an object containing the search
+  // parameters of the current URL.
   const { jobs, total } = await getJobs(await searchParams);
 
   return (
     <div className="">
-      <span className={"text-3xl "}>
-        Find <span className={"underline-fancy"}>Internships</span> and{" "}
-        <span className={"underline-fancy"}>Student Jobs</span>
-      </span>
+      <HeadingText />
       <SearchBar />
       <FilterSection _totalJobs={total} />
 

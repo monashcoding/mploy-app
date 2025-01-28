@@ -12,6 +12,22 @@ export interface MongoJob extends Omit<Job, "id"> {
   _id: ObjectId;
 }
 
+/**
+ * Fetches paginated and filtered job listings from MongoDB.
+ *
+ * @param filters - Partial JobFilters object containing:
+ *   - workingRights?: Array of required working rights
+ *   - jobTypes?: Array of job types to include
+ *   - industryFields?: Array of industry fields
+ *   - search?: Full-text search on job titles and company names (case-insensitive)
+ *   - page?: Page number (defaults to 1)
+ *
+ * @returns Promise containing:
+ *   - jobs: Array of serialized Job objects
+ *   - total: Total count of jobs matching the filters
+ *
+ * @throws Error if MongoDB connection fails or if MONGODB_URI is not configured
+ */
 export async function getJobs(
   filters: Partial<JobFilters>,
 ): Promise<{ jobs: Job[]; total: number }> {

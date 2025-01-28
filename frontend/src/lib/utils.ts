@@ -78,6 +78,20 @@ export default function serializeJob(job: MongoJob): Job {
   };
 }
 
+const UPPERCASE_WORDS = new Set([
+  "VIC",
+  "NSW",
+  "QLD",
+  "WA",
+  "NT",
+  "SA",
+  "ACT",
+  "TAS",
+  "PR",
+  "NZ",
+  "AUS",
+]);
+
 /**
  * Converts a capitalized string with underscores to title case with spaces
  * Example: "VISA_SPONSORED" -> "Visa Sponsored"
@@ -89,7 +103,14 @@ export default function serializeJob(job: MongoJob): Job {
 export function formatCapString(str: string): string {
   return str
     .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .map((word) => {
+      // Check if word should remain uppercase
+      if (UPPERCASE_WORDS.has(word)) {
+        return word;
+      }
+      // Convert other words to title case
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
     .join(" ");
 }
 
@@ -107,4 +128,12 @@ export function getPluralLabel(label: string) {
     // Add more irregular plurals here if needed
   };
   return irregularPlurals[label] || `${label}s`;
+}
+
+export function formatISODate(isoDate: string): string {
+  const date = new Date(isoDate);
+  const day = date.getDate();
+  const month = date.toLocaleString("en-US", { month: "short" });
+  const year = date.getFullYear();
+  return `${day} ${month} ${year}`;
 }

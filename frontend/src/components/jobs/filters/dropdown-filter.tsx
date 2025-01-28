@@ -44,6 +44,7 @@ export default function DropdownFilter({
     }
   });
 
+  // Updates locally selected value & filters
   const handleValueSelect = (value: string) => {
     const newValues = localSelected.includes(value)
       ? localSelected.filter((item) => item !== value)

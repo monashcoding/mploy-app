@@ -12,30 +12,30 @@ export default function SearchBar() {
       filters: {
         ...filters.filters,
         search: value,
-        page: 1, // Reset to first page on new search
+        page: 1,
       },
     });
   }, 300);
 
   return (
     <Input
-      placeholder="Search for a company or a role..."
       leftSection={
         <IconSearch
           size={20}
           className="ml-2 stroke-[--mantine-color-accent-0]"
         />
       }
-      onChange={(e) => handleSearch(e.currentTarget.value)}
       rightSection={
         <Input.ClearButton
           size="md"
           className="absolute pointer-events-auto z-10 right-2"
         />
       }
+      placeholder="Search for a company or a role..."
+      onChange={(e) => handleSearch(e.currentTarget.value)}
       radius="lg"
       variant="filled"
-      className={"mt-4"}
+      className="mt-4"
       styles={{
         input: {
           padding: "28px",

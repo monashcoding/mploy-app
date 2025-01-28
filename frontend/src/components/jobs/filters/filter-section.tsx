@@ -1,6 +1,5 @@
 "use client";
 
-import DropdownSort from "@/components/jobs/filters/dropdown-sort";
 import { Text } from "@mantine/core";
 import { useFilterContext } from "@/context/filter/filter-context";
 import DropdownFilter from "@/components/jobs/filters/dropdown-filter";

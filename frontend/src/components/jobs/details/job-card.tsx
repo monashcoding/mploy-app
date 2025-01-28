@@ -1,8 +1,9 @@
 // frontend/src/components/jobs/details/job-card.tsx
-import { Badge, Box, Image } from "@mantine/core";
+import { Box, Image } from "@mantine/core";
 import { Job } from "@/types/job";
 import { IconMapPin } from "@tabler/icons-react";
 import { formatCapString, getTimeAgo } from "@/lib/utils";
+import Badge from "@/components/ui/badge";
 
 interface JobCardProps {
   job: Job;
@@ -11,8 +12,6 @@ interface JobCardProps {
 
 export default function JobCard({ job, isSelected }: JobCardProps) {
   return (
-    // Have to use Box here since I can't define bg-[--mantine-color-selected].
-    // Doing so requires a shade which breaks between light and dark mode.
     <Box
       bg={isSelected ? "selected" : "secondary"}
       bd="2px solid selected"
@@ -40,21 +39,17 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
       </div>
       <div className={"text-xs line-clamp-2 mt-2"}>{job.description}</div>
       <div className={"mt-2 flex gap-2"}>
-        {job.type && (
-          <Badge fw="300" tt="none" color="dark.4" size="sm">
-            {formatCapString(job.type)}
-          </Badge>
-        )}
+        {job.type && <Badge text={formatCapString(job.type)} />}
         {job.working_rights?.[0] && (
-          <Badge fw="300" tt="none" color="dark.4" size="sm">
-            {job.working_rights[0] === "VISA_SPONSORED"
-              ? "Visa-Friendly"
-              : "Citizen/PR"}
-          </Badge>
+          <Badge
+            text={
+              job.working_rights[0] === "VISA_SPONSORED"
+                ? "Visa-Friendly"
+                : "Citizen/PR"
+            }
+          />
         )}
-        <Badge fw="300" tt="none" color="dark.4" size="sm">
-          Banking
-        </Badge>
+        <Badge text="Banking" />
       </div>
     </Box>
   );
