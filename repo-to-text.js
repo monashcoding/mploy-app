@@ -24,6 +24,7 @@ const EXCLUDED_FILES = [
   "export-script.js",
   "package-lock.json",
   "README.md",
+  ".env"
 ];
 const ALLOWED_EXTENSIONS = new Set([
   ".ts", // TypeScript
