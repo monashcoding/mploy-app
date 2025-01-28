@@ -7,17 +7,15 @@ export default {
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  plugins: [],
   theme: {
     extend: {
       colors: {
-        text: "var(--text)",
+        selected: "var(--selected)",
         background: "var(--background)",
-        primary: "var(--primary)",
         secondary: "var(--secondary)",
         accent: "var(--accent)",
-        underline: "var(--underline)",
       },
     },
   },
-  plugins: [],
 } satisfies Config;

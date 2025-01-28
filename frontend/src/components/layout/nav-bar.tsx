@@ -1,24 +1,20 @@
+"use client";
+
 import Logo from "@/components/layout/logo";
-import { Button } from "@mantine/core";
 import Link from "next/link";
 
 export default function NavBar() {
   return (
-    <nav className="p-4">
-      <div className="max-w-7xl mx-auto flex justify-between items-center">
+    <nav className="py-8">
+      <div className="max-w-7xl mx-auto flex justify-between items-center min-h-14">
         <Logo />
-        <div className="flex">
-          <Link href="/">
-            <Button variant="transparent" size="lg">
-              <span className="text-text font-light">Home</span>
-            </Button>
+
+        <div className="flex items-center gap-4">
+          <Link className={"text-lg"} href="/">
+            Home
           </Link>
-          <Link href="/jobs">
-            <Button variant="transparent" size="lg">
-              <span className="text-text underline-fancy">
-                Current Openings
-              </span>
-            </Button>
+          <Link className={"text-lg font-bold underline-fancy"} href="/jobs">
+            Jobs
           </Link>
         </div>
       </div>

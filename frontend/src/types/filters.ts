@@ -21,7 +21,6 @@ export enum SortBy {
 
 export interface FilterState {
   filters: JobFilters;
-  totalJobs: number;
   isLoading: boolean;
   error: Error | null;
 }

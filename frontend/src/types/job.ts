@@ -49,15 +49,13 @@ export interface Job {
   title: string;
   description?: string;
   company: Company;
-  applicationUrl?: string;
-  sourceUrls: string[];
+  application_url?: string;
+  source_urls: string[];
   type?: JobType;
-  openDate?: string;
-  closeDate?: string;
+  close_date?: string;
   locations: LocationType[];
-  studyFields: string[];
-  industryField: IndustryField;
-  workingRights: WorkingRight[];
-  createdAt: string;
-  updatedAt: string;
+  industry: IndustryField;
+  working_rights: WorkingRight[];
+  created_at: string;
+  updated_at: string;
 }
