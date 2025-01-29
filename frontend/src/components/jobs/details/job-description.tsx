@@ -16,10 +16,9 @@ export default function JobDescription({ description }: JobDescriptionProps) {
           dangerouslySetInnerHTML={{
             __html: DOMPurify.sanitize(description || ""),
           }}
-          className="prose prose-invert"
+          className="prose prose-invert leading-relaxed text-xs ml-6 [&_h1]:mb-1 [&_h2]:mb-1 [&_h3]:mb-1"
         />
       </TypographyStylesProvider>
-      
     </div>
   );
 }

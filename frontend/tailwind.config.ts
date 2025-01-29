@@ -17,6 +17,14 @@ export default {
         secondary: "var(--secondary)",
         accent: "var(--accent)",
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            color: "var(--mantine-color-dark-0)",
+            "*": { color: "var(--mantine-color-dark-0)" },
+          },
+        },
+      }
     },
   },
 } satisfies Config;
