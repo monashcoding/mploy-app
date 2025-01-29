@@ -24,7 +24,7 @@ export default {
             "*": { color: "var(--mantine-color-dark-0)" },
           },
         },
-      }
+      },
     },
   },
 } satisfies Config;

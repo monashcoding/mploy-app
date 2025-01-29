@@ -12,7 +12,6 @@ interface JobCardProps {
 }
 
 export default function JobCard({ job, isSelected }: JobCardProps) {
-
   return (
     <Box
       bg={isSelected ? "selected" : "secondary"}
@@ -39,9 +38,14 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
         </div>
         <span className={"text-xs"}>{getTimeAgo(job.updated_at)}</span>
       </div>
-      <div dangerouslySetInnerHTML={{
+      <div
+        dangerouslySetInnerHTML={{
           __html: DOMPurify.sanitize(job.description || ""),
-        }} className={"text-xs [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-sm max-w-none line-clamp-2 mt-2 prose max-h-[4em]"}/>
+        }}
+        className={
+          "text-xs [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-sm max-w-none line-clamp-2 mt-2 prose max-h-[4em]"
+        }
+      />
       <div className={"mt-2 flex gap-2"}>
         {job.type && <Badge text={formatCapString(job.type)} />}
         {job.working_rights?.[0] && (
