@@ -12,11 +12,12 @@ interface JobCardProps {
 }
 
 export default function JobCard({ job, isSelected }: JobCardProps) {
+
   return (
     <Box
       bg={isSelected ? "selected" : "secondary"}
       bd="2px solid selected"
-      className={`h-[10rem] p-4 rounded-xl transition-colors`}
+      className={`h-[10.5rem] p-4 rounded-xl transition-colors`}
     >
       <div className={"flex justify-between"}>
         <div className={"flex"}>
@@ -40,7 +41,7 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
       </div>
       <div dangerouslySetInnerHTML={{
           __html: DOMPurify.sanitize(job.description || ""),
-        }} className={"text-xs line-clamp-2 mt-2"}/>
+        }} className={"text-xs [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-sm max-w-none line-clamp-2 mt-2 prose max-h-[4em]"}/>
       <div className={"mt-2 flex gap-2"}>
         {job.type && <Badge text={formatCapString(job.type)} />}
         {job.working_rights?.[0] && (
