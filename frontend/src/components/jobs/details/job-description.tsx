@@ -1,5 +1,6 @@
 // frontend/src/components/jobs/details/sections/job-description.tsx
 import SectionHeading from "@/components/ui/section-heading";
+import { TypographyStylesProvider } from "@mantine/core";
 import DOMPurify from "isomorphic-dompurify";
 
 interface JobDescriptionProps {
@@ -10,12 +11,15 @@ export default function JobDescription({ description }: JobDescriptionProps) {
   return (
     <div className="flex flex-col space-y-1 mt-8">
       <SectionHeading title="Job Description" />
-      <div
-        dangerouslySetInnerHTML={{
-          __html: DOMPurify.sanitize(description || ""),
-        }}
-        className="text-sm leading-relaxed"
-      />
+      <TypographyStylesProvider>
+        <div
+          dangerouslySetInnerHTML={{
+            __html: DOMPurify.sanitize(description || ""),
+          }}
+          className="prose prose-invert"
+        />
+      </TypographyStylesProvider>
+      
     </div>
   );
 }
