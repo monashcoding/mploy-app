@@ -4,6 +4,7 @@ import { Job } from "@/types/job";
 import { IconMapPin } from "@tabler/icons-react";
 import { formatCapString, getTimeAgo } from "@/lib/utils";
 import Badge from "@/components/ui/badge";
+import DOMPurify from "isomorphic-dompurify";
 
 interface JobCardProps {
   job: Job;
@@ -37,7 +38,9 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
         </div>
         <span className={"text-xs"}>{getTimeAgo(job.updated_at)}</span>
       </div>
-      <div className={"text-xs line-clamp-2 mt-2"}>{job.description}</div>
+      <div dangerouslySetInnerHTML={{
+          __html: DOMPurify.sanitize(job.description || ""),
+        }} className={"text-xs line-clamp-2 mt-2"}/>
       <div className={"mt-2 flex gap-2"}>
         {job.type && <Badge text={formatCapString(job.type)} />}
         {job.working_rights?.[0] && (
