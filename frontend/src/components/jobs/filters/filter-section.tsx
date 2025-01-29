@@ -4,6 +4,7 @@ import { Text } from "@mantine/core";
 import { useFilterContext } from "@/context/filter/filter-context";
 import DropdownFilter from "@/components/jobs/filters/dropdown-filter";
 import { INDUSTRY_FIELDS, LOCATIONS, WORKING_RIGHTS } from "@/types/job";
+import { useEffect } from "react";
 
 interface FilterSectionProps {
   _totalJobs: number;
@@ -12,7 +13,9 @@ interface FilterSectionProps {
 export default function FilterSection({ _totalJobs }: FilterSectionProps) {
   const { totalJobs, setTotalJobs } = useFilterContext();
 
-  setTotalJobs(_totalJobs);
+  useEffect(() => {
+    setTotalJobs(_totalJobs);
+  }, [_totalJobs, setTotalJobs]);
 
   return (
     <div className="flex flex-row justify-between items-center mt-3">
