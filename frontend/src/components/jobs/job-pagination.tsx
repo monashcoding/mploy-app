@@ -33,14 +33,17 @@ export default function JobPagination({ pageSize = 20 }: JobPaginationProps) {
   };
 
   return (
-    <div className="flex justify-start py-4">
+    <div className="flex justify-center py-4">
       <Pagination
+        autoContrast
         value={filters.filters.page}
         onChange={handlePageChange}
         total={totalPages}
-        size="sm"
-        radius="md"
-        withEdges
+        siblings={1}
+        size="md"
+        gap={12}
+        radius="lg"
+        color="accent"
       />
     </div>
   );
