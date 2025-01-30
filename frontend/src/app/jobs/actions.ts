@@ -3,8 +3,10 @@
 
 import { MongoClient, ObjectId } from "mongodb";
 import { JobFilters } from "@/types/filters";
-import { Job } from "@/types/job";
+import { INDUSTRY_FIELDS, Job, JOB_TYPES, WORKING_RIGHTS } from "@/types/job";
+import {JobType, WorkingRight, IndustryField } from "@/types/job";
 import serializeJob from "@/lib/utils";
+
 
 const PAGE_SIZE = 20;
 
@@ -37,33 +39,43 @@ export async function getJobs(
     );
   }
 
+
   const client = new MongoClient(process.env.MONGODB_URI ?? "");
 
   try {
     await client.connect();
     const collection = client.db("default").collection("active_jobs");
-
+    console.log("filters: " +  JSON.stringify(filters, null, 2));
+    const array_jobs = JSON.parse(JSON.stringify(filters, null, 2));
+    console.log("array: ", array_jobs);
+    console.log("JUST INDUSTRY FIELDSy: ", array_jobs["industryFields[]"]);
+    console.log("xxxxxxx: ", filters.industryFields)
+    console.log('search: ' + filters.search);
+    // Build the query object with proper typing
     const query = {
       outdated: false,
-      ...(filters.workingRights?.length && {
-        working_rights: {
-          $in: Array.isArray(filters.workingRights)
-            ? filters.workingRights
-            : [filters.workingRights],
-        },
-      }),
-      ...(filters.jobTypes?.length && {
-        type: {
-          $in: Array.isArray(filters.jobTypes)
-            ? filters.jobTypes
-            : [filters.jobTypes],
-        },
-      }),
-      ...(filters.industryFields?.length && {
-        industry_field: {
-          $in: Array.isArray(filters.industryFields)
-            ? filters.industryFields
-            : [filters.industryFields],
+...(array_jobs["workingRights[]"] !== undefined &&
+  array_jobs["workingRights[]"].length && {
+    working_rights: {
+      $in: Array.isArray(array_jobs["workingRights[]"])
+        ? array_jobs["workingRights[]"]
+        : [array_jobs["workingRights[]"]],
+    },
+  }),
+  ...(array_jobs["locations[]"] !== undefined &&
+    array_jobs["locations[]"].length && {
+      locations: {
+        $in: Array.isArray(array_jobs["locations[]"])
+          ? array_jobs["locations[]"]
+          : [array_jobs["locations[]"]],
+      },
+    }),
+    ...(array_jobs["industryFields[]"] !== undefined &&
+      array_jobs["industryFields[]"].length && {
+        industryField: {
+          $in: Array.isArray(array_jobs["industryFields[]"])
+            ? array_jobs["industryFields[]"]
+            : [array_jobs["industryFields[]"]],
         },
       }),
       ...(filters.search && {
@@ -74,6 +86,7 @@ export async function getJobs(
       }),
     };
 
+    console.log("MongoDB Query:", JSON.stringify(query, null, 2));
     const page = filters.page || 1;
     const skip = (page - 1) * PAGE_SIZE;
 
@@ -81,14 +94,14 @@ export async function getJobs(
       collection.find(query).skip(skip).limit(PAGE_SIZE).toArray(),
       collection.countDocuments(query),
     ]);
-
+    console.log(jobs);
     return {
       jobs: (jobs as MongoJob[]).map(serializeJob),
       total,
     };
   } catch (error) {
     console.error("Server Error:", {
-      error,
+      error,  
       timestamp: new Date().toISOString(),
       filters,
     });
