@@ -13,6 +13,7 @@
     "@mantine/core": "^7.16.1",
     "@mantine/hooks": "^7.16.1",
     "@tabler/icons-react": "^3.28.1",
+    "@tailwindcss/typography": "^0.5.16",
     "dompurify": "^3.2.3",
     "isomorphic-dompurify": "^2.20.0",
     "jsdom": "^26.0.0",
