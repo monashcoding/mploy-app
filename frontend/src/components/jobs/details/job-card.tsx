@@ -57,7 +57,9 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
             }
           />
         )}
-        <Badge text="Banking" />
+        {job.industry_field && (
+          <Badge text={formatCapString(job.industry_field)} />
+        )}
       </div>
     </Box>
   );
