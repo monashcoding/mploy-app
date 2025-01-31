@@ -13,13 +13,13 @@ import HeadingText from "@/components/layout/heading-text";
 export default async function JobsPage({
   searchParams,
 }: {
-  searchParams: Partial<JobFilters>;
+  searchParams: Promise<Partial<JobFilters>>;
 }) {
   // https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional
   // searchParams is a promise that resolves to an object containing the search
   // parameters of the current URL.
-  console.log("Search Params:", JSON.stringify(searchParams, null, 2));
-  const { jobs, total } = await getJobs(searchParams);
+ 
+  const { jobs, total } = await getJobs(await searchParams);
 
   return (
     <div className="">
