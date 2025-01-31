@@ -54,7 +54,7 @@ export interface Job {
   type?: JobType;
   close_date?: string;
   locations: LocationType[];
-  industry: IndustryField;
+  industry_field?: IndustryField;
   working_rights: WorkingRight[];
   created_at: string;
   updated_at: string;
