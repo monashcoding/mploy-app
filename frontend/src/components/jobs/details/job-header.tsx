@@ -29,7 +29,9 @@ export default function JobHeader({ job }: JobHeaderProps) {
           {job.type && (
             <>
               <Divider size={2} color="accent" orientation="vertical" />
-              <Text size="sm">{job.type && formatCapString(job.type)} Role</Text>
+              <Text size="sm">
+                {job.type && formatCapString(job.type)} Role
+              </Text>
             </>
           )}
           {job.industry_field && (
@@ -37,8 +39,7 @@ export default function JobHeader({ job }: JobHeaderProps) {
               <Divider size={2} color="accent" orientation="vertical" />
               <Text size="sm">{formatCapString(job.industry_field)}</Text>
             </>
-          )
-          }
+          )}
         </div>
       </div>
       <Image
