@@ -72,7 +72,7 @@ export async function getJobs(
     }),
     ...(array_jobs["industryFields[]"] !== undefined &&
       array_jobs["industryFields[]"].length && {
-        industryField: {
+        industry_field: {
           $in: Array.isArray(array_jobs["industryFields[]"])
             ? array_jobs["industryFields[]"]
             : [array_jobs["industryFields[]"]],
