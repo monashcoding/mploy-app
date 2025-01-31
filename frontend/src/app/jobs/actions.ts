@@ -3,10 +3,9 @@
 
 import { MongoClient, ObjectId } from "mongodb";
 import { JobFilters } from "@/types/filters";
-import { Job} from "@/types/job";
+import { Job } from "@/types/job";
 
 import serializeJob from "@/lib/utils";
-
 
 const PAGE_SIZE = 20;
 
@@ -39,7 +38,6 @@ export async function getJobs(
     );
   }
 
-
   const client = new MongoClient(process.env.MONGODB_URI ?? "");
 
   try {
@@ -49,30 +47,30 @@ export async function getJobs(
     // Build the query object with proper typing
     const query = {
       outdated: false,
-...(array_jobs["workingRights[]"] !== undefined &&
-  array_jobs["workingRights[]"].length && {
-    working_rights: {
-      $in: Array.isArray(array_jobs["workingRights[]"])
-        ? array_jobs["workingRights[]"]
-        : [array_jobs["workingRights[]"]],
-    },
-  }),
-  ...(array_jobs["locations[]"] !== undefined &&
-    array_jobs["locations[]"].length && {
-      locations: {
-        $in: Array.isArray(array_jobs["locations[]"])
-          ? array_jobs["locations[]"]
-          : [array_jobs["locations[]"]],
-      },
-    }),
-    ...(array_jobs["industryFields[]"] !== undefined &&
-      array_jobs["industryFields[]"].length && {
-        industry_field: {
-          $in: Array.isArray(array_jobs["industryFields[]"])
-            ? array_jobs["industryFields[]"]
-            : [array_jobs["industryFields[]"]],
-        },
-      }),
+      ...(array_jobs["workingRights[]"] !== undefined &&
+        array_jobs["workingRights[]"].length && {
+          working_rights: {
+            $in: Array.isArray(array_jobs["workingRights[]"])
+              ? array_jobs["workingRights[]"]
+              : [array_jobs["workingRights[]"]],
+          },
+        }),
+      ...(array_jobs["locations[]"] !== undefined &&
+        array_jobs["locations[]"].length && {
+          locations: {
+            $in: Array.isArray(array_jobs["locations[]"])
+              ? array_jobs["locations[]"]
+              : [array_jobs["locations[]"]],
+          },
+        }),
+      ...(array_jobs["industryFields[]"] !== undefined &&
+        array_jobs["industryFields[]"].length && {
+          industry_field: {
+            $in: Array.isArray(array_jobs["industryFields[]"])
+              ? array_jobs["industryFields[]"]
+              : [array_jobs["industryFields[]"]],
+          },
+        }),
       ...(filters.search && {
         $or: [
           { title: { $regex: filters.search, $options: "i" } },
@@ -94,7 +92,7 @@ export async function getJobs(
     };
   } catch (error) {
     console.error("Server Error:", {
-      error,  
+      error,
       timestamp: new Date().toISOString(),
       filters,
     });
