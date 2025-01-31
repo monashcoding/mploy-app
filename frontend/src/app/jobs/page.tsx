@@ -18,6 +18,7 @@ export default async function JobsPage({
   // https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional
   // searchParams is a promise that resolves to an object containing the search
   // parameters of the current URL.
+
   const { jobs, total } = await getJobs(await searchParams);
 
   return (

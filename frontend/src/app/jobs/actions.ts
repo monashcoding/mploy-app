@@ -4,6 +4,7 @@
 import { MongoClient, ObjectId } from "mongodb";
 import { JobFilters } from "@/types/filters";
 import { Job } from "@/types/job";
+
 import serializeJob from "@/lib/utils";
 
 const PAGE_SIZE = 20;
@@ -42,30 +43,34 @@ export async function getJobs(
   try {
     await client.connect();
     const collection = client.db("default").collection("active_jobs");
-
+    const array_jobs = JSON.parse(JSON.stringify(filters, null, 2));
+    // Build the query object with proper typing
     const query = {
       outdated: false,
-      ...(filters.workingRights?.length && {
-        working_rights: {
-          $in: Array.isArray(filters.workingRights)
-            ? filters.workingRights
-            : [filters.workingRights],
-        },
-      }),
-      ...(filters.jobTypes?.length && {
-        type: {
-          $in: Array.isArray(filters.jobTypes)
-            ? filters.jobTypes
-            : [filters.jobTypes],
-        },
-      }),
-      ...(filters.industryFields?.length && {
-        industry_field: {
-          $in: Array.isArray(filters.industryFields)
-            ? filters.industryFields
-            : [filters.industryFields],
-        },
-      }),
+      ...(array_jobs["workingRights[]"] !== undefined &&
+        array_jobs["workingRights[]"].length && {
+          working_rights: {
+            $in: Array.isArray(array_jobs["workingRights[]"])
+              ? array_jobs["workingRights[]"]
+              : [array_jobs["workingRights[]"]],
+          },
+        }),
+      ...(array_jobs["locations[]"] !== undefined &&
+        array_jobs["locations[]"].length && {
+          locations: {
+            $in: Array.isArray(array_jobs["locations[]"])
+              ? array_jobs["locations[]"]
+              : [array_jobs["locations[]"]],
+          },
+        }),
+      ...(array_jobs["industryFields[]"] !== undefined &&
+        array_jobs["industryFields[]"].length && {
+          industry_field: {
+            $in: Array.isArray(array_jobs["industryFields[]"])
+              ? array_jobs["industryFields[]"]
+              : [array_jobs["industryFields[]"]],
+          },
+        }),
       ...(filters.search && {
         $or: [
           { title: { $regex: filters.search, $options: "i" } },
@@ -81,7 +86,6 @@ export async function getJobs(
       collection.find(query).skip(skip).limit(PAGE_SIZE).toArray(),
       collection.countDocuments(query),
     ]);
-
     return {
       jobs: (jobs as MongoJob[]).map(serializeJob),
       total,
