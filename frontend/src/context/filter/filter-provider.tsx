@@ -36,7 +36,6 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     setFilters((curr) => ({ ...curr, ...newFilters }));
     setSelectedJob(null);
     const params = CreateQueryString(newFilters);
-    console.log(params);
     router.push(`/jobs?${params}`);
   };
 
