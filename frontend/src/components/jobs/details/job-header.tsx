@@ -26,8 +26,19 @@ export default function JobHeader({ job }: JobHeaderProps) {
           ))}
           <Divider size={2} color="accent" orientation="vertical" />
           <Text size="sm">{formatISODate(job.created_at)}</Text>
-          <Divider size={2} color="accent" orientation="vertical" />
-          <Text size="sm">{job.type && formatCapString(job.type)} Role</Text>
+          {job.type && (
+            <>
+              <Divider size={2} color="accent" orientation="vertical" />
+              <Text size="sm">{job.type && formatCapString(job.type)} Role</Text>
+            </>
+          )}
+          {job.industry_field && (
+            <>
+              <Divider size={2} color="accent" orientation="vertical" />
+              <Text size="sm">{formatCapString(job.industry_field)}</Text>
+            </>
+          )
+          }
         </div>
       </div>
       <Image
