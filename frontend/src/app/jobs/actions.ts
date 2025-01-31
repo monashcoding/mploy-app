@@ -3,8 +3,8 @@
 
 import { MongoClient, ObjectId } from "mongodb";
 import { JobFilters } from "@/types/filters";
-import { INDUSTRY_FIELDS, Job, JOB_TYPES, WORKING_RIGHTS } from "@/types/job";
-import {JobType, WorkingRight, IndustryField } from "@/types/job";
+import { Job} from "@/types/job";
+
 import serializeJob from "@/lib/utils";
 
 
@@ -45,12 +45,7 @@ export async function getJobs(
   try {
     await client.connect();
     const collection = client.db("default").collection("active_jobs");
-    console.log("filters: " +  JSON.stringify(filters, null, 2));
     const array_jobs = JSON.parse(JSON.stringify(filters, null, 2));
-    console.log("array: ", array_jobs);
-    console.log("JUST INDUSTRY FIELDSy: ", array_jobs["industryFields[]"]);
-    console.log("xxxxxxx: ", filters.industryFields)
-    console.log('search: ' + filters.search);
     // Build the query object with proper typing
     const query = {
       outdated: false,
@@ -86,7 +81,6 @@ export async function getJobs(
       }),
     };
 
-    console.log("MongoDB Query:", JSON.stringify(query, null, 2));
     const page = filters.page || 1;
     const skip = (page - 1) * PAGE_SIZE;
 
@@ -94,7 +88,6 @@ export async function getJobs(
       collection.find(query).skip(skip).limit(PAGE_SIZE).toArray(),
       collection.countDocuments(query),
     ]);
-    console.log(jobs);
     return {
       jobs: (jobs as MongoJob[]).map(serializeJob),
       total,
