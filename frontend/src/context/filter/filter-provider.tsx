@@ -51,6 +51,14 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     }
     setSelectedJobInternal(job);
   };
+
+  const clearFilters = () => {
+    setIsLoading(true);
+    setFilters(emptyFilterState);
+    setSelectedJob(null);
+    router.push("/jobs");
+  };
+
   return (
     <FilterContext.Provider
       value={{
@@ -61,6 +69,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
         setTotalJobs,
         updateFilters,
         setSelectedJob,
+        clearFilters,
       }}
     >
       {children}
