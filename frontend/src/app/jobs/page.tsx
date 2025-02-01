@@ -1,8 +1,8 @@
 // frontend/src/app/jobs/page.tsx
-import SearchBar from "@/components/jobs/search/search-bar";
-import FilterSection from "@/components/jobs/filters/filter-section";
-import JobList from "@/components/jobs/details/job-list";
-import JobDetails from "@/components/jobs/details/job-details";
+import SearchBar from "@/components/search/search-bar";
+import FilterSection from "@/components/filters/filter-section";
+import JobList from "@/components/jobs/job-list";
+import JobDetails from "@/components/jobs/job-details";
 import { JobFilters } from "@/types/filters";
 import { getJobs } from "@/app/jobs/actions";
 import JobPagination from "@/components/jobs/job-pagination";

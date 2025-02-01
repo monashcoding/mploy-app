@@ -4,9 +4,9 @@
 import { Button, Card, ScrollArea } from "@mantine/core";
 import { IconFolderOpen } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
-import JobDescription from "@/components/jobs/details/job-description";
-import JobWorkingRights from "@/components/jobs/details/job-working-rights";
-import JobHeader from "@/components/jobs/details/job-header";
+import JobDescription from "@/components/jobs/job-description";
+import JobWorkingRights from "@/components/jobs/job-working-rights";
+import JobHeader from "@/components/jobs/job-header";
 
 export default function JobDetails() {
   const { selectedJob, isLoading } = useFilterContext();

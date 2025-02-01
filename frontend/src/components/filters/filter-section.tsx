@@ -2,7 +2,7 @@
 
 import { Text } from "@mantine/core";
 import { useFilterContext } from "@/context/filter/filter-context";
-import DropdownFilter from "@/components/jobs/filters/dropdown-filter";
+import DropdownFilter from "@/components/filters/dropdown-filter";
 import { INDUSTRY_FIELDS, LOCATIONS, WORKING_RIGHTS } from "@/types/job";
 import { useEffect } from "react";
 

@@ -1,7 +1,7 @@
 // frontend/src/components/jobs/details/job-list.tsx
 "use client";
 
-import JobCard from "@/components/jobs/details/job-card";
+import JobCard from "@/components/jobs/job-card";
 import { useFilterContext } from "@/context/filter/filter-context";
 import { Job } from "@/types/job";
 import { useEffect } from "react";
