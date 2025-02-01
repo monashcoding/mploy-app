@@ -13,6 +13,7 @@ interface FilterContextType {
   totalJobs: number;
   setTotalJobs: (totalJobs: number) => void;
   isLoading: boolean;
+  clearFilters: () => void;
 }
 
 export const FilterContext = createContext<FilterContextType | undefined>(
