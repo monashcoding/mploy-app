@@ -4,38 +4,60 @@
 import JobCard from "@/components/jobs/job-card";
 import { useFilterContext } from "@/context/filter/filter-context";
 import { Job } from "@/types/job";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Loading from "@/app/loading";
+import { Modal, ScrollArea } from "@mantine/core";
+import JobDetails from "@/components/jobs/job-details";
 
-interface JobListProps {
-  jobs: Job[];
-}
-
-export default function JobList({ jobs }: JobListProps) {
+export default function JobList({ jobs }: { jobs: Job[] }) {
   const { selectedJob, setSelectedJob, isLoading } = useFilterContext();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (jobs.length > 0 && !selectedJob) {
       setSelectedJob(jobs[0]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [jobs]);
+  }, [jobs, selectedJob, setSelectedJob]);
 
   if (isLoading) {
     return <Loading />;
   }
 
   return (
-    <div className="space-y-4">
-      {jobs.map((job) => (
-        <div
-          key={job.id}
-          onClick={() => setSelectedJob(job)}
-          className="cursor-pointer"
-        >
-          <JobCard job={job} isSelected={selectedJob?.id === job.id} />
-        </div>
-      ))}
-    </div>
+    <>
+      <div className="space-y-4">
+        {jobs.map((job) => (
+          <div
+            key={job.id}
+            onClick={() => {
+              setSelectedJob(job);
+              // Only open modal on mobile
+              if (window.innerWidth < 1024) {
+                setIsModalOpen(true);
+              }
+            }}
+            className="cursor-pointer"
+          >
+            <JobCard job={job} isSelected={selectedJob?.id === job.id} />
+          </div>
+        ))}
+      </div>
+
+      <Modal
+        opened={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        size="lg"
+        scrollAreaComponent={ScrollArea}
+        className="lg:hidden"
+        fullScreen
+        styles={{
+          body: {
+            height: "calc(100vh - 120px)",
+          },
+        }}
+      >
+        <JobDetails />
+      </Modal>
+    </>
   );
 }
