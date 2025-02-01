@@ -71,6 +71,14 @@ export async function getJobs(
               : [array_jobs["industryFields[]"]],
           },
         }),
+      ...(array_jobs["jobTypes[]"] !== undefined &&
+        array_jobs["jobTypes[]"].length && {
+          type: {
+            $in: Array.isArray(array_jobs["jobTypes[]"])
+              ? array_jobs["jobTypes[]"]
+              : [array_jobs["jobTypes[]"]],
+          },
+        }),
       ...(filters.search && {
         $or: [
           { title: { $regex: filters.search, $options: "i" } },
