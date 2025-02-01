@@ -12,7 +12,6 @@ import { IconChevronDown } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
 import { JobFilters } from "@/types/filters";
 import { formatCapString, getPluralLabel } from "@/lib/utils";
-import { useSearchParams } from "next/navigation";
 
 interface DropdownFilterProps {
   label: string;
