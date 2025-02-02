@@ -1,5 +1,10 @@
 // frontend/src/types/job.ts
-export const JOB_TYPES = ["PRE_PENULTIMATE", "INTERN", "GRADUATE", "OTHER"] as const;
+export const JOB_TYPES = [
+  "PRE_PENULTIMATE",
+  "INTERN",
+  "GRADUATE",
+  "OTHER",
+] as const;
 export type JobType = (typeof JOB_TYPES)[number];
 
 export const LOCATIONS = [
