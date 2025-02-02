@@ -17,13 +17,9 @@ export const LOCATIONS = [
 export type LocationType = (typeof LOCATIONS)[number];
 
 export const WORKING_RIGHTS = [
-  "AUS_CITIZEN",
-  "AUS_PR",
-  "NZ_CITIZEN",
-  "NZ_PR",
+  "AUS_CITIZEN_PR",
+  "NZ_CITIZEN_PR",
   "INTERNATIONAL",
-  "WORK_VISA",
-  "VISA_SPONSORED",
   "OTHER_RIGHTS",
 ] as const;
 export type WorkingRight = (typeof WORKING_RIGHTS)[number];
