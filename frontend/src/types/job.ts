@@ -34,6 +34,12 @@ export const INDUSTRY_FIELDS = [
   "BIG_TECH",
   "TECH",
   "QUANT_TRADING",
+  "ENERGY",
+  "GOVERNMENT",
+  "MANUFACTURING",
+  "TELECOMMUNICATIONS",
+  "RETAIL",
+  "TRANSPORTATION",
   "OTHER_INDUSTRY",
 ] as const;
 export type IndustryField = (typeof INDUSTRY_FIELDS)[number];
