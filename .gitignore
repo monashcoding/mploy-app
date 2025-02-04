@@ -62,6 +62,7 @@ desktop.ini
 # Lock file for pnpm
 pnpm-lock.yaml
 
-
 /repo-to-text/
-.aider*
+
+# Typescript build info
+frontend/tsconfig.tsbuildinfo

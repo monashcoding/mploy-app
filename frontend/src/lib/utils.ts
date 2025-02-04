@@ -67,7 +67,7 @@ export default function serializeJob(job: MongoJob): Job {
     company: job.company,
     source_urls: job.source_urls,
     locations: job.locations,
-    industry: job.industry,
+    industry_field: job.industry_field,
     working_rights: job.working_rights,
     created_at: serializeDate(job.created_at),
     updated_at: serializeDate(job.updated_at),

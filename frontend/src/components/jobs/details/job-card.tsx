@@ -4,6 +4,7 @@ import { Job } from "@/types/job";
 import { IconMapPin } from "@tabler/icons-react";
 import { formatCapString, getTimeAgo } from "@/lib/utils";
 import Badge from "@/components/ui/badge";
+import DOMPurify from "isomorphic-dompurify";
 
 interface JobCardProps {
   job: Job;
@@ -15,7 +16,7 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
     <Box
       bg={isSelected ? "selected" : "secondary"}
       bd="2px solid selected"
-      className={`h-[10rem] p-4 rounded-xl transition-colors`}
+      className={`h-[10.5rem] p-4 rounded-xl transition-colors`}
     >
       <div className={"flex justify-between"}>
         <div className={"flex"}>
@@ -37,7 +38,14 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
         </div>
         <span className={"text-xs"}>{getTimeAgo(job.updated_at)}</span>
       </div>
-      <div className={"text-xs line-clamp-2 mt-2"}>{job.description}</div>
+      <div
+        dangerouslySetInnerHTML={{
+          __html: DOMPurify.sanitize(job.description || ""),
+        }}
+        className={
+          "text-xs [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-sm max-w-none line-clamp-2 mt-2 prose max-h-[4em]"
+        }
+      />
       <div className={"mt-2 flex gap-2"}>
         {job.type && <Badge text={formatCapString(job.type)} />}
         {job.working_rights?.[0] && (
@@ -49,7 +57,9 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
             }
           />
         )}
-        <Badge text="Banking" />
+        {job.industry_field && (
+          <Badge text={formatCapString(job.industry_field)} />
+        )}
       </div>
     </Box>
   );

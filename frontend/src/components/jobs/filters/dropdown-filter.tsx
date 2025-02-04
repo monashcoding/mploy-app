@@ -12,7 +12,6 @@ import { IconChevronDown } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
 import { JobFilters } from "@/types/filters";
 import { formatCapString, getPluralLabel } from "@/lib/utils";
-import { useSearchParams } from "next/navigation";
 
 interface DropdownFilterProps {
   label: string;
@@ -34,15 +33,11 @@ export default function DropdownFilter({
   const [localSelected, setLocalSelected] = useState<string[]>(
     (filters.filters[filterKey] as string[]) || [],
   );
-  const searchParams = useSearchParams();
 
-  // Sync with URL on mount
+  // Sync when filters change
   useEffect(() => {
-    const urlValues = searchParams.getAll(`${filterKey}[]`);
-    if (urlValues.length > 0) {
-      setLocalSelected(urlValues);
-    }
-  }, [searchParams, filterKey]);
+    setLocalSelected((filters.filters[filterKey] as string[]) || []);
+  }, [filters.filters, filterKey]);
 
   // Updates locally selected value & filters
   const handleValueSelect = (value: string) => {

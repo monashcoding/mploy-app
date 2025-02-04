@@ -3,7 +3,12 @@
 import { Text } from "@mantine/core";
 import { useFilterContext } from "@/context/filter/filter-context";
 import DropdownFilter from "@/components/jobs/filters/dropdown-filter";
-import { INDUSTRY_FIELDS, LOCATIONS, WORKING_RIGHTS } from "@/types/job";
+import {
+  INDUSTRY_FIELDS,
+  JOB_TYPES,
+  LOCATIONS,
+  WORKING_RIGHTS,
+} from "@/types/job";
 import { useEffect } from "react";
 
 interface FilterSectionProps {
@@ -35,6 +40,11 @@ export default function FilterSection({ _totalJobs }: FilterSectionProps) {
           label="Working Right"
           filterKey="workingRights"
           options={[...WORKING_RIGHTS]}
+        />
+        <DropdownFilter
+          label="Job Type"
+          filterKey="jobTypes"
+          options={[...JOB_TYPES]}
         />
       </div>
       {/*<DropdownSort />*/}

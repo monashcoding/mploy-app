@@ -3,4 +3,5 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+RUN npm list mongodb
 CMD ["npm", "run", "dev"]
