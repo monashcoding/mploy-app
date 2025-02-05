@@ -9,7 +9,7 @@ interface JobDescriptionProps {
 
 export default function JobDescription({ description }: JobDescriptionProps) {
   return (
-    <div className="flex flex-col space-y-1 mt-8">
+    <div className="flex flex-col space-y-1 mt-4">
       <SectionHeading title="Job Description" />
       <TypographyStylesProvider>
         <div

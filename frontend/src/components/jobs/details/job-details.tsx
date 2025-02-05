@@ -25,7 +25,7 @@ export default function JobDetails() {
 
   return (
     <Card bd="2px solid selected" className="h-full rounded-xl">
-      <ScrollArea type="hover" className="pl-4 pt-2">
+      <ScrollArea type="hover" className="pl-4">
         <JobHeader job={selectedJob} />
         <JobDescription description={selectedJob.description || ""} />
         <JobWorkingRights rights={selectedJob.working_rights} />
