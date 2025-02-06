@@ -1,5 +1,3 @@
-import JobDetails from "@/components/jobs/details/job-details";
-
 import { Modal, ScrollArea } from "@mantine/core";
 
 export default function JobModal() {
@@ -10,8 +8,6 @@ export default function JobModal() {
       size="lg"
       title="Job Details"
       scrollAreaComponent={ScrollArea}
-    >
-      <JobDetails />
-    </Modal>
+    ></Modal>
   );
 }

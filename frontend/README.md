@@ -87,7 +87,7 @@ MPloy is a very simple job board with search, filter and just a website that dis
 │   │   │   └── nav-bar.tsx  # Navigation bar
 │   ├── context
 │   │   ├── jobs
-│   │   │   └── jobs-context.tsx   # Job state and actions context
+│   │   │   └── filter-context.tsx   # Job state and actions context
 │   │   │   └── jobs-provider.tsx  # Provider wrapper with initial state
 │   ├── hooks
 │   │   ├── use-job-filters.ts     # Filter logic and state management
@@ -167,10 +167,10 @@ useEffect(() => {
 When user searches:
 
 1. SearchBar component calls useJobSearch().updateSearch()
-2. useJobSearch updates JobsContext filters
+2. useJobSearch updates FilterContext filters
 3. useUrlState syncs new state to URL
 4. useJobSearch triggers API call with new filters
-5. Results update in JobsContext
+5. Results update in FilterContext
 6. JobList component re-renders with new data
 
 When user opens job details:

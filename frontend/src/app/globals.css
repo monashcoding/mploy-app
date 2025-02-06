@@ -1,4 +1,6 @@
-@tailwind base;
+@layer tailwind {
+  @tailwind base;
+}
 @tailwind components;
 @tailwind utilities;
 @layer utilities {
@@ -11,4 +13,27 @@
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
   }
+}
+
+@layer base {
+  :root {
+    --selected: #3a3a3a;
+    --background: #1f1f1f;
+    --secondary: #2e2e2e;
+    --accent: #ffe22f;
+  }
+  .dark {
+    --selected: #3a3a3a;
+    --background: #1f1f1f;
+    --secondary: #2e2e2e;
+    --accent: #ffe22f;
+  }
+}
+
+.underline-fancy {
+  text-decoration: underline;
+  font-weight: bold;
+  text-decoration-color: var(--mantine-color-accent-0);
+  text-underline-offset: 4px;
+  text-decoration-thickness: 2px;
 }
