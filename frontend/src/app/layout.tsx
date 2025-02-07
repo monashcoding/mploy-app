@@ -6,7 +6,7 @@ import "./globals.css";
 import NavBar from "@/components/layout/nav-bar";
 import { MantineProvider } from "@mantine/core";
 import { ColorSchemeScript } from "@mantine/core";
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, Suspense } from "react";
 import Head from "next/head";
 import { theme } from "@/lib/theme";
 
@@ -26,12 +26,14 @@ export default function RootLayout({ children }: PropsWithChildren) {
       </Head>
       <body className={`${poppins.className}`}>
         <MantineProvider theme={theme} defaultColorScheme="dark">
-          <div className="min-h-screen flex flex-col px-6">
-            <NavBar />
-            <main className="">
-              <FilterProvider>{children}</FilterProvider>
-            </main>
-          </div>
+          <Suspense fallback={<div>Loading filters...</div>}>
+            <FilterProvider>
+              <div className="min-h-screen flex flex-col px-6">
+                <NavBar />
+                <main className="">{children}</main>
+              </div>
+            </FilterProvider>
+          </Suspense>
         </MantineProvider>
       </body>
     </html>
