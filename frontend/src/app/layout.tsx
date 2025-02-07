@@ -28,7 +28,9 @@ export default function RootLayout({ children }: PropsWithChildren) {
         <MantineProvider theme={theme} defaultColorScheme="dark">
           <div className="min-h-screen flex flex-col px-6">
             <NavBar />
-            <main className=""><FilterProvider>{children}</FilterProvider></main>
+            <main className="">
+              <FilterProvider>{children}</FilterProvider>
+            </main>
           </div>
         </MantineProvider>
       </body>

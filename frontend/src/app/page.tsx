@@ -18,7 +18,7 @@ export default function Page() {
     };
 
     updateFilters({ filters: newFilters });
-    
+
     const queryParams = CreateQueryString({ filters: newFilters });
     router.push(`/jobs?${queryParams}`);
   };
@@ -31,20 +31,16 @@ export default function Page() {
     };
 
     updateFilters({ filters: newFilters });
-    
+
     const queryParams = CreateQueryString({ filters: newFilters });
     router.push(`/jobs?${queryParams}`);
   };
   return (
     <Center className="h-full flex flex-col justify-start items-center flex-grow pt-60">
-      <Title
-        order={1}
-        mb="xl"
-        className="text-white"
-      >
+      <Title order={1} mb="xl" className="text-white">
         Discover your Dream Job.
       </Title>
-      
+
       <Group gap="xl" align="center">
         <Button
           mt="xl"
@@ -71,4 +67,4 @@ export default function Page() {
       </Group>
     </Center>
   );
-}  
+}

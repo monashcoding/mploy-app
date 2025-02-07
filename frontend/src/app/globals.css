@@ -38,10 +38,11 @@
   text-decoration-thickness: 2px;
 }
 
-html, body, main {
+html,
+body,
+main {
   height: 100vh;
   margin: 0;
   padding: 0;
   overflow: hidden;
 }
-
