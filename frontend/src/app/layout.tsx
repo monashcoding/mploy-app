@@ -11,6 +11,7 @@ import Head from "next/head";
 import { theme } from "@/lib/theme";
 
 import { Poppins } from "next/font/google";
+import { FilterProvider } from "@/context/filter/filter-provider";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -27,7 +28,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
         <MantineProvider theme={theme} defaultColorScheme="dark">
           <div className="min-h-screen flex flex-col px-6">
             <NavBar />
-            <main className="flex-grow">{children}</main>
+            <main className=""><FilterProvider>{children}</FilterProvider></main>
           </div>
         </MantineProvider>
       </body>
