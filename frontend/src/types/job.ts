@@ -1,5 +1,10 @@
 // frontend/src/types/job.ts
-export const JOB_TYPES = ["FIRST_YEAR", "INTERN", "GRADUATE", "OTHER"] as const;
+export const JOB_TYPES = [
+  "PRE_PENULTIMATE",
+  "INTERN",
+  "GRADUATE",
+  "OTHER",
+] as const;
 export type JobType = (typeof JOB_TYPES)[number];
 
 export const LOCATIONS = [
@@ -17,13 +22,9 @@ export const LOCATIONS = [
 export type LocationType = (typeof LOCATIONS)[number];
 
 export const WORKING_RIGHTS = [
-  "AUS_CITIZEN",
-  "AUS_PR",
-  "NZ_CITIZEN",
-  "NZ_PR",
+  "AUS_CITIZEN_PR",
+  "NZ_CITIZEN_PR",
   "INTERNATIONAL",
-  "WORK_VISA",
-  "VISA_SPONSORED",
   "OTHER_RIGHTS",
 ] as const;
 export type WorkingRight = (typeof WORKING_RIGHTS)[number];
@@ -34,6 +35,12 @@ export const INDUSTRY_FIELDS = [
   "BIG_TECH",
   "TECH",
   "QUANT_TRADING",
+  "ENERGY",
+  "GOVERNMENT",
+  "MANUFACTURING",
+  "TELECOMMUNICATIONS",
+  "RETAIL",
+  "TRANSPORTATION",
   "OTHER_INDUSTRY",
 ] as const;
 export type IndustryField = (typeof INDUSTRY_FIELDS)[number];
