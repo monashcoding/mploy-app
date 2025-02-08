@@ -51,12 +51,14 @@ export default function FilterModal() {
             filterKey="workingRights"
             options={[...WORKING_RIGHTS]}
           />
-                              <Button className=" border-5 rounded-3xl" size="compact-md" variant="transparent" onClick={() => fc.clearFilters()}>
-                        <a className="font-light">
-                            clear all
-                        </a>
-                    </Button>
-
+          <Button
+            className=" border-5 rounded-3xl"
+            size="compact-md"
+            variant="transparent"
+            onClick={() => fc.clearFilters()}
+          >
+            <a className="font-light">clear all</a>
+          </Button>
         </div>
       </Modal>
     </>

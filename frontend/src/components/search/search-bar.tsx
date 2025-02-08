@@ -3,13 +3,11 @@ import { Input } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
 import { useDebouncedCallback } from "@mantine/hooks";
-import { useState, useEffect} from 'react';
+import { useState, useEffect } from "react";
 export default function SearchBar() {
   const { filters, updateFilters } = useFilterContext();
-    console.log(filters)
+  console.log(filters);
   const [searchValue, setSearchValue] = useState(filters.filters.search);
-
-
 
   const handleSearch = useDebouncedCallback((value: string) => {
     updateFilters({
@@ -35,7 +33,7 @@ export default function SearchBar() {
       }
       rightSection={
         <Input.ClearButton
-        onClick={()=>setSearchValue("")}
+          onClick={() => setSearchValue("")}
           size="md"
           className="absolute pointer-events-auto z-10 right-2"
         />

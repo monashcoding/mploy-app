@@ -46,11 +46,14 @@ export default function FilterSection({ _totalJobs }: FilterSectionProps) {
           filterKey="jobTypes"
           options={[...JOB_TYPES]}
         />
-                    <Button className=" border-5 rounded-3xl" size="compact-md" variant="transparent" onClick={() => clearFilters()}>
-                        <a className="font-light">
-                            clear all
-                        </a>
-                    </Button>
+        <Button
+          className=" border-5 rounded-3xl"
+          size="compact-md"
+          variant="transparent"
+          onClick={() => clearFilters()}
+        >
+          <a className="font-light">clear all</a>
+        </Button>
       </div>
       {/*<DropdownSort />*/}
     </div>
