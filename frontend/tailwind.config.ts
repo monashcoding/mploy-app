@@ -22,6 +22,7 @@ export default {
           css: {
             color: "var(--mantine-color-dark-0)",
             "*": { color: "var(--mantine-color-dark-0)" },
+            maxWidth: '95ch',
           },
         },
       },
