@@ -86,6 +86,10 @@ coverage/
 *.sublime-project
 desktop.ini
 
+#for pnpm users
+**/pnpm-lock.yaml
+
+
 /repo-to-text/
 
 # TypeScript build info
