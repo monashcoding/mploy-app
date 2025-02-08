@@ -15,9 +15,9 @@
     "@tabler/icons-react": "^3.28.1",
     "@tailwindcss/typography": "^0.5.16",
     "dompurify": "^3.2.3",
-    "isomorphic-dompurify": "^2.20.0",
+    "isomorphic-dompurify": "^2.21.0",
     "jsdom": "^26.0.0",
-    "mongodb": "^6.12.0",
+    "mongodb": "^6.13.0",
     "next": "15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

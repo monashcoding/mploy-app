@@ -60,8 +60,8 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
         {job.working_rights?.[0] && (
           <Badge
             text={
-              job.working_rights[0] === "VISA_SPONSORED"
-                ? "Visa-Friendly"
+              job.working_rights.includes("INTERNATIONAL")
+                ? "International"
                 : "Citizen/PR"
             }
           />
