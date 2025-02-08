@@ -12,7 +12,7 @@ export default function JobWorkingRights({ rights }: JobWorkingRightsProps) {
   return (
     <div className="flex flex-col space-y-1 mt-2">
       <SectionHeading title="Working Rights" />
-      <div className="space-x-2">
+      <div className="ml-6 space-x-2">
         {rights?.map((right) => (
           <Badge key={right} text={formatCapString(right)} size="lg" />
         ))}
