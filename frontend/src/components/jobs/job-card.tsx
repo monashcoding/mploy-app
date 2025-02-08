@@ -10,8 +10,17 @@ interface JobCardProps {
   job: Job;
   isSelected?: boolean;
 }
+  const removeImageTags = (content: string) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(content, 'text/html');
+    const images = doc.querySelectorAll('img');
+    images.forEach(image => console.log(image));
+    images.forEach(image => image.remove());
+    return doc.body.innerHTML;
+  };
 
 export default function JobCard({ job, isSelected }: JobCardProps) {
+        const washedDescription = job.description ? removeImageTags(job.description) : ""
   return (
     <Box
       bg={isSelected ? "selected" : "secondary"}
@@ -49,7 +58,7 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
       </div>
       <div
         dangerouslySetInnerHTML={{
-          __html: DOMPurify.sanitize(job.description || ""),
+          __html: DOMPurify.sanitize(washedDescription),
         }}
         className={
           "text-xs [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-sm max-w-none line-clamp-2 mt-2 prose max-h-[4em]"
