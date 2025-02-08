@@ -19,14 +19,20 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
       className={`h-[10.5rem] p-4 rounded-xl transition-colors`}
     >
       <div className={"flex justify-between"}>
-        <div className={"flex"}>
+        <div className={"flex flex-1 min-w-0"}>
           <Image
             alt={job.company.name}
             src={job.company.logo}
-            className={"mr-2 h-14 w-14 object-contain rounded-md bg-white"}
+            className={
+              "mr-2 h-14 w-14 object-contain rounded-md bg-white flex-shrink-0"
+            }
           />
-          <div className={"flex justify-center flex-col max-w-64 space-y-0.5"}>
-            <span className="text-md font-bold truncate leading-tight">
+          <div
+            className={
+              "flex justify-center flex-col flex-1 min-w-0 space-y-0.5"
+            }
+          >
+            <span className="text-md font-bold truncate leading-tight pr-2">
               {job.title}
             </span>
             <span className="text-xs truncate">{job.company.name}</span>
@@ -36,7 +42,10 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
             </span>
           </div>
         </div>
-        <span className={"text-xs"}>{getTimeAgo(job.updated_at)}</span>
+        <span className={"text-xs flex-shrink-0"}>
+          {getTimeAgo(job.updated_at)}
+        </span>{" "}
+        {/* Added flex-shrink-0 */}
       </div>
       <div
         dangerouslySetInnerHTML={{

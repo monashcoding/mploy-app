@@ -2,7 +2,6 @@
 
 import { Text } from "@mantine/core";
 import { useFilterContext } from "@/context/filter/filter-context";
-import DropdownFilter from "@/components/jobs/filters/dropdown-filter";
 import {
   INDUSTRY_FIELDS,
   JOB_TYPES,
@@ -10,6 +9,7 @@ import {
   WORKING_RIGHTS,
 } from "@/types/job";
 import { useEffect } from "react";
+import DropdownFilter from "@/components/filters/dropdown-filter";
 
 interface FilterSectionProps {
   _totalJobs: number;
