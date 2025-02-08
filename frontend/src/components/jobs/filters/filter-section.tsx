@@ -1,6 +1,6 @@
 "use client";
 
-import { Text } from "@mantine/core";
+import { Text, Button } from "@mantine/core";
 import { useFilterContext } from "@/context/filter/filter-context";
 import {
   INDUSTRY_FIELDS,
@@ -16,7 +16,7 @@ interface FilterSectionProps {
 }
 
 export default function FilterSection({ _totalJobs }: FilterSectionProps) {
-  const { totalJobs, setTotalJobs } = useFilterContext();
+  const { totalJobs, setTotalJobs, clearFilters } = useFilterContext();
 
   useEffect(() => {
     setTotalJobs(_totalJobs);
@@ -46,6 +46,11 @@ export default function FilterSection({ _totalJobs }: FilterSectionProps) {
           filterKey="jobTypes"
           options={[...JOB_TYPES]}
         />
+                    <Button className=" border-5 rounded-3xl" size="compact-md" variant="transparent" onClick={() => clearFilters()}>
+                        <a className="font-light">
+                            clear all
+                        </a>
+                    </Button>
       </div>
       {/*<DropdownSort />*/}
     </div>
