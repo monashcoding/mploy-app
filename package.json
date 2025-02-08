@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "@tailwindcss/typography": "^0.5.16",
-    "install": "^0.13.0",
-    "npm": "^11.0.0"
-  }
-}
