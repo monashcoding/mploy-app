@@ -6,7 +6,7 @@ import { FilterContext } from "./filter-context";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CreateQueryString } from "@/lib/utils";
 import { FilterState, SortBy } from "@/types/filters";
-import { Job } from "@/types/job";
+import { Job, IndustryField, INDUSTRY_FIELDS, JobType, JOB_TYPES, LocationType, LOCATIONS, WorkingRight, WORKING_RIGHTS } from "@/types/job";
 
 const emptyFilterState: FilterState = {
   filters: {
@@ -23,13 +23,29 @@ const emptyFilterState: FilterState = {
 };
 
 export function FilterProvider({ children }: { children: ReactNode }) {
-  const [filters, setFilters] = useState<FilterState>(emptyFilterState);
-  const [selectedJob, setSelectedJobInternal] = useState<Job | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [totalJobs, setTotalJobs] = useState<number>(0);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  console.log(searchParams.getAll("industryFields"))
+
+    const initialFilterState: FilterState = {
+  filters: {
+    search:  searchParams.get("search") || "",
+    industryFields: searchParams.getAll("industryFields[]").filter((field): field is IndustryField => INDUSTRY_FIELDS.includes(field as IndustryField)) || [],
+    jobTypes: searchParams.getAll("jobTypes[]").filter((field): field is JobType => JOB_TYPES.includes(field as JobType)) || [],
+    locations: searchParams.getAll("locations[]").filter((field): field is LocationType=>LOCATIONS.includes(field as LocationType)) || [],
+    workingRights: searchParams.getAll("workingRights[]").filter((field): field is WorkingRight=>WORKING_RIGHTS.includes(field as WorkingRight)) || [],
+    page: 1,
+    sortBy: SortBy.RECENT,
+  },
+  isLoading: false,
+  error: null,
+};
+
+  const [filters, setFilters] = useState<FilterState>(initialFilterState);
+  const [selectedJob, setSelectedJobInternal] = useState<Job | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [totalJobs, setTotalJobs] = useState<number>(0);
 
   const updateFilters = (newFilters: Partial<FilterState>) => {
     setIsLoading(true);
