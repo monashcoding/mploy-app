@@ -37,3 +37,12 @@
   text-underline-offset: 4px;
   text-decoration-thickness: 2px;
 }
+
+html,
+body,
+main {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
