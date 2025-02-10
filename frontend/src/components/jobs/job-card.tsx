@@ -1,10 +1,11 @@
 // frontend/src/components/jobs/details/job-card.tsx
-import { Box, Image } from "@mantine/core";
+import { Box } from "@mantine/core";
 import { Job } from "@/types/job";
 import { IconMapPin } from "@tabler/icons-react";
 import { formatCapString, getTimeAgo } from "@/lib/utils";
 import Badge from "@/components/ui/badge";
 import DOMPurify from "isomorphic-dompurify";
+import CompanyLogo from "@/components/jobs/company-logo";
 
 interface JobCardProps {
   job: Job;
@@ -20,12 +21,10 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
     >
       <div className={"flex justify-between"}>
         <div className={"flex flex-1 min-w-0"}>
-          <Image
-            alt={job.company.name}
-            src={job.company.logo}
-            className={
-              "mr-2 h-14 w-14 object-contain rounded-md bg-white flex-shrink-0"
-            }
+          <CompanyLogo
+            name={job.company.name}
+            logo={job.company.logo}
+            className="mr-2 h-14 w-14"
           />
           <div
             className={
