@@ -6,13 +6,12 @@ import { formatCapString, getTimeAgo } from "@/lib/utils";
 import Badge from "@/components/ui/badge";
 import DOMPurify from "isomorphic-dompurify";
 
-
 interface JobCardProps {
   job: Job;
   isSelected?: boolean;
 }
 const removeImageTags = (content: string): string => {
- return content.replace(/<img[^>]*>/g, "");
+  return content.replace(/<img[^>]*>/g, "");
 };
 
 export default function JobCard({ job, isSelected }: JobCardProps) {
