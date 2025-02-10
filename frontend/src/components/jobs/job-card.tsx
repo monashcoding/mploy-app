@@ -49,7 +49,7 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
       </div>
       <div
         dangerouslySetInnerHTML={{
-          __html: DOMPurify.sanitize(job.description || ""),
+          __html: DOMPurify.sanitize(job.one_liner || ""),
         }}
         className={
           "text-xs [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-sm max-w-none line-clamp-2 mt-2 prose max-h-[4em]"

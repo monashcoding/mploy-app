@@ -55,6 +55,7 @@ export interface Job {
   id: string;
   title: string;
   description?: string;
+  one_liner?: string;
   company: Company;
   application_url?: string;
   source_urls: string[];
