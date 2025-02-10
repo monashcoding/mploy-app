@@ -6,17 +6,13 @@ import { formatCapString, getTimeAgo } from "@/lib/utils";
 import Badge from "@/components/ui/badge";
 import DOMPurify from "isomorphic-dompurify";
 
+
 interface JobCardProps {
   job: Job;
   isSelected?: boolean;
 }
-const removeImageTags = (content: string) => {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(content, "text/html");
-  const images = doc.querySelectorAll("img");
-  images.forEach((image) => console.log(image));
-  images.forEach((image) => image.remove());
-  return doc.body.innerHTML;
+const removeImageTags = (content: string): string => {
+ return content.replace(/<img[^>]*>/g, "");
 };
 
 export default function JobCard({ job, isSelected }: JobCardProps) {
