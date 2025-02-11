@@ -45,7 +45,7 @@ export default function FilterSection({ _totalJobs }: FilterSectionProps) {
             variant="transparent"
             onClick={() => clearFilters()}
           >
-            <a className="font-light">clear all</a>
+            <a className="font-light">Clear all</a>
           </Button>
         </div>
         {/* Show filter button in mobile */}
