@@ -19,7 +19,7 @@ export default function FilterSection({ _totalJobs }: FilterSectionProps) {
   }, [_totalJobs, setTotalJobs]);
 
   return (
-    <div className="flex flex-row justify-between items-center mt-3">
+    <div className="flex flex-row justify-between items-center">
       <Text>{totalJobs} Results</Text>
       <div className="flex flex-row items-center space-x-2">
         {/* Show filters in desktop */}

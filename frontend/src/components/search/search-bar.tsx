@@ -35,11 +35,11 @@ export default function SearchBar() {
       onChange={(e) => handleSearch(e.currentTarget.value)}
       radius="lg"
       variant="filled"
-      className="mt-4"
+      className="w-full mx-64"
       styles={{
         input: {
-          padding: "28px",
-          paddingLeft: "40px",
+          padding: "24px",
+          paddingLeft: "48px",
         },
       }}
     />

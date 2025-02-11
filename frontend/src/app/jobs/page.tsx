@@ -22,10 +22,12 @@ export default async function JobsPage({
 
   const { jobs, total } = await getJobs(await searchParams);
 
+  const PIXEL_OFFSET = 210;
+
   return (
     <div className="">
-      <HeadingText />
-      <SearchBar />
+      {/*<HeadingText />*/}
+
       <FilterSection _totalJobs={total} />
 
       {total <= 0 ? (
@@ -34,14 +36,16 @@ export default async function JobsPage({
         <Suspense fallback={<Loading />}>
           <div className="mt-4 flex flex-col lg:flex-row gap-2">
             <div className="w-full lg:w-[35%]">
-              <div className="overflow-y-auto pr-2 no-scrollbar h-[calc(100vh-330px)]">
+              <div
+                className={`overflow-y-auto pr-2 no-scrollbar h-[calc(100vh-${PIXEL_OFFSET}px)]`}
+              >
                 <JobList jobs={jobs} />
                 <JobPagination />
               </div>
             </div>
 
             <div className="hidden lg:block lg:w-[65%]">
-              <div className="overflow-y-auto h-[calc(100vh-330px)]">
+              <div className={`overflow-y-auto h-[calc(100vh-${PIXEL_OFFSET}px)]`}>
                 <JobDetails />
               </div>
             </div>

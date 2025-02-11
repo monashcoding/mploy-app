@@ -4,7 +4,7 @@ export default function Logo() {
   return (
     <div className="flex space-x-3 items-center h-8">
       <Image src={MacLogo} className={"h-12 w-12"} alt="MAC Logo" />
-      <span className="text-xl">| Jobs</span>
+      <span className="text-xl text-nowrap">| Jobs</span>
     </div>
   );
 }
