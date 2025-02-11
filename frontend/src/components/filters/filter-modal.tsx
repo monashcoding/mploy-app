@@ -57,7 +57,7 @@ export default function FilterModal() {
             variant="transparent"
             onClick={() => fc.clearFilters()}
           >
-            <a className="font-light">clear all</a>
+            <a className="font-light">Clear all</a>
           </Button>
         </div>
       </Modal>
