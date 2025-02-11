@@ -1,10 +1,11 @@
 // frontend/src/components/jobs/details/sections/job-header.tsx
-import { Image, Divider, Text, Group } from "@mantine/core";
+import { Divider, Text, Group } from "@mantine/core";
 import { IconMapPin } from "@tabler/icons-react";
 import { Job } from "@/types/job";
 import { formatCapString, formatISODate } from "@/lib/utils";
 import Link from "next/link";
 import Badge from "@/components/ui/badge";
+import CompanyLogo from "@/components/jobs/company-logo";
 
 interface JobHeaderProps {
   job: Job;
@@ -44,10 +45,10 @@ export default function JobHeader({ job }: JobHeaderProps) {
           </Group>
         </div>
       </div>
-      <Image
-        alt={job.company.name}
-        src={job.company.logo}
-        className="h-20 w-20 object-contain rounded-md bg-white"
+      <CompanyLogo
+        name={job.company.name}
+        logo={job.company.logo}
+        className="h-20 w-20"
       />
     </div>
   );
