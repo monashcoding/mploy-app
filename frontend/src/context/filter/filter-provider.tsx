@@ -36,7 +36,6 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  console.log(searchParams.getAll("industryFields"));
 
   const initialFilterState: FilterState = {
     filters: {
