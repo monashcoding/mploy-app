@@ -6,7 +6,6 @@ import { useDebouncedCallback } from "@mantine/hooks";
 import { useState, useEffect } from "react";
 export default function SearchBar() {
   const { filters, updateFilters } = useFilterContext();
-  console.log(filters);
   const [searchValue, setSearchValue] = useState(filters.filters.search);
 
   const handleSearch = useDebouncedCallback((value: string) => {
