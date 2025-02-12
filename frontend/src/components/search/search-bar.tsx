@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 export default function SearchBar() {
   const { filters, updateFilters } = useFilterContext();
   const [searchValue, setSearchValue] = useState("");
-  
+
   // To prevent page reload on initial render
   const [isInitialRender, setInitialRender] = useState(true);
 
@@ -21,7 +21,7 @@ export default function SearchBar() {
       },
     });
   }, 100);
-  
+
   useEffect(() => {
     if (isInitialRender) {
       setInitialRender(false);
