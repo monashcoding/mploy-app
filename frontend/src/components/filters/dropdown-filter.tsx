@@ -31,12 +31,14 @@ export default function DropdownFilter({
 
   const { filters, updateFilters } = useFilterContext();
   const [localSelected, setLocalSelected] = useState<string[]>(
-    (filters.filters[filterKey] as string[]) || [],
+    Array.from(filters.filters[filterKey] as Set<string>) || [],
   );
 
   // Sync when filters change
   useEffect(() => {
-    setLocalSelected((filters.filters[filterKey] as string[]) || []);
+    setLocalSelected(
+      Array.from(filters.filters[filterKey] as Set<string>) || [],
+    );
   }, [filters.filters, filterKey]);
 
   // Updates locally selected value & filters

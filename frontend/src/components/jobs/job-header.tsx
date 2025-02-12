@@ -22,7 +22,7 @@ export default function JobHeader({ job }: JobHeaderProps) {
 
         <div className="flex items-center space-y-1 space-x-2 flex-wrap pr-8">
           <IconMapPin size={20} stroke={1.5} />
-          {[...new Set(job.locations)]?.map((location) => (
+          {job.locations?.map((location) => (
             <Badge key={location} text={formatCapString(location)} size="lg" />
           ))}
           <Group>
