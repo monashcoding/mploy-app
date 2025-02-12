@@ -3,11 +3,14 @@ import { Input } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
 import { useDebouncedCallback } from "@mantine/hooks";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+
 export default function SearchBar() {
   const { filters, updateFilters } = useFilterContext();
   const [searchValue, setSearchValue] = useState("");
-  const isInitialRender = useRef(true);
+  
+  // To prevent page reload on initial render
+  const [isInitialRender, setInitialRender] = useState(true);
 
   const handleSearch = useDebouncedCallback((value: string) => {
     updateFilters({
@@ -18,13 +21,14 @@ export default function SearchBar() {
       },
     });
   }, 100);
-
+  
   useEffect(() => {
-    if (isInitialRender.current) {
-      isInitialRender.current = false;
+    if (isInitialRender) {
+      setInitialRender(false);
       return;
     }
     handleSearch(searchValue);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchValue, handleSearch]);
 
   return (
