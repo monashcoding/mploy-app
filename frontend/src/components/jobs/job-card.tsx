@@ -16,9 +16,7 @@ const removeImageTags = (content: string): string => {
 };
 
 export default function JobCard({ job, isSelected }: JobCardProps) {
-  const washedDescription = job.one_liner
-    ? removeImageTags(job.one_liner)
-    : "";
+  const washedDescription = job.one_liner ? removeImageTags(job.one_liner) : "";
   return (
     <Box
       bg={isSelected ? "selected" : "secondary"}

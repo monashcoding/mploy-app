@@ -3,7 +3,6 @@ import { Input } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
 import { useDebouncedCallback } from "@mantine/hooks";
-import { useState } from "react";
 export default function SearchBar() {
   const { filters, updateFilters } = useFilterContext();
 
