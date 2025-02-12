@@ -3,7 +3,6 @@ import { Input } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
 import { useDebouncedCallback } from "@mantine/hooks";
-
 export default function SearchBar() {
   const { filters, updateFilters } = useFilterContext();
 
@@ -23,12 +22,6 @@ export default function SearchBar() {
         <IconSearch
           size={20}
           className="ml-2 stroke-[--mantine-color-accent-0]"
-        />
-      }
-      rightSection={
-        <Input.ClearButton
-          size="md"
-          className="absolute pointer-events-auto z-10 right-2"
         />
       }
       placeholder="Search for a company or a role..."
