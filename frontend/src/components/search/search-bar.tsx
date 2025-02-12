@@ -18,7 +18,7 @@ export default function SearchBar() {
       },
     });
   }, 100);
-  
+
   useEffect(() => {
     if (isInitialRender.current) {
       isInitialRender.current = false;
