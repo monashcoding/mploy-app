@@ -35,14 +35,10 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
               "flex justify-center flex-col flex-1 min-w-0 space-y-0.5"
             }
           >
-            <span className="text-md font-bold truncate leading-tight pr-2">
+            <span className="text-md font-bold line-clamp-2 leading-tight pr-2">
               {job.title}
             </span>
             <span className="text-xs truncate">{job.company.name}</span>
-            <span className="text-xs flex items-center gap-1">
-              <IconMapPin size={12} />
-              {formatCapString(job.locations[0])}
-            </span>
           </div>
         </div>
         <span className={"text-xs flex-shrink-0"}>
@@ -60,6 +56,8 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
       />
       <div className={"mt-2 flex gap-2"}>
         {job.type && <Badge text={formatCapString(job.type)} />}
+        <Badge text={"SA"} />
+
         {job.working_rights?.[0] && (
           <Badge
             text={
@@ -69,6 +67,7 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
             }
           />
         )}
+
         {job.industry_field && (
           <Badge text={formatCapString(job.industry_field)} />
         )}

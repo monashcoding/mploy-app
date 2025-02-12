@@ -2,7 +2,7 @@
 import { Divider, Text, Group } from "@mantine/core";
 import { IconMapPin } from "@tabler/icons-react";
 import { Job } from "@/types/job";
-import { formatCapString, formatISODate } from "@/lib/utils";
+import { formatCapString, formatISODate, getTimeAgo } from "@/lib/utils";
 import Link from "next/link";
 import Badge from "@/components/ui/badge";
 import CompanyLogo from "@/components/jobs/company-logo";
@@ -27,7 +27,7 @@ export default function JobHeader({ job }: JobHeaderProps) {
           ))}
           <Group>
             <Divider size={2} color="accent" orientation="vertical" />
-            <Text size="sm">{formatISODate(job.created_at)}</Text>
+            <Text size="sm">Found {getTimeAgo(job.created_at)}</Text>
             {job.type && (
               <>
                 <Divider size={2} color="accent" orientation="vertical" />

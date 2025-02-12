@@ -53,7 +53,7 @@ export default function FilterSection({ _totalJobs }: FilterSectionProps) {
             options={[...WORKING_RIGHTS]}
           />
           <DropdownFilter
-            label="Job Types"
+            label="Job Type"
             filterKey="jobTypes"
             options={[...JOB_TYPES]}
           />
