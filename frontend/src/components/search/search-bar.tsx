@@ -30,7 +30,7 @@ export default function SearchBar() {
     handleSearch(searchValue);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchValue, handleSearch]);
-
+    
   return (
     <Input
       leftSection={
@@ -39,16 +39,8 @@ export default function SearchBar() {
           className="ml-2 stroke-[--mantine-color-accent-0]"
         />
       }
-      rightSection={
-        <Input.ClearButton
-          onClick={() => setSearchValue("")}
-          size="md"
-          className="absolute pointer-events-auto z-10 right-2"
-        />
-      }
       placeholder="Search for a company or a role..."
-      value={searchValue}
-      onChange={(e) => setSearchValue(e.currentTarget.value)}
+      onChange={(e) => handleSearch(e.currentTarget.value)}
       radius="lg"
       variant="filled"
       className="mt-4"
