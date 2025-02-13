@@ -3,9 +3,11 @@ import { Input } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
 import { useDebouncedCallback } from "@mantine/hooks";
+
 export default function SearchBar() {
   const { filters, updateFilters } = useFilterContext();
 
+  // To prevent page reload on initial render
   const handleSearch = useDebouncedCallback((value: string) => {
     updateFilters({
       filters: {
@@ -15,7 +17,7 @@ export default function SearchBar() {
       },
     });
   }, 100);
-
+    
   return (
     <Input
       leftSection={

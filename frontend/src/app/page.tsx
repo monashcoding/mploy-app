@@ -13,7 +13,7 @@ export default function Page() {
   const handleGradJobsClick = () => {
     const newFilters = {
       ...filters.filters,
-      jobTypes: ["GRADUATE"] as JobFilters["jobTypes"],
+      jobTypes: new Set(["GRADUATE"]) as JobFilters["jobTypes"],
       page: 1,
     };
 
@@ -26,7 +26,7 @@ export default function Page() {
   const handleInternJobsClick = () => {
     const newFilters = {
       ...filters.filters,
-      jobTypes: ["INTERN"] as JobFilters["jobTypes"],
+      jobTypes: new Set(["INTERN"]) as JobFilters["jobTypes"],
       page: 1,
     };
 

@@ -21,10 +21,10 @@ import {
 const emptyFilterState: FilterState = {
   filters: {
     search: "",
-    industryFields: [],
-    jobTypes: [],
-    locations: [],
-    workingRights: [],
+    industryFields: new Set<IndustryField>(),
+    jobTypes: new Set<JobType>(),
+    locations: new Set<LocationType>(),
+    workingRights: new Set<WorkingRight>(),
     page: 1,
     sortBy: SortBy.RECENT,
   },
@@ -40,30 +40,34 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   const initialFilterState: FilterState = {
     filters: {
       search: searchParams.get("search") || "",
-      industryFields:
+      industryFields: new Set<IndustryField>(
         searchParams
           .getAll("industryFields[]")
           .filter((field): field is IndustryField =>
             INDUSTRY_FIELDS.includes(field as IndustryField),
-          ) || [],
-      jobTypes:
+          ),
+      ),
+      jobTypes: new Set<JobType>(
         searchParams
           .getAll("jobTypes[]")
           .filter((field): field is JobType =>
             JOB_TYPES.includes(field as JobType),
-          ) || [],
-      locations:
+          ),
+      ),
+      locations: new Set<LocationType>(
         searchParams
           .getAll("locations[]")
           .filter((field): field is LocationType =>
             LOCATIONS.includes(field as LocationType),
-          ) || [],
-      workingRights:
+          ),
+      ),
+      workingRights: new Set<WorkingRight>(
         searchParams
           .getAll("workingRights[]")
           .filter((field): field is WorkingRight =>
             WORKING_RIGHTS.includes(field as WorkingRight),
-          ) || [],
+          ),
+      ),
       page: 1,
       sortBy: SortBy.RECENT,
     },

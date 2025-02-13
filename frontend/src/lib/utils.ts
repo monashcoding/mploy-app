@@ -22,6 +22,11 @@ export function CreateQueryString(filterState: Partial<FilterState>): string {
     Object.entries(filters).forEach(([key, value]) => {
       if (!value || (Array.isArray(value) && value.length === 0)) return;
 
+      if (value instanceof Set) {
+        // Convert Set to Array
+        value = Array.from(value);
+      }
+
       if (Array.isArray(value)) {
         // For array values, use the same key multiple times
         // This will create a URL like: key[]=value1&key[]=value2
@@ -32,7 +37,6 @@ export function CreateQueryString(filterState: Partial<FilterState>): string {
       }
     });
   }
-
   return params.toString();
 }
 

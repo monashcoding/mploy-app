@@ -6,10 +6,10 @@ import { JobType, LocationType, WorkingRight, IndustryField } from "./job";
  */
 export interface JobFilters {
   search: string;
-  jobTypes: JobType[];
-  locations: LocationType[];
-  workingRights: WorkingRight[];
-  industryFields: IndustryField[];
+  jobTypes: Set<JobType>;
+  locations: Set<LocationType>;
+  workingRights: Set<WorkingRight>;
+  industryFields: Set<IndustryField>;
   page: number;
   sortBy: SortBy;
 }
