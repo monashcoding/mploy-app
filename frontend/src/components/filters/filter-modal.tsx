@@ -4,11 +4,9 @@ import { IconFilter } from "@tabler/icons-react";
 import { useState } from "react";
 import DropdownFilter from "./dropdown-filter";
 import { INDUSTRY_FIELDS, LOCATIONS, WORKING_RIGHTS } from "@/types/job";
-import { useFilterContext } from "@/context/filter/filter-context";
 
 export default function FilterModal() {
   const [opened, setOpened] = useState(false);
-  const fc = useFilterContext();
 
   return (
     <>
@@ -51,14 +49,6 @@ export default function FilterModal() {
             filterKey="workingRights"
             options={[...WORKING_RIGHTS]}
           />
-          <Button
-            className=" border-5 rounded-3xl"
-            size="compact-md"
-            variant="transparent"
-            onClick={() => fc.clearFilters()}
-          >
-            <a className="font-light">Clear all</a>
-          </Button>
         </div>
       </Modal>
     </>
