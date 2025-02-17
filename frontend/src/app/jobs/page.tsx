@@ -6,6 +6,8 @@ import { JobFilters } from "@/types/filters";
 import { getJobs } from "@/app/jobs/actions";
 import NoResults from "@/components/ui/no-results";
 import JobPagination from "@/components/jobs/job-pagination";
+import { Suspense } from "react";
+import Loading from "@/app/jobs/loading";
 
 export default async function JobsPage({
   searchParams,
@@ -25,20 +27,22 @@ export default async function JobsPage({
       {total <= 0 ? (
         <NoResults />
       ) : (
-        <div className="mt-4 flex flex-col lg:flex-row gap-2">
-          <div className="w-full lg:w-[35%]">
-            <div className="overflow-y-auto pr-2 h-[calc(100vh-220px)]">
-              <JobList jobs={jobs} />
-              <JobPagination />
+        <Suspense fallback={<Loading />}>
+          <div className="mt-4 flex flex-col lg:flex-row gap-2">
+            <div className="w-full lg:w-[35%]">
+              <div className="overflow-y-auto pr-2 h-[calc(100vh-220px)]">
+                <JobList jobs={jobs} />
+                <JobPagination />
+              </div>
             </div>
-          </div>
 
-          <div className="hidden lg:block lg:w-[65%]">
-            <div className="overflow-y-auto h-[calc(100vh-220px)]">
-              <JobDetails />
+            <div className="hidden lg:block lg:w-[65%]">
+              <div className="overflow-y-auto h-[calc(100vh-220px)]">
+                <JobDetails />
+              </div>
             </div>
           </div>
-        </div>
+        </Suspense>
       )}
     </div>
   );
