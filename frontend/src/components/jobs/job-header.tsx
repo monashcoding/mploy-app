@@ -2,7 +2,7 @@
 import { Divider, Text, Group } from "@mantine/core";
 import { IconMapPin } from "@tabler/icons-react";
 import { Job } from "@/types/job";
-import { formatCapString, formatISODate, getTimeAgo } from "@/lib/utils";
+import { formatCapString, getTimeAgo } from "@/lib/utils";
 import Link from "next/link";
 import Badge from "@/components/ui/badge";
 import CompanyLogo from "@/components/jobs/company-logo";

@@ -1,7 +1,6 @@
 // frontend/src/components/jobs/details/job-card.tsx
 import { Box } from "@mantine/core";
 import { Job } from "@/types/job";
-import { IconMapPin } from "@tabler/icons-react";
 import { formatCapString, getTimeAgo } from "@/lib/utils";
 import Badge from "@/components/ui/badge";
 import DOMPurify from "isomorphic-dompurify";
