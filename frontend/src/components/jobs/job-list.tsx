@@ -5,9 +5,9 @@ import JobCard from "@/components/jobs/job-card";
 import { useFilterContext } from "@/context/filter/filter-context";
 import { Job } from "@/types/job";
 import { useEffect, useState } from "react";
-import Loading from "@/app/loading";
 import { Modal, ScrollArea } from "@mantine/core";
 import JobDetails from "@/components/jobs/job-details";
+import JobListLoading from "@/components/layout/job-list-loading";
 
 export default function JobList({ jobs }: { jobs: Job[] }) {
   const { selectedJob, setSelectedJob, isLoading } = useFilterContext();
@@ -19,9 +19,7 @@ export default function JobList({ jobs }: { jobs: Job[] }) {
     }
   }, [jobs, selectedJob, setSelectedJob]);
 
-  if (isLoading) {
-    return <Loading />;
-  }
+  if (isLoading) return <JobListLoading />;
 
   return (
     <>

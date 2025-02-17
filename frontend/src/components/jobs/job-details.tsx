@@ -7,16 +7,13 @@ import { useFilterContext } from "@/context/filter/filter-context";
 import JobDescription from "@/components/jobs/job-description";
 import JobWorkingRights from "@/components/jobs/job-working-rights";
 import JobHeader from "@/components/jobs/job-header";
+import JobDetailsLoading from "@/components/layout/job-details-loading";
 
 export default function JobDetails() {
   const { selectedJob, isLoading } = useFilterContext();
 
   if (!selectedJob || isLoading) {
-    return (
-      <div className="hidden lg:block">
-        <div className="h-[calc(100vh-330px)] bg-secondary rounded-xl animate-pulse" />
-      </div>
-    );
+    return <JobDetailsLoading />;
   }
 
   const handleApplyClick = () => {
