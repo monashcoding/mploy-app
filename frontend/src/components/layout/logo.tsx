@@ -7,7 +7,7 @@ export default function Logo() {
       onClick={() => (window.location.href = "/")}
     >
       <Image src={MacLogo} className={"h-12 w-12"} alt="MAC Logo" />
-      <span className="text-xl text-nowrap">Jobs</span>
+      <span className="text-xl">Jobs</span>
     </div>
   );
 }

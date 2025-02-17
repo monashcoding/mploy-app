@@ -22,12 +22,8 @@ export default async function JobsPage({
 
   const { jobs, total } = await getJobs(await searchParams);
 
-  // const PIXEL_OFFSET = 220;
-
   return (
     <div className="">
-      {/*<HeadingText />*/}
-
       <FilterSection _totalJobs={total} />
 
       {total <= 0 ? (

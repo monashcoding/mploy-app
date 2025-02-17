@@ -43,6 +43,7 @@ export default function Page() {
 
       <Group gap="xl" align="center">
         <Button
+          mt="xl"
           autoContrast
           size="lg"
           variant="filled"
@@ -53,6 +54,7 @@ export default function Page() {
           Search Grad Jobs →
         </Button>
         <Button
+          mt="xl"
           autoContrast
           size="lg"
           variant="filled"

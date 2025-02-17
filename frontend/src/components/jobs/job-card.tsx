@@ -56,8 +56,6 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
       />
       <div className={"mt-2 flex gap-2"}>
         {job.type && <Badge text={formatCapString(job.type)} />}
-        <Badge text={"SA"} />
-
         {job.working_rights?.[0] && (
           <Badge
             text={
@@ -67,7 +65,6 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
             }
           />
         )}
-
         {job.industry_field && (
           <Badge text={formatCapString(job.industry_field)} />
         )}
