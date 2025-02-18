@@ -44,6 +44,11 @@ export default function JobPagination({ pageSize = 20 }: JobPaginationProps) {
         gap={12}
         radius="lg"
         color="accent"
+        getItemProps={(page) => ({
+          disabled: page === filters.filters.page,
+          "aria-current": page === filters.filters.page ? "page" : undefined,
+          className: page === filters.filters.page ? "!opacity-100" : "",
+        })}
       />
     </div>
   );
