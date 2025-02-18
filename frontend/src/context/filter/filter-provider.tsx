@@ -86,6 +86,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setIsLoading(false);
+    setSelectedJob(null);
   }, [pathname, searchParams]);
 
   // Wrapper for SelectedJob to validate attributes first
