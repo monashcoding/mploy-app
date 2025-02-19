@@ -75,7 +75,7 @@ export default function DropdownFilter({
           pointer
           rightSection={<IconChevronDown size={16} />}
           onClick={() => combobox.toggleDropdown()}
-          className={`h-8 min-w-32`}
+          className={`min-w-32`}
         >
           <Text size="sm" color={localSelected.length > 0 ? "light" : "dimmed"}>
             {getDisplayText()}
