@@ -4,19 +4,16 @@
 import { Button, Card, ScrollArea } from "@mantine/core";
 import { IconFolderOpen } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
-import JobDescription from "@/components/jobs/details/job-description";
-import JobWorkingRights from "@/components/jobs/details/job-working-rights";
-import JobHeader from "@/components/jobs/details/job-header";
+import JobDescription from "@/components/jobs/job-description";
+import JobWorkingRights from "@/components/jobs/job-working-rights";
+import JobHeader from "@/components/jobs/job-header";
+import JobDetailsLoading from "@/components/layout/job-details-loading";
 
 export default function JobDetails() {
   const { selectedJob, isLoading } = useFilterContext();
 
   if (!selectedJob || isLoading) {
-    return (
-      <div className="hidden lg:block">
-        <div className="h-[calc(100vh-330px)] bg-secondary rounded-xl animate-pulse" />
-      </div>
-    );
+    return <JobDetailsLoading />;
   }
 
   const handleApplyClick = () => {
@@ -24,8 +21,8 @@ export default function JobDetails() {
   };
 
   return (
-    <Card bd="2px solid selected" className="h-full rounded-xl">
-      <ScrollArea type="hover">
+    <Card bd="2px solid selected" className="h-full rounded-xl flex flex-col">
+      <ScrollArea type="hover" className="pl-4 flex-grow">
         <JobHeader job={selectedJob} />
         <JobDescription description={selectedJob.description || ""} />
         <JobWorkingRights rights={selectedJob.working_rights} />

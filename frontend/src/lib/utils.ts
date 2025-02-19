@@ -73,6 +73,7 @@ export default function serializeJob(job: MongoJob): Job {
     updated_at: serializeDate(job.updated_at),
     type: job.type,
     description: job.description,
+    one_liner: job.one_liner,
     application_url: job.application_url,
     close_date: serializeDate(job.close_date),
   };
