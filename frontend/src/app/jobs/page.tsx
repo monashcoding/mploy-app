@@ -9,6 +9,10 @@ import JobPagination from "@/components/jobs/job-pagination";
 import { Suspense } from "react";
 import Loading from "@/app/jobs/loading";
 
+export const metadata = {
+  title: "Find Jobs",
+};
+
 export default async function JobsPage({
   searchParams,
 }: {
