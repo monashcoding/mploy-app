@@ -20,7 +20,7 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
     <Box
       bg={isSelected ? "selected" : "secondary"}
       bd="2px solid selected"
-      className={`h-[10.5rem] p-4 rounded-xl transition-colors`}
+      className={`h-[10.5rem] p-4 rounded-xl transition-colors flex flex-col`}
     >
       <div className={"flex justify-between"}>
         <div className={"flex flex-1 min-w-0"}>
@@ -50,10 +50,10 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
           __html: DOMPurify.sanitize(washedDescription),
         }}
         className={
-          "text-xs [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-sm max-w-none line-clamp-3 mt-2 prose max-h-[6em]"
+          "text-xs [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-sm max-w-none line-clamp-3 mt-2 prose max-h-[6em] flex-grow"
         }
       />
-      <div className={"mt-2 flex gap-2"}>
+      <div className={"flex gap-2"}>
         {job.type && <Badge text={formatCapString(job.type)} />}
         {job.working_rights?.[0] && (
           <Badge
