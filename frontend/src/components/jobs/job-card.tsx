@@ -71,7 +71,7 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
           <Badge
             text={`${job.locations
               .slice(0, 2)
-              .map(loc => formatCapString(loc))
+              .map((loc) => formatCapString(loc))
               .join(", ")}${job.locations.length > 2 ? ", ..." : ""}`}
           />
         )}

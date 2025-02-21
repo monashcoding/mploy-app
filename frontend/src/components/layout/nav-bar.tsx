@@ -7,7 +7,7 @@ import SearchBar from "@/components/search/search-bar";
 import { Button, Menu } from "@mantine/core";
 import { IconSearch, IconMenu2 } from "@tabler/icons-react";
 import { useState } from "react";
-import { usePathname } from 'next/navigation';
+import { usePathname } from "next/navigation";
 
 export default function NavBar() {
   const [showSearch, setShowSearch] = useState(false);
@@ -19,14 +19,14 @@ export default function NavBar() {
 
   const NavLinks = () => (
     <>
-      <Link 
-        className={`text-lg ${pathname === '/' ? 'font-bold underline-fancy' : ''}`} 
+      <Link
+        className={`text-lg ${pathname === "/" ? "font-bold underline-fancy" : ""}`}
         href="/"
       >
         Home
       </Link>
-      <Link 
-        className={`text-lg ${pathname === '/jobs' ? 'font-bold underline-fancy' : ''}`}
+      <Link
+        className={`text-lg ${pathname === "/jobs" ? "font-bold underline-fancy" : ""}`}
         href="/jobs"
       >
         Jobs
@@ -70,17 +70,17 @@ export default function NavBar() {
                   </Button>
                 </Menu.Target>
                 <Menu.Dropdown>
-                  <Menu.Item 
-                    component={Link} 
-                    href="/" 
-                    className={pathname === '/' ? 'font-bold' : ''}
+                  <Menu.Item
+                    component={Link}
+                    href="/"
+                    className={pathname === "/" ? "font-bold" : ""}
                   >
                     Home
                   </Menu.Item>
-                  <Menu.Item 
-                    component={Link} 
+                  <Menu.Item
+                    component={Link}
                     href="/jobs"
-                    className={pathname === '/jobs' ? 'font-bold' : ''}
+                    className={pathname === "/jobs" ? "font-bold" : ""}
                   >
                     Jobs
                   </Menu.Item>

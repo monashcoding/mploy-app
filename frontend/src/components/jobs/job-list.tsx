@@ -18,7 +18,7 @@ export default function JobList({ jobs }: { jobs: Job[] }) {
       setSelectedJob(jobs[0]);
     }
     // Reset scroll position when jobs change
-    const scrollContainer = document.querySelector('#job-list-container');
+    const scrollContainer = document.querySelector("#job-list-container");
     if (scrollContainer) {
       scrollContainer.scrollTop = 0;
     }
