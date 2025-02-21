@@ -67,6 +67,14 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
         {job.industry_field && (
           <Badge text={formatCapString(job.industry_field)} />
         )}
+        {job.locations && job.locations.length > 0 && (
+          <Badge
+            text={`${job.locations
+              .slice(0, 2)
+              .map(loc => formatCapString(loc))
+              .join(", ")}${job.locations.length > 2 ? ", ..." : ""}`}
+          />
+        )}
       </div>
     </Box>
   );
