@@ -16,7 +16,7 @@ export default function JobDetails() {
   // Scroll to top whenever a new job is selected
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
+      scrollRef.current.scrollTo({ top: 0 });
     }
   }, [selectedJob]);
 
