@@ -5,10 +5,15 @@ import { CreateQueryString } from "@/lib/utils";
 import { JobFilters } from "@/types/filters";
 import { Button, Title, Center, Group } from "@mantine/core";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Page() {
   const { updateFilters, filters } = useFilterContext();
   const router = useRouter();
+
+  useEffect(() => {
+    document.title = "Home | Jobs Board";
+  }, []);
 
   const handleGradJobsClick = () => {
     const newFilters = {
