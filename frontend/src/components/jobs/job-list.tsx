@@ -14,15 +14,19 @@ export default function JobList({ jobs }: { jobs: Job[] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
+    // Effect to set initial selection when jobs change and no job is selected
     if (jobs.length > 0 && !selectedJob) {
       setSelectedJob(jobs[0]);
     }
-    // Reset scroll position when jobs change
+  }, [jobs, selectedJob, setSelectedJob]);
+
+  // Effect to handle scrolling when jobs change (pagination)
+  useEffect(() => {
     const scrollContainer = document.querySelector("#job-list-container");
     if (scrollContainer) {
       scrollContainer.scrollTop = 0;
     }
-  }, [jobs, selectedJob, setSelectedJob]);
+  }, [jobs]);
 
   if (isLoading) return <JobListLoading />;
 
