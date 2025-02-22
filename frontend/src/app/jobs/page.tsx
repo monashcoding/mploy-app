@@ -28,10 +28,10 @@ export default async function JobsPage({
     <div className="">
       <FilterSection _totalJobs={total} />
 
-      {total <= 0 ? (
-        <NoResults />
-      ) : (
-        <Suspense fallback={<Loading />}>
+      <Suspense fallback={<Loading />}>
+        {total <= 0 ? (
+          <NoResults />
+        ) : (
           <div className="mt-4 flex flex-col lg:flex-row gap-2">
             <div className="w-full lg:w-[35%]">
               <div className="overflow-y-auto pr-2 h-[calc(100vh-220px)]">
@@ -46,8 +46,8 @@ export default async function JobsPage({
               </div>
             </div>
           </div>
-        </Suspense>
-      )}
+        )}
+      </Suspense>
     </div>
   );
 }
