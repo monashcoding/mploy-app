@@ -24,6 +24,11 @@ export default function JobPagination({ pageSize = 20 }: JobPaginationProps) {
   if (!isReady || totalPages <= 1 || isLoading) return null;
 
   const handlePageChange = (page: number) => {
+    const scrollContainer = document.querySelector("#job-list-container");
+    if (scrollContainer) {
+      scrollContainer.scrollTop = 0;
+    }
+
     updateFilters({
       filters: {
         ...filters.filters,

@@ -20,14 +20,6 @@ export default function JobList({ jobs }: { jobs: Job[] }) {
     }
   }, [jobs, selectedJob, setSelectedJob]);
 
-  // Effect to handle scrolling when jobs change (pagination)
-  useEffect(() => {
-    const scrollContainer = document.querySelector("#job-list-container");
-    if (scrollContainer) {
-      scrollContainer.scrollTop = 0;
-    }
-  }, [jobs]);
-
   if (isLoading) return <JobListLoading />;
 
   return (
