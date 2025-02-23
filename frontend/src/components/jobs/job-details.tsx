@@ -1,8 +1,8 @@
 // frontend/src/components/jobs/details/job-details.tsx
 "use client";
 import { useEffect, useRef } from "react";
-import { Button, Card, ScrollArea } from "@mantine/core";
-import { IconFolderOpen } from "@tabler/icons-react";
+import { Button, Card, ScrollArea, Tooltip } from "@mantine/core";
+import { IconFolderOpen, IconLink } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
 import JobDescription from "@/components/jobs/job-description";
 import JobWorkingRights from "@/components/jobs/job-working-rights";
@@ -28,6 +28,12 @@ export default function JobDetails() {
     window.open(selectedJob.application_url, "_blank");
   };
 
+  const handleCopyLink = () => {
+    const jobUrl = `${window.location.origin}/jobs/${selectedJob.id}`;
+    navigator.clipboard.writeText(jobUrl);
+    alert("Job link copied to clipboard!");
+  };
+
   return (
     <Card bd="2px solid selected" className="h-full rounded-xl flex flex-col">
       <ScrollArea
@@ -40,15 +46,29 @@ export default function JobDetails() {
         <JobWorkingRights rights={selectedJob.working_rights} />
       </ScrollArea>
 
-      <Button
-        onClick={handleApplyClick}
-        bg="accent"
-        c="black"
-        leftSection={<IconFolderOpen />}
-        className="min-h-10 mt-4"
-      >
-        Apply Now
-      </Button>
+      <div className="flex justify-between items-center mt-4 gap-4">
+        <Button
+          onClick={handleApplyClick}
+          bg="accent"
+          c="black"
+          leftSection={<IconFolderOpen />}
+          className="min-h-10 flex-grow"
+        >
+          Apply Now
+        </Button>
+        <Tooltip label="Copy job link" withArrow>
+          <Button
+            onClick={handleCopyLink}
+            variant="light"
+            size="md"
+            color="gray"
+            className="w-50%"
+            leftSection={<IconLink size={16} />}
+          >
+            Copy Link
+          </Button>
+        </Tooltip>
+      </div>
     </Card>
   );
 }
