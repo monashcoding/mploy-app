@@ -25,32 +25,6 @@ export default function FilterSection({ _totalJobs }: FilterSectionProps) {
 
       <div className="flex flex-row items-center">
         <ResetFilters />
-
-        {/*/!* Desktop filters *!/*/}
-        {/*<div className="hidden lg:flex lg:flex-row lg:items-center lg:gap-2">*/}
-        {/*  <DropdownFilter*/}
-        {/*    label="Industry"*/}
-        {/*    filterKey="industryFields"*/}
-        {/*    options={[...INDUSTRY_FIELDS]}*/}
-        {/*  />*/}
-        {/*  <DropdownFilter*/}
-        {/*    label="Location"*/}
-        {/*    filterKey="locations"*/}
-        {/*    options={[...LOCATIONS]}*/}
-        {/*  />*/}
-        {/*  <DropdownFilter*/}
-        {/*    label="Working Right"*/}
-        {/*    filterKey="workingRights"*/}
-        {/*    options={[...WORKING_RIGHTS]}*/}
-        {/*  />*/}
-        {/*  <DropdownFilter*/}
-        {/*    label="Job Type"*/}
-        {/*    filterKey="jobTypes"*/}
-        {/*    options={[...JOB_TYPES]}*/}
-        {/*  />*/}
-        {/*</div>*/}
-
-        {/* Mobile filter modal button */}
         <FilterModal />
       </div>
     </div>

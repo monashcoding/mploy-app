@@ -1,5 +1,5 @@
 import { FilterState } from "@/types/filters";
-import { Job } from "@/types/job";
+import { Job, WORKING_RIGHTS, WorkingRight } from "@/types/job";
 import { MongoJob } from "@/app/jobs/actions";
 
 /**
@@ -141,3 +141,35 @@ export function formatISODate(isoDate: string): string {
   const year = date.getFullYear();
   return `${day} ${month} ${year}`;
 }
+
+export const formatWorkingRights = (rights: WorkingRight[]): string => {
+  // If all rights are present, return "Any"
+  if (rights.length === WORKING_RIGHTS.length) {
+    return "Any Working Rights";
+  }
+
+  // Check for AUS and NZ Citizens/PR combination
+  const hasAus = rights.includes("AUS_CITIZEN_PR");
+  const hasNz = rights.includes("NZ_CITIZEN_PR");
+  if (hasAus && hasNz) {
+    return "AUS & NZ Citizen/PR";
+  }
+
+  // Format remaining cases
+  return rights
+    .map((right) => {
+      switch (right) {
+        case "AUS_CITIZEN_PR":
+          return "AUS Citizen/PR";
+        case "NZ_CITIZEN_PR":
+          return "NZ Citizen/PR";
+        case "INTERNATIONAL":
+          return "International";
+        case "OTHER_RIGHTS":
+          return "Other";
+        default:
+          return formatCapString(right);
+      }
+    })
+    .join(", ");
+};
