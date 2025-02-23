@@ -9,6 +9,10 @@ import JobPagination from "@/components/jobs/job-pagination";
 import { Suspense } from "react";
 import Loading from "@/app/jobs/loading";
 
+export const metadata = {
+  title: "Find Jobs",
+};
+
 export default async function JobsPage({
   searchParams,
 }: {
@@ -24,13 +28,16 @@ export default async function JobsPage({
     <div className="">
       <FilterSection _totalJobs={total} />
 
-      {total <= 0 ? (
-        <NoResults />
-      ) : (
-        <Suspense fallback={<Loading />}>
+      <Suspense fallback={<Loading />}>
+        {total <= 0 ? (
+          <NoResults />
+        ) : (
           <div className="mt-4 flex flex-col lg:flex-row gap-2">
             <div className="w-full lg:w-[35%]">
-              <div className="overflow-y-auto pr-2 h-[calc(100vh-220px)]">
+              <div
+                id="job-list-container"
+                className="overflow-y-auto pr-2 h-[calc(100vh-220px)]"
+              >
                 <JobList jobs={jobs} />
                 <JobPagination />
               </div>
@@ -42,8 +49,8 @@ export default async function JobsPage({
               </div>
             </div>
           </div>
-        </Suspense>
-      )}
+        )}
+      </Suspense>
     </div>
   );
 }

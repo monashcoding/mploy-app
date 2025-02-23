@@ -13,6 +13,15 @@ import { theme } from "@/lib/theme";
 import { Poppins } from "next/font/google";
 import { FilterProvider } from "@/context/filter/filter-provider";
 import Loading from "@/app/jobs/loading";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: {
+    template: "%s | MAC Jobs Board",
+    default: "MAC Jobs Board",
+  },
+  description: "This is MACs Official Jobs Dashboard.",
+};
 
 const poppins = Poppins({
   subsets: ["latin"],
