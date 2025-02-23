@@ -67,10 +67,12 @@ export default function JobHeader({ job }: JobHeaderProps) {
           )}
 
           {/* Working Rights */}
-          <InfoTag
-            icon={<IconId size={18} stroke={1.5} />}
-            text={formatWorkingRights(job.working_rights)}
-          />
+          {job.working_rights && (
+            <InfoTag
+              icon={<IconId size={18} stroke={1.5} />}
+              text={formatWorkingRights(job.working_rights)}
+            />
+          )}
         </div>
       </div>
 
