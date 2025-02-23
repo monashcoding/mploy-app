@@ -29,12 +29,12 @@ const poppins = Poppins({
 
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
-    <html lang="en" data-theme="dark">
+    <html lang="en" data-mantine-color-scheme="dark">
       <Head>
         <ColorSchemeScript defaultColorScheme="dark" />
       </Head>
       <body className={`${poppins.className}`}>
-        <MantineProvider theme={theme} defaultColorScheme="dark">
+        <MantineProvider theme={theme} defaultColorScheme={"dark"}>
           <FilterProvider>
             <div className="min-h-screen flex flex-col px-6">
               <NavBar />
