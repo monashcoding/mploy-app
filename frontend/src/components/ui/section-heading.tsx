@@ -1,5 +1,5 @@
 // frontend/src/components/ui/section-heading.tsx
-import {IconBook, IconPencil, IconWriting} from "@tabler/icons-react";
+import { IconBook } from "@tabler/icons-react";
 
 interface SectionHeadingProps {
   title: string;

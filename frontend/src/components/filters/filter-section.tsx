@@ -2,13 +2,6 @@
 "use client";
 import { Text } from "@mantine/core";
 import { useFilterContext } from "@/context/filter/filter-context";
-import DropdownFilter from "@/components/filters/dropdown-filter";
-import {
-  INDUSTRY_FIELDS,
-  JOB_TYPES,
-  LOCATIONS,
-  WORKING_RIGHTS,
-} from "@/types/job";
 import { useEffect } from "react";
 import FilterModal from "@/components/filters/filter-modal";
 import ResetFilters from "@/components/filters/reset-filters";
@@ -58,8 +51,7 @@ export default function FilterSection({ _totalJobs }: FilterSectionProps) {
         {/*</div>*/}
 
         {/* Mobile filter modal button */}
-          <FilterModal />
-
+        <FilterModal />
       </div>
     </div>
   );
