@@ -3,7 +3,7 @@
 import { useFilterContext } from "@/context/filter/filter-context";
 import { CreateQueryString } from "@/lib/utils";
 import { JobFilters } from "@/types/filters";
-import {Button} from "@mantine/core";
+import { Button } from "@mantine/core";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
@@ -82,12 +82,12 @@ export default function Page() {
           </Button>
 
           <Button
-              size="sm"
-              color="secondary"
-              c="white"
-              rightSection={<IconArrowRight size={20} />}
-              className={"font-light"}
-              onClick={handleGradJobsClick}
+            size="sm"
+            color="secondary"
+            c="white"
+            rightSection={<IconArrowRight size={20} />}
+            className={"font-light"}
+            onClick={handleGradJobsClick}
           >
             Graduate Jobs
           </Button>

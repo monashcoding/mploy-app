@@ -1,7 +1,7 @@
 // frontend/src/components/ui/dot-background.tsx
 "use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 export default function DotBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -9,7 +9,7 @@ export default function DotBackground() {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
+    const ctx = canvas?.getContext("2d");
 
     if (!canvas || !ctx) return;
 
@@ -24,7 +24,7 @@ export default function DotBackground() {
     };
 
     resize();
-    window.addEventListener('resize', resize);
+    window.addEventListener("resize", resize);
 
     // Grid configuration
     const GRID_SIZE = 25;
@@ -50,7 +50,7 @@ export default function DotBackground() {
       const rect = canvas.getBoundingClientRect();
       mouseRef.current = {
         x: e.clientX - rect.left,
-        y: e.clientY - rect.top
+        y: e.clientY - rect.top,
       };
     };
 
@@ -59,17 +59,17 @@ export default function DotBackground() {
       mouseRef.current = { x: -1000, y: -1000 }; // Move mouse off-screen
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseleave', handleMouseLeave);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseleave", handleMouseLeave);
 
     // Animation loop
     let animationFrameId: number;
 
     function animate() {
-      if (ctx == null || canvas == null) return
+      if (ctx == null || canvas == null) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      dots.forEach(dot => {
+      dots.forEach((dot) => {
         const dx = dot.x - mouseRef.current.x;
         const dy = dot.y - mouseRef.current.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
@@ -92,17 +92,17 @@ export default function DotBackground() {
 
     // Cleanup
     return () => {
-      window.removeEventListener('resize', resize);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseleave', handleMouseLeave);
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseleave", handleMouseLeave);
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
 
   return (
-      <canvas
-          ref={canvasRef}
-          className="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none bg-background"
-      />
+    <canvas
+      ref={canvasRef}
+      className="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none bg-background"
+    />
   );
 }
