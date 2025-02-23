@@ -47,7 +47,9 @@ export default function NavBar() {
                 ) : (
                     <>
                         {/* Regular Mobile View */}
-                        <Logo />
+                        <div className={"lg:hidden"}>
+                            <Logo />
+                        </div>
                         <div className="lg:hidden flex items-center gap-4">
                             <Button variant="subtle" onClick={() => setShowSearch(true)} className="p-0">
                                 <IconSearch size={20} />
@@ -81,6 +83,7 @@ export default function NavBar() {
 
                 {/* Desktop View */}
                 <div className="hidden lg:flex w-full justify-between items-center">
+                    <Logo />
                     <div className="w-full mx-52">
                         <SearchBar />
                     </div>
