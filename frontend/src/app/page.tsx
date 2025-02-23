@@ -47,8 +47,8 @@ export default function Page() {
     <>
       <DotBackground />
 
-      <div className="flex flex-col items-center justify-center min-h-[80vh] text-center px-4">
-        <div className="flex items-center gap-2 mb-8">
+      <div className="flex flex-col items-center mt-16 md:mt-0 md:justify-center min-h-[80vh] text-center px-4">
+        <div className="flex items-center gap-2 mb-4 md:mb-8">
           <Link
             href="https://github.com/monashcoding/mploy-app"
             target="_blank"
@@ -64,7 +64,7 @@ export default function Page() {
           sleeps.
         </h1>
 
-        <p className="text-lg text-gray-400 max-w-2xl mb-8">
+        <p className="text-sm md:text-lg text-gray-400 max-w-2xl mb-8">
           Stop wasting hours manually tracking job sites. Our smart robots work
           24/7 to find you the most up to date listings so you can focus on what
           really matters.
@@ -72,7 +72,7 @@ export default function Page() {
 
         <div className="flex flex-col sm:flex-row gap-4">
           <Button
-            size="md"
+            size="sm"
             color="accent"
             c="black"
             rightSection={<IconArrowRight size={20} />}
@@ -82,7 +82,7 @@ export default function Page() {
           </Button>
 
           <Button
-              size="md"
+              size="sm"
               color="secondary"
               c="white"
               rightSection={<IconArrowRight size={20} />}
