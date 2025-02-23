@@ -79,7 +79,7 @@ export default function FilterModal() {
             />
 
             <FilterSectionGroup
-              title="Job Type"
+              title="Experience"
               options={[...JOB_TYPES]}
               selectedValues={filters.filters.jobTypes}
               onToggle={(value) => handleToggle("jobTypes", value)}
