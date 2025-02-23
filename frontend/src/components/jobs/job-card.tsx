@@ -20,7 +20,7 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
       <Box
           bg={isSelected ? "selected" : "secondary"}
           bd="2px solid selected"
-          className={`h-[11rem] p-4 rounded-xl transition-colors flex flex-col justify-between`}
+          className={`p-4 rounded-xl transition-colors flex flex-col justify-between`}
       >
         {/* Top section - company info */}
         <div className="flex flex-col gap-2">
@@ -50,7 +50,7 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(washedDescription),
               }}
-              className="text-xs line-clamp-3"
+              className="text-xs line-clamp-3 mb-2"
           />
         </div>
 

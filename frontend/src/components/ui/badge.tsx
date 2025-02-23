@@ -13,7 +13,7 @@ export default function Badge({ text, size = "sm" }: BadgeProps) {
       tt="none"
       color="dark.4"
       size={size}
-      radius={size === "lg" ? "lg" : "md"}
+      radius={size === "lg" ? "md" : "md"}
     >
       {text}
     </MantineBadge>
