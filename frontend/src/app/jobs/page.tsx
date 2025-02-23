@@ -10,7 +10,7 @@ import { Suspense } from "react";
 import Loading from "@/app/jobs/loading";
 
 export const metadata = {
-  title: "Find Jobs",
+  title: "Jobs",
 };
 
 export default async function JobsPage({
