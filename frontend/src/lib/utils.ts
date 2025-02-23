@@ -119,7 +119,7 @@ export function formatCapString(str: string | undefined): string {
 
 /**
  * Gets the time ago in days for a given date
- * 
+ *
  * @param dateString - The date string to convert
  * @returns A formatted string in format 'X days ago'
  */
@@ -133,7 +133,7 @@ export function getTimeAgo(dateString: string) {
 
 /**
  * Gets the plural label for a given label
- * 
+ *
  * @param label  - The label to convert
  * @returns A formatted string in plural form
  */

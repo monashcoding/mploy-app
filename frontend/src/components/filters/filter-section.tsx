@@ -1,5 +1,6 @@
 // frontend/src/components/filters/filter-section.tsx
 "use client";
+
 import { Text } from "@mantine/core";
 import { useFilterContext } from "@/context/filter/filter-context";
 import DropdownFilter from "@/components/filters/dropdown-filter";

@@ -6,9 +6,9 @@ import { JobFilters } from "@/types/filters";
 import { getJobs } from "@/app/jobs/actions";
 import NoResults from "@/components/ui/no-results";
 import JobPagination from "@/components/jobs/job-pagination";
+import JobListLoading from "@/components/layout/job-list-loading";
+import JobDetailsLoading from "@/components/layout/job-details-loading";
 import { Suspense } from "react";
-import Loading from "@/app/jobs/loading";
-
 export const metadata = {
   title: "Find Jobs",
 };
@@ -25,32 +25,40 @@ export default async function JobsPage({
   const { jobs, total } = await getJobs(await searchParams);
 
   return (
-    <div className="">
+    <>
+      {/* Filter section (client component)*/}
       <FilterSection _totalJobs={total} />
 
-      <Suspense fallback={<Loading />}>
-        {total <= 0 ? (
-          <NoResults />
-        ) : (
-          <div className="mt-4 flex flex-col lg:flex-row gap-2">
-            <div className="w-full lg:w-[35%]">
-              <div
-                id="job-list-container"
-                className="overflow-y-auto pr-2 h-[calc(100vh-220px)]"
-              >
+      {total <= 0 ? (
+        // No results found (client component)
+        <NoResults />
+      ) : (
+        <div className="mt-4 flex flex-col lg:flex-row gap-2">
+          <div className="w-full lg:w-[35%]">
+            <div
+              id="job-list-container"
+              className="overflow-y-auto pr-2 h-[calc(100vh-220px)]"
+            >
+              {/* Job list (client component) */}
+              <Suspense fallback={<JobListLoading />}>
                 <JobList jobs={jobs} />
-                <JobPagination />
-              </div>
-            </div>
+              </Suspense>
 
-            <div className="hidden lg:block lg:w-[65%]">
-              <div className="overflow-y-auto h-[calc(100vh-220px)]">
-                <JobDetails />
-              </div>
+              {/* Job pagination (client component) */}
+              <JobPagination />
             </div>
           </div>
-        )}
-      </Suspense>
-    </div>
+
+          <div className="hidden lg:block lg:w-[65%]">
+            <div className="overflow-y-auto h-[calc(100vh-220px)]">
+              {/* Job details (client component) */}
+              <Suspense fallback={<JobDetailsLoading />}>
+                <JobDetails />
+              </Suspense>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
