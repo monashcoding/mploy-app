@@ -1,94 +1,27 @@
 // frontend/src/components/layout/nav-bar.tsx
-"use client";
-
 import Logo from "@/components/layout/logo";
-import Link from "next/link";
 import SearchBar from "@/components/search/search-bar";
-import { Button, Menu } from "@mantine/core";
-import { IconSearch, IconMenu2 } from "@tabler/icons-react";
-import { useState } from "react";
-import { usePathname } from "next/navigation";
+import {NavLinks, MobileSearch} from "./nav-bar-components";
 
+// Server component
 export default function NavBar() {
-  const [showSearch, setShowSearch] = useState(false);
-  const pathname = usePathname();
-
-  const toggleSearch = () => {
-    setShowSearch(!showSearch);
-  };
-
-  const NavLinks = () => (
-    <>
-      <Link
-        className={`text-lg ${pathname === "/" ? "font-bold underline-fancy" : ""}`}
-        href="/"
-      >
-        Home
-      </Link>
-      <Link
-        className={`text-lg ${pathname === "/jobs" ? "font-bold underline-fancy" : ""}`}
-        href="/jobs"
-      >
-        Jobs
-      </Link>
-    </>
-  );
-
   return (
     <nav className="py-8">
       <div className="max-w-7xl mx-auto flex justify-between items-center min-h-14">
-        {showSearch ? (
-          <div className="w-full flex items-center gap-4 lg:hidden">
-            <Button
-              variant="subtle"
-              onClick={toggleSearch}
-              className="flex-shrink-0"
-            >
-              ←
-            </Button>
+        <div className="lg:hidden w-full">
+          <MobileSearch>
+            <Logo />
+          </MobileSearch>
+        </div>
+        <div className="hidden lg:flex flex-1 items-center">
+          <Logo />
+          <div className="w-full mx-52">
             <SearchBar />
           </div>
-        ) : (
-          <>
-            <Logo />
-            <div className="hidden lg:block w-full mx-52">
-              <SearchBar />
-            </div>
-            <div className="hidden lg:flex items-center gap-4">
-              <NavLinks />
-            </div>
-
-            {/* Mobile Controls */}
-            <div className="flex items-center gap-4 lg:hidden">
-              <Button variant="subtle" onClick={toggleSearch} className="p-0">
-                <IconSearch size={20} />
-              </Button>
-              <Menu position="bottom-end" offset={8} width={150}>
-                <Menu.Target>
-                  <Button variant="subtle" className="p-0">
-                    <IconMenu2 size={20} />
-                  </Button>
-                </Menu.Target>
-                <Menu.Dropdown>
-                  <Menu.Item
-                    component={Link}
-                    href="/"
-                    className={pathname === "/" ? "font-bold" : ""}
-                  >
-                    Home
-                  </Menu.Item>
-                  <Menu.Item
-                    component={Link}
-                    href="/jobs"
-                    className={pathname === "/jobs" ? "font-bold" : ""}
-                  >
-                    Jobs
-                  </Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
-            </div>
-          </>
-        )}
+          <div className="flex items-center gap-4">
+            <NavLinks />
+          </div>
+        </div>
       </div>
     </nav>
   );
