@@ -50,7 +50,7 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
           dangerouslySetInnerHTML={{
             __html: DOMPurify.sanitize(washedDescription),
           }}
-          className="text-xs line-clamp-3 mb-2"
+          className="text-xs line-clamp-2 lg:line-clamp-3 mb-2"
         />
       </div>
 
