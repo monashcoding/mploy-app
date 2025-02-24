@@ -2,7 +2,11 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Alert, Button, Card, ScrollArea } from "@mantine/core";
-import { IconCopyCheckFilled, IconFolderOpen, IconLink } from "@tabler/icons-react";
+import {
+  IconCopyCheckFilled,
+  IconFolderOpen,
+  IconLink,
+} from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
 import JobDescription from "@/components/jobs/job-description";
 import JobHeader from "@/components/jobs/job-header";
@@ -14,7 +18,7 @@ export default function JobDetails() {
   const [alertVisible, setAlertVisible] = useState(false);
 
   const copyButtonRef = useRef<HTMLButtonElement>(null);
-  
+
   const [alertStyle, setAlertStyle] = useState<React.CSSProperties>({});
   const timeoutRef = useRef<number | null>(null);
 
@@ -60,12 +64,12 @@ export default function JobDetails() {
         zIndex: 1000,
       });
 
-    // Hide the alert after 3 seconds
-    timeoutRef.current = window.setTimeout(() => {
-      setAlertVisible(false);
-    }, 2000);
+      // Hide the alert after 3 seconds
+      timeoutRef.current = window.setTimeout(() => {
+        setAlertVisible(false);
+      }, 2000);
+    }
   };
-}
 
   return (
     <Card bd="2px solid selected" className="h-full rounded-xl flex flex-col">
@@ -84,17 +88,17 @@ export default function JobDetails() {
         >
           Apply Now
         </Button>
-          <Button
-            ref={copyButtonRef}
-            onClick={handleCopyLink}
-            variant="light"
-            size="md"
-            color="gray"
-            className="w-50%"
-            leftSection={<IconLink size={16} />}
-          >
-            Copy Link
-          </Button>
+        <Button
+          ref={copyButtonRef}
+          onClick={handleCopyLink}
+          variant="light"
+          size="md"
+          color="gray"
+          className="w-50%"
+          leftSection={<IconLink size={16} />}
+        >
+          Copy Link
+        </Button>
       </div>
       {alertVisible && (
         <Alert
@@ -105,8 +109,7 @@ export default function JobDetails() {
           title="Link Copied!"
           withCloseButton={false}
           style={alertStyle}
-        >
-        </Alert>
+        ></Alert>
       )}
     </Card>
   );

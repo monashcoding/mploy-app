@@ -126,7 +126,10 @@ export async function getJobById(id: string): Promise<Job | null> {
     const collection = client.db("default").collection("active_jobs");
 
     // Convert the string ID to an ObjectId
-    const job = await collection.findOne({ _id: new ObjectId(id), outdated: false });
+    const job = await collection.findOne({
+      _id: new ObjectId(id),
+      outdated: false,
+    });
     if (!job) {
       return null;
     }

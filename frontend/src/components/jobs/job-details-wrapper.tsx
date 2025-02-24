@@ -11,12 +11,11 @@ interface JobDetailsWrapperProps {
 }
 
 export default function JobDetailsWrapper({ job }: JobDetailsWrapperProps) {
-  const { setSelectedJob, } = useFilterContext();
+  const { setSelectedJob } = useFilterContext();
 
   useEffect(() => {
     // Set the fetched job into context
     setSelectedJob(job);
-    
   }, [job, setSelectedJob]);
 
   return <JobDetails />;
