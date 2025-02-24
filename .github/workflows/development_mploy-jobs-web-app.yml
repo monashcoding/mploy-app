@@ -12,6 +12,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend # Set default working directory for all run steps
     permissions:
       contents: read #This is required for actions/checkout
 
