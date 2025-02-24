@@ -10,14 +10,13 @@ export const metadata = {
   title: "Job Details",
 };
 
-export default async function JobDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  // Fetch the job using its ID from the URL parameters.
-  const resolvedParams = await params;
-  const job: Job | null = await getJobById(resolvedParams.id);
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export default async function JobDetailPage({ params }: PageProps) {
+  const { id } = await params;
+  const job: Job | null = await getJobById(id);
 
   if (!job) {
     return notFound();
