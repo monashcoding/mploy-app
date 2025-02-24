@@ -23,7 +23,7 @@ export default function SearchBar() {
         page: 1,
       },
     });
-  }, 100);
+  }, 150);
 
   const handleInputChange = (value: string) => {
     setSearchValue(value);
@@ -48,6 +48,7 @@ export default function SearchBar() {
         input: {
           padding: "24px",
           paddingLeft: "48px",
+          fontSize: "16px",
         },
       }}
     />
