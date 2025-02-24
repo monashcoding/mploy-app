@@ -23,7 +23,7 @@ export default function SearchBar() {
         page: 1,
       },
     });
-  }, 100);
+  }, 150);
 
   const handleInputChange = (value: string) => {
     setSearchValue(value);
