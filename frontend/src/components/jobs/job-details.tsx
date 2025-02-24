@@ -1,8 +1,8 @@
 // frontend/src/components/jobs/details/job-details.tsx
 "use client";
-import { useEffect, useRef } from "react";
-import { Button, Card, ScrollArea, Tooltip } from "@mantine/core";
-import { IconFolderOpen, IconLink } from "@tabler/icons-react";
+import { useEffect, useRef, useState } from "react";
+import { Alert, Button, Card, ScrollArea, Tooltip } from "@mantine/core";
+import { IconCopyCheckFilled, IconFolderOpen, IconLink } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
 import JobDescription from "@/components/jobs/job-description";
 import JobHeader from "@/components/jobs/job-header";
@@ -11,6 +11,12 @@ import JobDetailsLoading from "@/components/layout/job-details-loading";
 export default function JobDetails() {
   const { selectedJob, isLoading } = useFilterContext();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [alertVisible, setAlertVisible] = useState(false);
+
+  const copyButtonRef = useRef<HTMLButtonElement>(null);
+  
+  const [alertStyle, setAlertStyle] = useState<React.CSSProperties>({});
+  const timeoutRef = useRef<number | null>(null);
 
   // Scroll to top whenever a new job is selected
   useEffect(() => {
@@ -30,8 +36,36 @@ export default function JobDetails() {
   const handleCopyLink = () => {
     const jobUrl = `${window.location.origin}/jobs/${selectedJob.id}`;
     navigator.clipboard.writeText(jobUrl);
-    alert("Job link copied to clipboard!");
+    setAlertVisible(true);
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    // Calculate button's position and set notification style so it's centered above the button
+    if (copyButtonRef.current) {
+      const rect = copyButtonRef.current.getBoundingClientRect();
+      // Compute the center of the button horizontally.
+      const left = rect.left + rect.width / 2;
+      // Place the notification a bit above the button.
+      const bottom = window.innerHeight - rect.top + 10; // 10px above the button
+      setAlertStyle({
+        position: "fixed",
+        left: left,
+        bottom: bottom,
+        width: "140px",
+        fontSize: "0.5rem",
+        padding: "4px",
+        transform: "translateX(-50%)",
+        zIndex: 1000,
+      });
+
+    // Hide the alert after 3 seconds
+    timeoutRef.current = window.setTimeout(() => {
+      setAlertVisible(false);
+    }, 2000);
   };
+}
 
   return (
     <Card bd="2px solid selected" className="h-full rounded-xl flex flex-col">
@@ -50,8 +84,8 @@ export default function JobDetails() {
         >
           Apply Now
         </Button>
-        <Tooltip label="Copy job link" withArrow>
           <Button
+            ref={copyButtonRef}
             onClick={handleCopyLink}
             variant="light"
             size="md"
@@ -61,8 +95,19 @@ export default function JobDetails() {
           >
             Copy Link
           </Button>
-        </Tooltip>
       </div>
+      {alertVisible && (
+        <Alert
+          icon={<IconCopyCheckFilled size={16} />}
+          color="black"
+          autoContrast
+          variant="filled"
+          title="Link Copied!"
+          withCloseButton={false}
+          style={alertStyle}
+        >
+        </Alert>
+      )}
     </Card>
   );
 }
