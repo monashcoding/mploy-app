@@ -5,7 +5,6 @@ import { Button, Card, ScrollArea, Tooltip } from "@mantine/core";
 import { IconFolderOpen, IconLink } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
 import JobDescription from "@/components/jobs/job-description";
-import JobWorkingRights from "@/components/jobs/job-working-rights";
 import JobHeader from "@/components/jobs/job-header";
 import JobDetailsLoading from "@/components/layout/job-details-loading";
 
@@ -36,14 +35,9 @@ export default function JobDetails() {
 
   return (
     <Card bd="2px solid selected" className="h-full rounded-xl flex flex-col">
-      <ScrollArea
-        type="hover"
-        className="pl-4 flex-grow"
-        viewportRef={scrollRef}
-      >
+      <ScrollArea type="hover" className="flex-grow" viewportRef={scrollRef}>
         <JobHeader job={selectedJob} />
         <JobDescription description={selectedJob.description || ""} />
-        <JobWorkingRights rights={selectedJob.working_rights} />
       </ScrollArea>
 
       <div className="flex justify-between items-center mt-4 gap-4">
