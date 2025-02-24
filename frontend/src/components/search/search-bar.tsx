@@ -48,6 +48,7 @@ export default function SearchBar() {
         input: {
           padding: "24px",
           paddingLeft: "48px",
+          fontSize: "16px",
         },
       }}
     />
