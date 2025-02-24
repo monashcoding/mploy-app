@@ -9,7 +9,6 @@ import { MongoJob } from "@/app/jobs/actions";
  *
  * @param filterState - Partial FilterState containing the filter parameters to convert
  * @returns A URL-encoded query string
- *
  */
 export function CreateQueryString(filterState: Partial<FilterState>): string {
   const params = new URLSearchParams();
@@ -118,6 +117,12 @@ export function formatCapString(str: string | undefined): string {
     .join(" ");
 }
 
+/**
+ * Gets the time ago in days for a given date
+ *
+ * @param dateString - The date string to convert
+ * @returns A formatted string in format 'X days ago'
+ */
 export function getTimeAgo(dateString: string) {
   const date = new Date(dateString);
   const now = new Date();
@@ -126,6 +131,12 @@ export function getTimeAgo(dateString: string) {
   return `${diffDays}d ago`;
 }
 
+/**
+ * Gets the plural label for a given label
+ *
+ * @param label  - The label to convert
+ * @returns A formatted string in plural form
+ */
 export function getPluralLabel(label: string) {
   const irregularPlurals: Record<string, string> = {
     Industry: "Industries",
@@ -134,6 +145,12 @@ export function getPluralLabel(label: string) {
   return irregularPlurals[label] || `${label}s`;
 }
 
+/**
+ * Formats an ISO date string to a more readable format
+ *
+ * @param isoDate - The ISO date string to convert
+ * @returns A formatted string in format 'DD MMM YYYY'
+ */
 export function formatISODate(isoDate: string): string {
   const date = new Date(isoDate);
   const day = date.getDate();
