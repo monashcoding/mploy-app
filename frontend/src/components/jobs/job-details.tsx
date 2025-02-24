@@ -1,7 +1,7 @@
 // frontend/src/components/jobs/details/job-details.tsx
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Alert, Button, Card, ScrollArea, Tooltip } from "@mantine/core";
+import { Alert, Button, Card, ScrollArea } from "@mantine/core";
 import { IconCopyCheckFilled, IconFolderOpen, IconLink } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
 import JobDescription from "@/components/jobs/job-description";
