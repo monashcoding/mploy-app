@@ -29,7 +29,7 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
             <CompanyLogo
               name={job.company.name}
               logo={job.company.logo}
-              className="mr-2 h-14 w-14"
+              className="mr-2 lg:h-14 lg:w-14 h-10 w-10"
             />
             <div
               className={
