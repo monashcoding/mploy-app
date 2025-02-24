@@ -12,9 +12,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend # Set default working directory for all run steps
     permissions:
       contents: read #This is required for actions/checkout
 
@@ -33,15 +30,13 @@ jobs:
           npm run test --if-present
 
       - name: Zip artifact for deployment
-        run: |
-          cd $GITHUB_WORKSPACE/frontend
-          zip release.zip ./* -r
+        run: zip release.zip ./* -r
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: frontend/release.zip
+          path: release.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -65,9 +60,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_8F120CCFC51E4CD7B717E71DCE669047 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_03652C7A230142BF992D322BDE104376 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C604A4A926524F698E5A5F7512307A27 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_86D76FD0B1864BBFB6E4AC4556DB5DC0 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_36E8ABB52D7D4F29AA2C6C25F35EF7C7 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_AD7D402B0EA842E090E861AEDBE20068 }}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
