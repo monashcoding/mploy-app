@@ -6,13 +6,12 @@ import "./globals.css";
 import NavBar from "@/components/layout/nav-bar";
 import { MantineProvider } from "@mantine/core";
 import { ColorSchemeScript } from "@mantine/core";
-import { PropsWithChildren, Suspense } from "react";
+import { PropsWithChildren } from "react";
 import Head from "next/head";
 import { theme } from "@/lib/theme";
 
 import { Poppins } from "next/font/google";
 import { FilterProvider } from "@/context/filter/filter-provider";
-import Loading from "@/app/jobs/loading";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -36,14 +35,12 @@ export default function RootLayout({ children }: PropsWithChildren) {
       </Head>
       <body className={`${poppins.className}`}>
         <MantineProvider theme={theme} defaultColorScheme="dark">
-          <Suspense fallback={<Loading />}>
-            <FilterProvider>
-              <div className="min-h-screen flex flex-col px-6">
-                <NavBar />
-                <main className="">{children}</main>
-              </div>
-            </FilterProvider>
-          </Suspense>
+          <FilterProvider>
+            <div className="min-h-screen flex flex-col px-6">
+              <NavBar />
+              <main className="">{children}</main>
+            </div>
+          </FilterProvider>
         </MantineProvider>
       </body>
     </html>
