@@ -30,7 +30,7 @@ const poppins = Poppins({
 
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
-    <html lang="en" data-theme="dark">
+    <html lang="en" data-mantine-color-scheme="dark">
       <Head>
         <ColorSchemeScript defaultColorScheme="dark" />
       </Head>
