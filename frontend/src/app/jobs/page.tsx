@@ -26,7 +26,7 @@ export default async function JobsPage({
   const { jobs, total } = await getJobs(await searchParams);
 
   return (
-    <div className="">
+    <>
       <FilterSection _totalJobs={total} />
 
       {total <= 0 ? (
@@ -54,6 +54,6 @@ export default async function JobsPage({
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
