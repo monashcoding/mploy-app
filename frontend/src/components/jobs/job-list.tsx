@@ -1,4 +1,4 @@
-// frontend/src/components/jobs/details/job-list.tsx
+// frontend/src/components/jobs/job-list.tsx
 "use client";
 
 import JobCard from "@/components/jobs/job-card";
@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { Modal, ScrollArea } from "@mantine/core";
 import JobDetails from "@/components/jobs/job-details";
 import JobListLoading from "@/components/layout/job-list-loading";
+import JobPagination from "@/components/jobs/job-pagination";
 
 export default function JobList({ jobs }: { jobs: Job[] }) {
   const { selectedJob, setSelectedJob, isLoading } = useFilterContext();
@@ -24,23 +25,30 @@ export default function JobList({ jobs }: { jobs: Job[] }) {
 
   return (
     <>
-      <div className="space-y-4">
-        {jobs.map((job) => (
-          <div
-            key={job.id}
-            onClick={() => {
-              setSelectedJob(job);
-              // Only open modal on mobile
-              if (window.innerWidth < 1024) {
-                setIsModalOpen(true);
-              }
-            }}
-            className="cursor-pointer"
-          >
-            <JobCard job={job} isSelected={selectedJob?.id === job.id} />
-          </div>
-        ))}
-      </div>
+      <ScrollArea
+        h="calc(100vh - 200px)"
+        type="auto"
+        offsetScrollbars
+      >
+        <div className="space-y-4 pr-1">
+          {jobs.map((job) => (
+            <div
+              key={job.id}
+              onClick={() => {
+                setSelectedJob(job);
+                // Only open modal on mobile
+                if (window.innerWidth < 1024) {
+                  setIsModalOpen(true);
+                }
+              }}
+              className="cursor-pointer"
+            >
+              <JobCard job={job} isSelected={selectedJob?.id === job.id} />
+            </div>
+          ))}
+        </div>
+          <JobPagination />
+      </ScrollArea>
 
       <Modal
         opened={isModalOpen}
