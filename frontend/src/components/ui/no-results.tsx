@@ -1,12 +1,16 @@
 "use client";
 
-// frontend/src/components/ui/no-results.tsx
 import { Button, Text } from "@mantine/core";
 import { IconInboxOff } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
+import Loading from "@/app/jobs/loading";
 
 export default function NoResults() {
-  const { clearFilters } = useFilterContext();
+  const { clearFilters, isLoading } = useFilterContext();
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <div className="flex flex-col items-center justify-center h-[50vh] space-y-4 px-4">
