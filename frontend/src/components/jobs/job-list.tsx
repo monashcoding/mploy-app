@@ -25,11 +25,7 @@ export default function JobList({ jobs }: { jobs: Job[] }) {
 
   return (
     <>
-      <ScrollArea
-        h="calc(100vh - 200px)"
-        type="auto"
-        offsetScrollbars
-      >
+      <ScrollArea h="calc(100vh - 200px)" type="auto" offsetScrollbars>
         <div className="space-y-4 pr-1">
           {jobs.map((job) => (
             <div
@@ -47,7 +43,7 @@ export default function JobList({ jobs }: { jobs: Job[] }) {
             </div>
           ))}
         </div>
-          <JobPagination />
+        <JobPagination />
       </ScrollArea>
 
       <Modal

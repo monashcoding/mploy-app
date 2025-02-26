@@ -55,7 +55,12 @@ export default function JobDetails() {
 
   return (
     <Card bd="2px solid selected" className="h-full rounded-xl flex flex-col">
-      <ScrollArea offsetScrollbars type="hover" className="flex-grow" viewportRef={scrollRef}>
+      <ScrollArea
+        offsetScrollbars
+        type="hover"
+        className="flex-grow"
+        viewportRef={scrollRef}
+      >
         <JobHeader job={selectedJob} />
         <JobDescription description={selectedJob.description || ""} />
       </ScrollArea>
