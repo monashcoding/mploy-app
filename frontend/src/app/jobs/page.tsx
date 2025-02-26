@@ -32,19 +32,15 @@ export default async function JobsPage({
         {total <= 0 ? (
           <NoResults />
         ) : (
-          <div className="mt-4 flex flex-col lg:flex-row gap-2">
+          <div className="mt-4 flex flex-col lg:flex-row">
             <div className="w-full lg:w-[35%]">
-              <div
-                id="job-list-container"
-                className="overflow-y-auto pr-2 h-[calc(100vh-220px)]"
-              >
+              <div id="job-list-container" className="lg:pr-1">
                 <JobList jobs={jobs} />
-                <JobPagination />
               </div>
             </div>
 
             <div className="hidden lg:block lg:w-[65%]">
-              <div className="overflow-y-auto h-[calc(100vh-220px)]">
+              <div className="overflow-y-auto h-[calc(100vh-200px)]">
                 <JobDetails />
               </div>
             </div>
