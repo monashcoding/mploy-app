@@ -21,7 +21,6 @@ export default function JobDetails() {
     }
   }, [selectedJob]);
 
-  // Clear timeout when component unmounts
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -51,12 +50,12 @@ export default function JobDetails() {
 
     timeoutRef.current = setTimeout(() => {
       setIsCopied(false);
-    }, 1000);
+    }, 500);
   };
 
   return (
     <Card bd="2px solid selected" className="h-full rounded-xl flex flex-col">
-      <ScrollArea type="hover" className="flex-grow" viewportRef={scrollRef}>
+      <ScrollArea offsetScrollbars type="hover" className="flex-grow" viewportRef={scrollRef}>
         <JobHeader job={selectedJob} />
         <JobDescription description={selectedJob.description || ""} />
       </ScrollArea>
