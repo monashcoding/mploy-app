@@ -7,7 +7,8 @@ import { getJobs } from "@/app/jobs/actions";
 import NoResults from "@/components/ui/no-results";
 import JobPagination from "@/components/jobs/job-pagination";
 import { Suspense } from "react";
-import Loading from "@/app/jobs/loading";
+import JobListLoading from "@/components/layout/job-list-loading";
+import JobDetailsLoading from "@/components/layout/job-details-loading";
 
 export const metadata = {
   title: "Jobs",
@@ -25,32 +26,34 @@ export default async function JobsPage({
   const { jobs, total } = await getJobs(await searchParams);
 
   return (
-    <div className="">
+    <>
       <FilterSection _totalJobs={total} />
 
-      <Suspense fallback={<Loading />}>
-        {total <= 0 ? (
-          <NoResults />
-        ) : (
-          <div className="mt-4 flex flex-col lg:flex-row gap-2">
-            <div className="w-full lg:w-[35%]">
-              <div
-                id="job-list-container"
-                className="overflow-y-auto pr-2 h-[calc(100vh-220px)]"
-              >
+      {total <= 0 ? (
+        <NoResults />
+      ) : (
+        <div className="mt-4 flex flex-col lg:flex-row gap-2">
+          <div className="w-full lg:w-[35%]">
+            <div
+              id="job-list-container"
+              className="overflow-y-auto pr-2 h-[calc(100vh-220px)]"
+            >
+              <Suspense fallback={<JobListLoading />}>
                 <JobList jobs={jobs} />
                 <JobPagination />
-              </div>
-            </div>
-
-            <div className="hidden lg:block lg:w-[65%]">
-              <div className="overflow-y-auto h-[calc(100vh-220px)]">
-                <JobDetails />
-              </div>
+              </Suspense>
             </div>
           </div>
-        )}
-      </Suspense>
-    </div>
+
+          <div className="hidden lg:block lg:w-[65%]">
+            <div className="overflow-y-auto h-[calc(100vh-220px)]">
+              <Suspense fallback={<JobDetailsLoading />}>
+                <JobDetails />
+              </Suspense>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

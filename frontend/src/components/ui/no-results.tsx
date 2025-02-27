@@ -1,6 +1,5 @@
 "use client";
 
-// frontend/src/components/ui/no-results.tsx
 import { Button, Text } from "@mantine/core";
 import { IconInboxOff } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
