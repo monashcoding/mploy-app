@@ -5,9 +5,9 @@ import JobDetails from "@/components/jobs/job-details";
 import { JobFilters } from "@/types/filters";
 import { getJobs } from "@/app/jobs/actions";
 import NoResults from "@/components/ui/no-results";
-import JobPagination from "@/components/jobs/job-pagination";
 import { Suspense } from "react";
-import Loading from "@/app/jobs/loading";
+import JobListLoading from "@/components/layout/job-list-loading";
+import JobDetailsLoading from "@/components/layout/job-details-loading";
 
 export const metadata = {
   title: "Jobs",
@@ -28,25 +28,27 @@ export default async function JobsPage({
     <div className="">
       <FilterSection _totalJobs={total} />
 
-      <Suspense fallback={<Loading />}>
-        {total <= 0 ? (
-          <NoResults />
-        ) : (
-          <div className="mt-4 flex flex-col lg:flex-row">
-            <div className="w-full lg:w-[35%]">
-              <div id="job-list-container" className="lg:pr-1">
+      {total <= 0 ? (
+        <NoResults />
+      ) : (
+        <div className="mt-4 flex flex-col lg:flex-row">
+          <div className="w-full lg:w-[35%]">
+            <div id="job-list-container" className="lg:pr-1">
+              <Suspense fallback={<JobListLoading />}>
                 <JobList jobs={jobs} />
-              </div>
-            </div>
-
-            <div className="hidden lg:block lg:w-[65%]">
-              <div className="overflow-y-auto h-[calc(100vh-200px)]">
-                <JobDetails />
-              </div>
+              </Suspense>
             </div>
           </div>
-        )}
-      </Suspense>
+
+          <div className="hidden lg:block lg:w-[65%]">
+            <div className="overflow-y-auto h-[calc(100vh-200px)]">
+              <Suspense fallback={<JobDetailsLoading />}>
+                <JobDetails />
+              </Suspense>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
