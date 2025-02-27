@@ -55,7 +55,7 @@ export default function JobList({ jobs }: { jobs: Job[] }) {
         fullScreen
         styles={{
           body: {
-            height: "calc(100vh - 120px)",
+            height: "calc(100vh - 150px)",
           },
         }}
       >
