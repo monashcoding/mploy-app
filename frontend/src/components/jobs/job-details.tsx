@@ -39,7 +39,9 @@ export default function JobDetails() {
 
   const handleCopyLink = () => {
     const jobUrl = `${window.location.origin}/jobs/${selectedJob.id}`;
-    navigator.clipboard.writeText(jobUrl);
+    if (navigator && navigator.clipboard) {
+      navigator.clipboard.writeText(jobUrl);
+    }
 
     setIsCopied(true);
 
