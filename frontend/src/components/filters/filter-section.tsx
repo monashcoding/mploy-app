@@ -20,7 +20,7 @@ export default function FilterSection({ _totalJobs }: FilterSectionProps) {
   return (
     <div className="flex justify-between gap-4">
       <Text className={"my-auto"}>
-        {isLoading ? "" : totalJobs + " Results"}
+        {isLoading ? "0 Results" : totalJobs + " Results"}
       </Text>
 
       <div className="flex flex-row items-center">
