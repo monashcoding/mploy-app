@@ -1,8 +1,8 @@
-// frontend/src/components/jobs/details/job-details.tsx
+// frontend/src/components/jobs/job-details.tsx
 "use client";
-import { useEffect, useRef } from "react";
-import { Button, Card, ScrollArea } from "@mantine/core";
-import { IconFolderOpen } from "@tabler/icons-react";
+import { useEffect, useRef, useState } from "react";
+import { ActionIcon, Button, Card, ScrollArea } from "@mantine/core";
+import { IconCheck, IconCopy, IconExternalLink } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
 import JobDescription from "@/components/jobs/job-description";
 import JobHeader from "@/components/jobs/job-header";
@@ -11,6 +11,8 @@ import JobDetailsLoading from "@/components/layout/job-details-loading";
 export default function JobDetails() {
   const { selectedJob, isLoading } = useFilterContext();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [isCopied, setIsCopied] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Scroll to top whenever a new job is selected
   useEffect(() => {
@@ -18,6 +20,14 @@ export default function JobDetails() {
       scrollRef.current.scrollTo({ top: 0 });
     }
   }, [selectedJob]);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   if (!selectedJob || isLoading) {
     return <JobDetailsLoading />;
@@ -27,22 +37,67 @@ export default function JobDetails() {
     window.open(selectedJob.application_url, "_blank");
   };
 
+  const handleCopyLink = () => {
+    const jobUrl = `${window.location.origin}/jobs/${selectedJob.id}`;
+    if (navigator && navigator.clipboard) {
+      navigator.clipboard.writeText(jobUrl);
+    }
+
+    setIsCopied(true);
+
+    // Reset copied state after 2 seconds
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      setIsCopied(false);
+    }, 500);
+  };
+
   return (
     <Card bd="2px solid selected" className="h-full rounded-xl flex flex-col">
-      <ScrollArea type="hover" className="flex-grow" viewportRef={scrollRef}>
+      <ScrollArea
+        offsetScrollbars
+        type="hover"
+        className="flex-grow"
+        viewportRef={scrollRef}
+      >
         <JobHeader job={selectedJob} />
         <JobDescription description={selectedJob.description || ""} />
       </ScrollArea>
 
-      <Button
-        onClick={handleApplyClick}
-        bg="accent"
-        c="black"
-        leftSection={<IconFolderOpen />}
-        className="min-h-10 mt-4"
-      >
-        Apply Now
-      </Button>
+      <div className="flex justify-between items-center mt-4 gap-4">
+        <Button
+          onClick={handleApplyClick}
+          bg="accent"
+          c="black"
+          leftSection={<IconExternalLink size={16} />}
+          className="flex-grow"
+        >
+          Apply Now
+        </Button>
+        <ActionIcon
+          onClick={handleCopyLink}
+          className="inline lg:hidden py-[1.1rem] w-9"
+          size="lg"
+          color={"selected"}
+          style={{ transition: "color 0.3s ease" }}
+        >
+          {isCopied ? <IconCheck size={16} /> : <IconCopy size={16} />}
+        </ActionIcon>
+        <Button
+          onClick={handleCopyLink}
+          color={"selected"}
+          className="font-light px-5 hidden lg:inline w-36"
+          leftSection={
+            isCopied ? <IconCheck size={16} /> : <IconCopy size={16} />
+          }
+          style={{ transition: "background-color 0.3s ease" }}
+        >
+          {isCopied ? "Copied!" : "Copy Link"}
+        </Button>
+      </div>
     </Card>
   );
 }

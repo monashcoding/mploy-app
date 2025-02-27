@@ -12,6 +12,7 @@
   "dependencies": {
     "@mantine/core": "^7.17.0",
     "@mantine/hooks": "^7.16.1",
+    "@mantine/notifications": "^7.17.0",
     "@tabler/icons-react": "^3.30.0",
     "@tailwindcss/typography": "^0.5.16",
     "dompurify": "^3.2.3",

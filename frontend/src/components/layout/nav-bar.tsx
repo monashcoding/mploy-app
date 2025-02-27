@@ -5,7 +5,7 @@ import NavLinks from "./nav-links";
 
 export default function NavBar() {
   return (
-    <nav className="py-8">
+    <nav className="pt-6 pb-4">
       <div className="max-w-7xl mx-auto flex justify-between items-center min-h-14">
         {/* Mobile View */}
         <NavBarMobile />

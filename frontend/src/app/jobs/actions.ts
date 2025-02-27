@@ -111,3 +111,35 @@ export async function getJobs(
     await client.close();
   }
 }
+
+export async function getJobById(id: string): Promise<Job | null> {
+  if (!process.env.MONGODB_URI) {
+    throw new Error(
+      "MongoDB URI is not configured. Please check environment variables.",
+    );
+  }
+
+  const client = new MongoClient(process.env.MONGODB_URI);
+
+  try {
+    await client.connect();
+    const collection = client.db("default").collection("active_jobs");
+
+    // Convert the string ID to an ObjectId
+    const job = await collection.findOne({
+      _id: new ObjectId(id),
+      outdated: false,
+    });
+    if (!job) {
+      return null;
+    }
+
+    const typedJob = job as MongoJob;
+    return serializeJob(typedJob);
+  } catch (error) {
+    console.error("Server Error in getJobById:", error);
+    throw new Error("Failed to fetch job from the server.");
+  } finally {
+    await client.close();
+  }
+}
