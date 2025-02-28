@@ -46,8 +46,8 @@ export default function SearchBar() {
       className="w-full"
       styles={{
         input: {
-          padding: "24px",
-          paddingLeft: "48px",
+          padding: "20px",
+          paddingLeft: "42px",
           fontSize: "16px",
         },
       }}
