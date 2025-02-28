@@ -25,7 +25,11 @@ export default function JobList({ jobs }: { jobs: Job[] }) {
 
   return (
     <>
-      <ScrollArea h="calc(100vh - 200px)" type="auto" offsetScrollbars>
+      <ScrollArea
+        offsetScrollbars
+        className={"h-[calc(100svh-150px)] lg:h-[calc(100svh-180px)]"}
+        type="auto"
+      >
         <div className="space-y-4 pr-1">
           {jobs.map((job) => (
             <div
@@ -55,7 +59,7 @@ export default function JobList({ jobs }: { jobs: Job[] }) {
         fullScreen
         styles={{
           body: {
-            height: "calc(100vh - 150px)",
+            height: "calc(100svh - 100px)",
           },
         }}
       >

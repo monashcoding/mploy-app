@@ -47,7 +47,7 @@ export default function Page() {
     <>
       <DotBackground />
 
-      <div className="flex flex-col items-center mt-16 md:mt-0 md:justify-center min-h-[80vh] text-center px-4">
+      <div className="flex flex-col items-center mt-20 md:mt-0 md:justify-center min-h-[80vh] text-center px-4">
         <div className="flex items-center gap-2 mb-4 md:mb-8">
           <Link
             href="https://github.com/monashcoding/mploy-app"
