@@ -38,7 +38,7 @@ export default async function JobsPage({
             </Suspense>
           </div>
 
-          <div className="hidden lg:block lg:w-[65%] overflow-y-auto h-[calc(100svh-200px)]">
+          <div className="hidden lg:block lg:w-[65%] overflow-y-auto h-[calc(100svh-150px)] lg:h-[calc(100svh-180px)]">
             <Suspense fallback={<JobDetailsLoading />}>
               <JobDetails />
             </Suspense>
