@@ -11,7 +11,7 @@ export default function MainContentLoading() {
       <div className="lg:pr-1 w-full lg:w-[35%]">
         <JobListLoading />
       </div>
-      <div className="hidden lg:block lg:w-[65%] overflow-y-auto h-[calc(100vh-200px)]">
+      <div className="hidden lg:block lg:w-[65%] overflow-y-auto h-[calc(100svh-200px)]">
         <JobDetailsLoading />
       </div>
     </div>

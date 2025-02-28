@@ -25,7 +25,7 @@ export default function JobList({ jobs }: { jobs: Job[] }) {
 
   return (
     <>
-      <ScrollArea h="calc(100vh - 200px)" type="auto" offsetScrollbars>
+      <ScrollArea h="calc(100svh - 200px)" type="auto" offsetScrollbars>
         <div className="space-y-4 pr-1">
           {jobs.map((job) => (
             <div
@@ -50,12 +50,13 @@ export default function JobList({ jobs }: { jobs: Job[] }) {
         opened={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         size="lg"
+        withCloseButton={false}
         scrollAreaComponent={ScrollArea}
         className="lg:hidden"
         fullScreen
         styles={{
           body: {
-            height: "calc(100vh - 150px)",
+            height: "calc(100svh - 100px)",
           },
         }}
       >
