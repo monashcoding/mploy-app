@@ -36,6 +36,7 @@ export default function FilterModal() {
       <Button
         onClick={() => setOpened(true)}
         leftSection={<IconFilter size={16} />}
+        className={"p-0"}
         variant="light"
         size="sm"
         radius="lg"
