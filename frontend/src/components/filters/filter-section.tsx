@@ -19,12 +19,12 @@ export default function FilterSection({ _totalJobs }: FilterSectionProps) {
 
   return (
     <div className="flex justify-between gap-4">
-      <Text className={"my-auto"}>
+      <Text className={"my-auto text-nowrap"}>
         {isLoading ? "" : totalJobs + " Results"}
       </Text>
 
       <div className="flex flex-row items-center">
-        <ResetFilters />
+        <ResetFilters className={"pr-4"} />
         <FilterModal />
       </div>
     </div>

@@ -7,7 +7,7 @@ export default function Loading() {
       {/* FilterSection placeholder - this should always be visible */}
       <div className="flex flex-row justify-between items-center">
         <div className="w-24 h-9 bg-secondary animate-pulse rounded" />
-        <div className="flex flex-row items-center gap-2">
+        <div className="flex flex-row items-center">
           <div className="w-24 h-9 bg-secondary animate-pulse rounded-lg" />
         </div>
       </div>
