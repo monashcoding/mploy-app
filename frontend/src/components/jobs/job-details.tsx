@@ -83,6 +83,7 @@ export default function JobDetails() {
           onClick={handleApplyClick}
           bg="accent"
           c="black"
+          size="sm"
           leftSection={<IconFolderOpen />}
           className="min-h-10 flex-grow"
         >
@@ -92,9 +93,9 @@ export default function JobDetails() {
           ref={copyButtonRef}
           onClick={handleCopyLink}
           variant="light"
-          size="md"
+          size="sm"
           color="gray"
-          className="w-50%"
+          className="w-50% min-h-10"
           leftSection={<IconLink size={16} />}
         >
           Copy Link
