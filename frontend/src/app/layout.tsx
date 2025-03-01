@@ -12,7 +12,6 @@ import { theme } from "@/lib/theme";
 
 import { Poppins } from "next/font/google";
 import { FilterProvider } from "@/context/filter/filter-provider";
-import Loading from "@/app/jobs/loading";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -30,21 +29,21 @@ const poppins = Poppins({
 
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
-    <html lang="en" data-theme="dark">
+    <html lang="en" data-mantine-color-scheme="dark">
       <Head>
         <ColorSchemeScript defaultColorScheme="dark" />
       </Head>
       <body className={`${poppins.className}`}>
-        <MantineProvider theme={theme} defaultColorScheme="dark">
-          <Suspense fallback={<Loading />}>
+        <Suspense>
+          <MantineProvider theme={theme} defaultColorScheme="dark">
             <FilterProvider>
               <div className="min-h-screen flex flex-col px-6">
                 <NavBar />
                 <main className="">{children}</main>
               </div>
             </FilterProvider>
-          </Suspense>
-        </MantineProvider>
+          </MantineProvider>
+        </Suspense>
       </body>
     </html>
   );

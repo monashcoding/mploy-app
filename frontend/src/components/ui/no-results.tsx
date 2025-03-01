@@ -1,16 +1,15 @@
 "use client";
 
-// frontend/src/components/ui/no-results.tsx
 import { Button, Text } from "@mantine/core";
 import { IconInboxOff } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
-import Loading from "@/app/jobs/loading";
+import MainContentLoading from "@/components/layout/main-content-loading";
 
 export default function NoResults() {
   const { clearFilters, isLoading } = useFilterContext();
 
   if (isLoading) {
-    return <Loading />;
+    return <MainContentLoading />;
   }
 
   return (

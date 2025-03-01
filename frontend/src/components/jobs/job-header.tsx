@@ -18,8 +18,8 @@ interface JobHeaderProps {
 
 export default function JobHeader({ job }: JobHeaderProps) {
   return (
-    <div className="flex justify-between w-full pr-2 lg:pr-4">
-      <div className="flex flex-col">
+    <div className="flex justify-between w-full">
+      <div className="flex flex-col lg:mr-2">
         {/* Title with responsive sizing and padding */}
         <span className="text-xl lg:text-2xl font-bold pr-2 lg:pr-16">
           {job.title}
@@ -80,7 +80,7 @@ export default function JobHeader({ job }: JobHeaderProps) {
       <CompanyLogo
         name={job.company.name}
         logo={job.company.logo}
-        className="aspect-square h-12 w-12 lg:h-16 lg:w-16 mr-2"
+        className="aspect-square h-12 w-12 lg:h-16 lg:w-16"
       />
     </div>
   );

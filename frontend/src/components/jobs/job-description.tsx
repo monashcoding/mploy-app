@@ -9,14 +9,14 @@ interface JobDescriptionProps {
 
 export default function JobDescription({ description }: JobDescriptionProps) {
   return (
-    <div className="flex flex-col space-y-1 mt-4">
+    <div className="flex flex-col mt-4">
       <SectionHeading title="Job Description" />
       <TypographyStylesProvider>
         <div
           dangerouslySetInnerHTML={{
             __html: DOMPurify.sanitize(description || ""),
           }}
-          className="prose prose-invert lg:ml-6 leading-relaxed text-xs pr-2 [&_h1]:mb-1 [&_h2]:mb-1 [&_h3]:mb-1"
+          className="prose prose-invert lg:ml-6 leading-relaxed text-xs [&_h1]:mb-1 [&_h2]:mb-1 [&_h3]:mb-1"
         />
       </TypographyStylesProvider>
     </div>

@@ -39,15 +39,15 @@ export default function SearchBar() {
           className="ml-2 stroke-[--mantine-color-accent-0]"
         />
       }
-      placeholder="Search for a company or a role..."
+      placeholder="Search company or role..."
       onChange={(e) => handleInputChange(e.currentTarget.value)}
       radius="lg"
       variant="filled"
       className="w-full"
       styles={{
         input: {
-          padding: "24px",
-          paddingLeft: "48px",
+          padding: "20px",
+          paddingLeft: "42px",
           fontSize: "16px",
         },
       }}
