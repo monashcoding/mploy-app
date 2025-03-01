@@ -1,8 +1,5 @@
 "use client";
 
-import { useFilterContext } from "@/context/filter/filter-context";
-import { CreateQueryString } from "@/lib/utils";
-import { JobFilters } from "@/types/filters";
 import { Button } from "@mantine/core";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -11,7 +8,6 @@ import { IconArrowRight } from "@tabler/icons-react";
 import DotBackground from "@/components/ui/dot-background";
 
 export default function Page() {
-  const { updateFilters, filters } = useFilterContext();
   const router = useRouter();
 
   useEffect(() => {
@@ -19,30 +15,13 @@ export default function Page() {
   }, []);
 
   const handleGradJobsClick = () => {
-    const newFilters = {
-      ...filters.filters,
-      jobTypes: ["GRADUATE"] as JobFilters["jobTypes"],
-      page: 1,
-    };
-
-    updateFilters({ filters: newFilters });
-
-    const queryParams = CreateQueryString({ filters: newFilters });
-    router.push(`/jobs?${queryParams}`);
+    router.push(`/jobs?jobTypes%5B%5D=GRADUATE&page=1&sortBy=recent`);
   };
 
   const handleInternJobsClick = () => {
-    const newFilters = {
-      ...filters.filters,
-      jobTypes: ["INTERN"] as JobFilters["jobTypes"],
-      page: 1,
-    };
-
-    updateFilters({ filters: newFilters });
-
-    const queryParams = CreateQueryString({ filters: newFilters });
-    router.push(`/jobs?${queryParams}`);
+    router.push(`/jobs?jobTypes%5B%5D=INTERN&page=1&sortBy=recent`);
   };
+
   return (
     <>
       <DotBackground />
