@@ -43,7 +43,7 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
             </div>
           </div>
           <span className={"text-xs flex-shrink-0"}>
-            {getTimeAgo(job.updated_at)}
+            {getTimeAgo(job.created_at)}
           </span>
         </div>
         <div
