@@ -3,6 +3,7 @@
 import "@mantine/core/styles.css";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import NavBar from "@/components/layout/nav-bar";
 import { MantineProvider } from "@mantine/core";
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
                 <main className="">
                   {children}
                   <Analytics />
+                  <SpeedInsights />
                 </main>
               </div>
             </FilterProvider>
