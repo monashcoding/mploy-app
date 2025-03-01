@@ -2,6 +2,7 @@
 // the tailwind class passed with className is not applied.
 import "@mantine/core/styles.css";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/react";
 
 import NavBar from "@/components/layout/nav-bar";
 import { MantineProvider } from "@mantine/core";
@@ -39,7 +40,10 @@ export default function RootLayout({ children }: PropsWithChildren) {
             <FilterProvider>
               <div className="min-h-screen flex flex-col px-6">
                 <NavBar />
-                <main className="">{children}</main>
+                <main className="">
+                  {children}
+                  <Analytics />
+                </main>
               </div>
             </FilterProvider>
           </MantineProvider>
