@@ -19,40 +19,41 @@ export default function SponsorSection({ sponsoredJobs }: SponsorSectionProps) {
   if (sponsoredJobs.length === 0) return null;
 
   return (
-    <><section className="pb-4">
-      <div className="space-y-4 pr-1">
-        {sponsoredJobs.map((job) => (
-          <div
-            key={job.id}
-            onClick={() => {
-              setSelectedJob(job);
-              // Only open modal on mobile
-              if (window.innerWidth < 1024) {
-                setIsModalOpen(true);
-              }
-            } }
-            className="cursor-pointer"
-          >
-            <JobCard job={job} isSponsor={true} />
-          </div>
-        ))}
-      </div>
-    </section>
-    <Modal
-      opened={isModalOpen}
-      onClose={() => setIsModalOpen(false)}
-      size="lg"
-      scrollAreaComponent={ScrollArea}
-      className="lg:hidden"
-      fullScreen
-      styles={{
-        body: {
-          height: "calc(100svh - 100px)",
-        },
-      }}
-    >
+    <>
+      <section className="pb-4">
+        <div className="space-y-4 pr-1">
+          {sponsoredJobs.map((job) => (
+            <div
+              key={job.id}
+              onClick={() => {
+                setSelectedJob(job);
+                // Only open modal on mobile
+                if (window.innerWidth < 1024) {
+                  setIsModalOpen(true);
+                }
+              }}
+              className="cursor-pointer"
+            >
+              <JobCard job={job} isSponsor={true} />
+            </div>
+          ))}
+        </div>
+      </section>
+      <Modal
+        opened={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        size="lg"
+        scrollAreaComponent={ScrollArea}
+        className="lg:hidden"
+        fullScreen
+        styles={{
+          body: {
+            height: "calc(100svh - 100px)",
+          },
+        }}
+      >
         <JobDetails />
-      </Modal></>
-    
+      </Modal>
+    </>
   );
 }

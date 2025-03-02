@@ -17,12 +17,12 @@ export interface MongoJob extends Omit<Job, "id"> {
 /**
  * Helper function to build a query object from filters.
  * @param filters - The job filters from the client.
- * @param additional - Additional query overrides (e.g. { is_sponsored: true }).
+ * @param additional - Additional query overrides (e.g. { is_sponsor: true }).
  * @returns The query object to use with MongoDB.
  */
 function buildJobQuery(
   filters: Partial<JobFilters>,
-  additional?: Record<string, unknown>
+  additional?: Record<string, unknown>,
 ) {
   const array_jobs = JSON.parse(JSON.stringify(filters, null, 2));
   const query = {
@@ -76,11 +76,11 @@ function buildJobQuery(
  * @returns The result from the callback.
  */
 async function withDbConnection<T>(
-  callback: (client: MongoClient) => Promise<T>
+  callback: (client: MongoClient) => Promise<T>,
 ): Promise<T> {
   if (!process.env.MONGODB_URI) {
     throw new Error(
-      "MongoDB URI is not configured. Please check environment variables."
+      "MongoDB URI is not configured. Please check environment variables.",
     );
   }
   const client = new MongoClient(process.env.MONGODB_URI);
@@ -96,7 +96,7 @@ async function withDbConnection<T>(
  * Fetches paginated and filtered job listings from MongoDB.
  */
 export async function getJobs(
-  filters: Partial<JobFilters>
+  filters: Partial<JobFilters>,
 ): Promise<{ jobs: Job[]; total: number }> {
   return await withDbConnection(async (client) => {
     const collection = client.db("default").collection("active_jobs");
@@ -120,7 +120,7 @@ export async function getJobs(
  * This function does not paginate results.
  */
 export async function getSponsoredJobs(
-  filters: Partial<JobFilters>
+  filters: Partial<JobFilters>,
 ): Promise<{ jobs: Job[]; total: number }> {
   return await withDbConnection(async (client) => {
     const collection = client.db("default").collection("active_jobs");

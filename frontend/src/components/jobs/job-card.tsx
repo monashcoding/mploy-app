@@ -26,7 +26,7 @@ export default function JobCard({ job, isSelected, isSponsor }: JobCardProps) {
       {/* Show a yellow "Sponsored" badge if this is a sponsor card */}
       {isSponsor && (
         <div className="mb-2">
-          <Badge text="Sponsored" color="accent"></Badge>
+          <Badge text="Sponsor" color="accent"></Badge>
         </div>
       )}
       {/* Top section - company info */}

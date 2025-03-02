@@ -12,7 +12,6 @@ import JobPagination from "@/components/jobs/job-pagination";
 import { useMediaQuery } from "@mantine/hooks";
 import SponsorSection from "./sponsor-section";
 
-
 interface JobListProps {
   jobs: Job[]; // Regular jobs
   sponsoredJobs: Job[]; // Sponsored jobs
@@ -48,7 +47,7 @@ export default function JobList({ jobs, sponsoredJobs }: JobListProps) {
             : undefined
         }
       >
-        <SponsorSection sponsoredJobs={sponsoredJobs} ></SponsorSection>
+        <SponsorSection sponsoredJobs={sponsoredJobs}></SponsorSection>
         <div className="space-y-4 pr-1">
           {jobs.map((job) => (
             <div
@@ -62,7 +61,11 @@ export default function JobList({ jobs, sponsoredJobs }: JobListProps) {
               }}
               className="cursor-pointer"
             >
-              <JobCard job={job} isSelected={selectedJob?.id === job.id} isSponsor={false} />
+              <JobCard
+                job={job}
+                isSelected={selectedJob?.id === job.id}
+                isSponsor={false}
+              />
             </div>
           ))}
         </div>

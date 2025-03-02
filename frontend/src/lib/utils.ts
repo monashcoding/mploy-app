@@ -76,7 +76,7 @@ export default function serializeJob(job: MongoJob): Job {
     one_liner: job.one_liner,
     application_url: job.application_url,
     close_date: serializeDate(job.close_date),
-    is_sponsored: job.is_sponsored
+    is_sponsored: job.is_sponsored,
   };
 }
 

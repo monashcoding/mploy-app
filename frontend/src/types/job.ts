@@ -66,5 +66,5 @@ export interface Job {
   working_rights: WorkingRight[];
   created_at: string;
   updated_at: string;
-  is_sponsor: boolean;
+  is_sponsored: boolean;
 }

@@ -96,7 +96,7 @@ export default async function JobsPage({
       }
       attempts++;
       // Optionally, try a different company if the candidate is already used
-      companyJobTracker.add(company.companyName)
+      companyJobTracker.add(company.companyName);
       company = pickRandomCompany();
     }
     if (company && randomJob && !usedJobIds.has(randomJob.id)) {
