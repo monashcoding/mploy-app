@@ -7,6 +7,7 @@ import { useFilterContext } from "@/context/filter/filter-context";
 import JobDescription from "@/components/jobs/job-description";
 import JobHeader from "@/components/jobs/job-header";
 import JobDetailsLoading from "@/components/layout/job-details-loading";
+import JobSummary from "@/components/jobs/job-summary";
 
 export default function JobDetails() {
   const { selectedJob, isLoading } = useFilterContext();
@@ -64,7 +65,12 @@ export default function JobDetails() {
         viewportRef={scrollRef}
       >
         <JobHeader job={selectedJob} />
-        <JobDescription description={selectedJob.description || ""} />
+        {selectedJob && selectedJob.one_liner && (
+          <JobSummary one_liner={selectedJob.one_liner} />
+        )}
+        {selectedJob && selectedJob.description && (
+          <JobDescription description={selectedJob.description || ""} />
+        )}
       </ScrollArea>
 
       <div className="flex justify-between items-center mt-4 gap-4">

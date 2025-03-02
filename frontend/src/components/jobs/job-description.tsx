@@ -2,6 +2,7 @@
 import SectionHeading from "@/components/ui/section-heading";
 import { TypographyStylesProvider } from "@mantine/core";
 import DOMPurify from "isomorphic-dompurify";
+import { IconBook } from "@tabler/icons-react";
 
 interface JobDescriptionProps {
   description: string;
@@ -10,7 +11,10 @@ interface JobDescriptionProps {
 export default function JobDescription({ description }: JobDescriptionProps) {
   return (
     <div className="flex flex-col mt-4">
-      <SectionHeading title="Job Description" />
+      <SectionHeading
+        title="Job Description"
+        icon={<IconBook size={16} stroke={1.5} />}
+      />
       <TypographyStylesProvider>
         <div
           dangerouslySetInnerHTML={{

@@ -25,7 +25,7 @@ export default async function JobDetailPage({ params }: PageProps) {
   return (
     <FilterProvider>
       <div className="h-screen max-w-4xl mx-auto overflow-hidden flex flex-col">
-        <div className="flex-grow overflow-y-auto mb-20 pb-12 mt-2">
+        <div className="overflow-y-auto h-[calc(100svh-120px)] lg:h-[calc(100svh-180px)]">
           <JobDetailsWrapper job={job} />
         </div>
       </div>

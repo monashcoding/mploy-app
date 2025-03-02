@@ -28,6 +28,7 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
           <div className={"flex flex-1 min-w-0"}>
             <CompanyLogo
               name={job.company.name}
+              applicationUrl={job.application_url}
               logo={job.company.logo}
               className="mr-2 lg:h-14 lg:w-14 h-10 w-10"
             />
@@ -36,7 +37,7 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
                 "flex justify-center flex-col flex-1 min-w-0 space-y-0.5"
               }
             >
-              <span className="text-md font-bold line-clamp-2 leading-tight pr-2">
+              <span className="text-sm lg:text-md font-bold line-clamp-2 leading-tight pr-2">
                 {job.title}
               </span>
               <span className="text-xs truncate">{job.company.name}</span>
@@ -50,7 +51,7 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
           dangerouslySetInnerHTML={{
             __html: DOMPurify.sanitize(washedDescription),
           }}
-          className="text-xs line-clamp-2 lg:line-clamp-3 mb-2"
+          className="text-xs line-clamp-3 lg:line-clamp-3 mb-2"
         />
       </div>
 
@@ -71,6 +72,7 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
         )}
         {job.locations && job.locations.length > 0 && (
           <Badge
+            className={"hidden lg:inline"}
             text={`${job.locations
               .slice(0, 2)
               .map((loc) => formatCapString(loc))

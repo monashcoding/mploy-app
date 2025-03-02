@@ -35,7 +35,7 @@ export default function SearchBar() {
       value={searchValue}
       leftSection={
         <IconSearch
-          size={20}
+          size={16}
           className="ml-2 stroke-[--mantine-color-accent-0]"
         />
       }
