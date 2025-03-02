@@ -3,7 +3,7 @@ import FilterSection from "@/components/filters/filter-section";
 import JobList from "@/components/jobs/job-list";
 import JobDetails from "@/components/jobs/job-details";
 import { JobFilters } from "@/types/filters";
-import { getJobs } from "@/app/jobs/actions";
+import { getJobs, getSponsoredJobs } from "@/app/jobs/actions";
 import NoResults from "@/components/ui/no-results";
 import { Suspense } from "react";
 import JobListLoading from "@/components/layout/job-list-loading";
@@ -25,10 +25,9 @@ export default async function JobsPage({
   // parameters of the current URL.
 
   const { jobs, total } = await getJobs(await searchParams);
-  console.log(jobs)
+  
   // Separate sponsored and regular jobs.
-  const sponsorJobs = jobs.filter((job) => job.is_sponsor);
-  console.log("Sponsored db:", sponsorJobs)
+  const {jobs: sponsoredJobs} = await getSponsoredJobs(await searchParams);
   const platinumSponsors = ["IMC", "Atlassian"];
 
   // Group sponsored jobs by company.
@@ -40,7 +39,7 @@ export default async function JobsPage({
     };
   } = {};
 
-  sponsorJobs.forEach((job) => {
+  sponsoredJobs.forEach((job) => {
     const companyName = job.company.name;
     if (!sponsorsByCompany[companyName]) {
       sponsorsByCompany[companyName] = {
