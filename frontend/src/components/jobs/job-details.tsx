@@ -1,26 +1,12 @@
 // frontend/src/components/jobs/job-details.tsx
 "use client";
 import { useEffect, useRef, useState } from "react";
-import {
-  ActionIcon,
-  Button,
-  Card,
-  ScrollArea,
-  TypographyStylesProvider,
-} from "@mantine/core";
-import {
-  IconBook,
-  IconCheck,
-  IconCopy,
-  IconExternalLink,
-  IconRobot,
-} from "@tabler/icons-react";
+import { ActionIcon, Button, Card, ScrollArea } from "@mantine/core";
+import { IconCheck, IconCopy, IconExternalLink } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
 import JobDescription from "@/components/jobs/job-description";
 import JobHeader from "@/components/jobs/job-header";
 import JobDetailsLoading from "@/components/layout/job-details-loading";
-import SectionHeading from "@/components/ui/section-heading";
-import DOMPurify from "isomorphic-dompurify";
 import JobSummary from "@/components/jobs/job-summary";
 
 export default function JobDetails() {
