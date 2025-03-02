@@ -8,6 +8,8 @@ import NoResults from "@/components/ui/no-results";
 import { Suspense } from "react";
 import JobListLoading from "@/components/layout/job-list-loading";
 import JobDetailsLoading from "@/components/layout/job-details-loading";
+import SponsorSection from "@/components/jobs/sponsor-section";
+import { Job } from "@/types/job";
 
 export const metadata = {
   title: "Jobs",
@@ -23,7 +25,75 @@ export default async function JobsPage({
   // parameters of the current URL.
 
   const { jobs, total } = await getJobs(await searchParams);
+  console.log(jobs)
+  // Separate sponsored and regular jobs.
+  const sponsorJobs = jobs.filter((job) => job.is_sponsor);
+  console.log("Sponsored db:", sponsorJobs)
+  const platinumSponsors = ["IMC", "Atlassian"];
 
+  // Group sponsored jobs by company.
+  const sponsorsByCompany: {
+    [companyName: string]: {
+      jobs: Job[];
+      companyLogo: string;
+      website: string;
+    };
+  } = {};
+
+  sponsorJobs.forEach((job) => {
+    const companyName = job.company.name;
+    if (!sponsorsByCompany[companyName]) {
+      sponsorsByCompany[companyName] = {
+        jobs: [],
+        companyLogo: job.company.logo ?? "",
+        website: job.company.website ?? "",
+      };
+    }
+    sponsorsByCompany[companyName].jobs.push(job);
+  });
+
+  // Convert grouped companies into an array with platinum flag
+  const sponsorCompanies = Object.entries(sponsorsByCompany).map(
+    ([companyName, data]) => ({
+      companyName,
+      isPlatinum: platinumSponsors.includes(companyName),
+      jobs: data.jobs,
+      companyLogo: data.companyLogo,
+      website: data.website,
+    })
+  );
+
+  // Weighted random selection for sponsored slots.
+  const pickRandomCompany = () => {
+    const platinum = sponsorCompanies.filter((c) => c.isPlatinum);
+    const nonPlatinum = sponsorCompanies.filter((c) => !c.isPlatinum);
+
+    // 65% chance to choose platinum if available.
+    const choosePlatinum = Math.random() < 0.65 && platinum.length > 0;
+    const pool =
+      choosePlatinum ? platinum : nonPlatinum.length > 0 ? nonPlatinum : platinum;
+    if (pool.length === 0) return null;
+    return pool[Math.floor(Math.random() * pool.length)];
+  };
+
+  const sponsoredSlots: Job[] = [];
+  const usedCompanies = new Set<string>();
+  const slots = 4;
+  for (let i = 0; i < slots; i++) {
+    let company = pickRandomCompany();
+    let attempts = 0;
+    while (company && usedCompanies.has(company.companyName) && attempts < 10) {
+      company = pickRandomCompany();
+      attempts++;
+    }
+    if (company) {
+      usedCompanies.add(company.companyName);
+      const randomJob =
+        company.jobs[Math.floor(Math.random() * company.jobs.length)];
+      sponsoredSlots.push(randomJob);
+    }
+  }
+  
   return (
     <>
       <FilterSection _totalJobs={total} />
@@ -33,6 +103,8 @@ export default async function JobsPage({
       ) : (
         <div className="mt-4 flex flex-col lg:flex-row">
           <div id="job-list-container" className="lg:pr-1 w-full lg:w-[35%]">
+          <SponsorSection sponsoredJobs={sponsoredSlots} />
+          <div className="bg-black">HELLO</div>
             <Suspense fallback={<JobListLoading />}>
               <JobList jobs={jobs} />
             </Suspense>
