@@ -8,7 +8,6 @@ import NoResults from "@/components/ui/no-results";
 import { Suspense } from "react";
 import JobListLoading from "@/components/layout/job-list-loading";
 import JobDetailsLoading from "@/components/layout/job-details-loading";
-import SponsorSection from "@/components/jobs/sponsor-section";
 import { Job } from "@/types/job";
 
 export const metadata = {
@@ -25,9 +24,9 @@ export default async function JobsPage({
   // parameters of the current URL.
 
   const { jobs, total } = await getJobs(await searchParams);
-  
+
   // Separate sponsored and regular jobs.
-  const {jobs: sponsoredJobs} = await getSponsoredJobs(await searchParams);
+  const { jobs: sponsoredJobs } = await getSponsoredJobs(await searchParams);
   const platinumSponsors = ["IMC", "Atlassian"];
 
   // Group sponsored jobs by company.
@@ -59,7 +58,7 @@ export default async function JobsPage({
       jobs: data.jobs,
       companyLogo: data.companyLogo,
       website: data.website,
-    })
+    }),
   );
 
   // Weighted random selection for sponsored slots.
@@ -69,30 +68,48 @@ export default async function JobsPage({
 
     // 65% chance to choose platinum if available.
     const choosePlatinum = Math.random() < 0.65 && platinum.length > 0;
-    const pool =
-      choosePlatinum ? platinum : nonPlatinum.length > 0 ? nonPlatinum : platinum;
+    const pool = choosePlatinum
+      ? platinum
+      : nonPlatinum.length > 0
+        ? nonPlatinum
+        : platinum;
     if (pool.length === 0) return null;
     return pool[Math.floor(Math.random() * pool.length)];
   };
 
   const sponsoredSlots: Job[] = [];
-  const usedCompanies = new Set<string>();
+  const usedJobIds = new Set<string>(); // Track individual job IDs
+  const companyJobTracker = new Set<string>(); // Track individual job IDs
   const slots = 4;
   for (let i = 0; i < slots; i++) {
     let company = pickRandomCompany();
     let attempts = 0;
-    while (company && usedCompanies.has(company.companyName) && attempts < 10) {
-      company = pickRandomCompany();
-      attempts++;
-    }
-    if (company) {
-      usedCompanies.add(company.companyName);
-      const randomJob =
+    let randomJob: Job | undefined;
+    while (attempts < 20) {
+      if (!company) break;
+      // Pick a random job from this company
+      const candidate =
         company.jobs[Math.floor(Math.random() * company.jobs.length)];
+      if (!usedJobIds.has(candidate.id)) {
+        randomJob = candidate;
+        break;
+      }
+      attempts++;
+      // Optionally, try a different company if the candidate is already used
+      companyJobTracker.add(company.companyName)
+      company = pickRandomCompany();
+    }
+    if (company && randomJob && !usedJobIds.has(randomJob.id)) {
+      usedJobIds.add(randomJob.id);
       sponsoredSlots.push(randomJob);
     }
   }
-  
+
+  const sponsoredJobIds = new Set(sponsoredSlots.map((job) => job.id));
+  const jobsWithoutDuplicates = jobs.filter(
+    (job) => !sponsoredJobIds.has(job.id),
+  );
+
   return (
     <>
       <FilterSection _totalJobs={total} />
@@ -102,10 +119,11 @@ export default async function JobsPage({
       ) : (
         <div className="mt-4 flex flex-col lg:flex-row">
           <div id="job-list-container" className="lg:pr-1 w-full lg:w-[35%]">
-          <SponsorSection sponsoredJobs={sponsoredSlots} />
-          <div className="bg-black">HELLO</div>
             <Suspense fallback={<JobListLoading />}>
-              <JobList jobs={jobs} />
+              <JobList
+                jobs={jobsWithoutDuplicates}
+                sponsoredJobs={sponsoredSlots}
+              />
             </Suspense>
           </div>
 

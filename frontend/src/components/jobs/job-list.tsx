@@ -10,8 +10,15 @@ import JobDetails from "@/components/jobs/job-details";
 import JobListLoading from "@/components/layout/job-list-loading";
 import JobPagination from "@/components/jobs/job-pagination";
 import { useMediaQuery } from "@mantine/hooks";
+import SponsorSection from "./sponsor-section";
 
-export default function JobList({ jobs }: { jobs: Job[] }) {
+
+interface JobListProps {
+  jobs: Job[]; // Regular jobs
+  sponsoredJobs: Job[]; // Sponsored jobs
+}
+
+export default function JobList({ jobs, sponsoredJobs }: JobListProps) {
   const { selectedJob, setSelectedJob, isLoading } = useFilterContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 1024px)");
@@ -41,6 +48,7 @@ export default function JobList({ jobs }: { jobs: Job[] }) {
             : undefined
         }
       >
+        <SponsorSection sponsoredJobs={sponsoredJobs} ></SponsorSection>
         <div className="space-y-4 pr-1">
           {jobs.map((job) => (
             <div
@@ -54,7 +62,7 @@ export default function JobList({ jobs }: { jobs: Job[] }) {
               }}
               className="cursor-pointer"
             >
-              <JobCard job={job} isSelected={selectedJob?.id === job.id} />
+              <JobCard job={job} isSelected={selectedJob?.id === job.id} isSponsor={false} />
             </div>
           ))}
         </div>
