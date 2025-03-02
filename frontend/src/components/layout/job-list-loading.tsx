@@ -3,7 +3,7 @@ import { ScrollArea } from "@mantine/core";
 export default function JobListLoading() {
   return (
     <ScrollArea
-      className="h-[calc(100svh-150px)] lg:h-[calc(100svh-180px)]"
+      className="h-[calc(100svh-140px)] lg:h-[calc(100svh-180px)]"
       type="never"
       offsetScrollbars
     >
