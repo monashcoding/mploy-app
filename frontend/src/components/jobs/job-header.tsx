@@ -38,7 +38,7 @@ export default function JobHeader({ job }: JobHeaderProps) {
         <div className="flex flex-wrap gap-3">
           {/* Location */}
           <InfoTag
-            icon={<IconMapPin size={18} stroke={1.5} />}
+            icon={<IconMapPin size={16} stroke={1.5} />}
             text={job.locations
               ?.map((location) => formatCapString(location))
               .join(", ")}
@@ -46,14 +46,14 @@ export default function JobHeader({ job }: JobHeaderProps) {
 
           {/* Date found */}
           <InfoTag
-            icon={<IconCalendar size={18} stroke={1.5} />}
+            icon={<IconCalendar size={16} stroke={1.5} />}
             text={`Found ${getTimeAgo(job.created_at)}`}
           />
 
           {/* Role type */}
           {job.type && (
             <InfoTag
-              icon={<IconBriefcase size={18} stroke={1.5} />}
+              icon={<IconBriefcase size={16} stroke={1.5} />}
               text={`${formatCapString(job.type)} Role`}
             />
           )}
@@ -61,7 +61,7 @@ export default function JobHeader({ job }: JobHeaderProps) {
           {/* Industry field */}
           {job.industry_field && (
             <InfoTag
-              icon={<IconBuilding size={18} stroke={1.5} />}
+              icon={<IconBuilding size={16} stroke={1.5} />}
               text={formatCapString(job.industry_field)}
             />
           )}
@@ -69,7 +69,7 @@ export default function JobHeader({ job }: JobHeaderProps) {
           {/* Working Rights */}
           {job.working_rights && (
             <InfoTag
-              icon={<IconId size={18} stroke={1.5} />}
+              icon={<IconId size={16} stroke={1.5} />}
               text={formatWorkingRights(job.working_rights)}
             />
           )}
