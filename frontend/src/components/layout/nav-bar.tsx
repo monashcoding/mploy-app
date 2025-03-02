@@ -13,7 +13,7 @@ export default function NavBar() {
         {/* Desktop View */}
         <div className="hidden lg:flex w-full justify-between items-center">
           <Logo />
-          <div className="w-full mx-52">
+          <div className="w-full mx-60">
             <SearchBar />
           </div>
           <div className="flex items-center gap-4">
