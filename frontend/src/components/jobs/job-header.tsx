@@ -79,6 +79,7 @@ export default function JobHeader({ job }: JobHeaderProps) {
       {/* Company logo with responsive sizing */}
       <CompanyLogo
         name={job.company.name}
+        applicationUrl={job.application_url}
         logo={job.company.logo}
         className="aspect-square h-12 w-12 lg:h-16 lg:w-16"
       />

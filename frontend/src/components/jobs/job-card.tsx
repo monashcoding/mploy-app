@@ -28,6 +28,7 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
           <div className={"flex flex-1 min-w-0"}>
             <CompanyLogo
               name={job.company.name}
+              applicationUrl={job.application_url}
               logo={job.company.logo}
               className="mr-2 lg:h-14 lg:w-14 h-10 w-10"
             />
