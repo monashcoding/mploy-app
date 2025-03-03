@@ -8,7 +8,7 @@ import NoResults from "@/components/ui/no-results";
 import { Suspense } from "react";
 import JobListLoading from "@/components/layout/job-list-loading";
 import JobDetailsLoading from "@/components/layout/job-details-loading";
-import { Job } from "@/types/job";
+import { getSponsoredSlots } from "@/lib/utils";
 
 export const metadata = {
   title: "Jobs",
@@ -23,88 +23,21 @@ export default async function JobsPage({
   // searchParams is a promise that resolves to an object containing the search
   // parameters of the current URL.
 
-  const { jobs, total } = await getJobs(await searchParams);
+  const filters = await searchParams;
 
-  // Separate sponsored and regular jobs.
-  const { jobs: sponsoredJobs } = await getSponsoredJobs(await searchParams);
+  // Fetch regular jobs with pagination.
+  const { jobs, total } = await getJobs(filters);
+
+  // Fetch all sponsored jobs (non-paginated) that match the filter.
+  const { jobs: sponsoredJobs } = await getSponsoredJobs(filters);
+
+  // Hardcode the platinum sponsor companies.
   const platinumSponsors = ["IMC", "Atlassian"];
 
-  // Group sponsored jobs by company.
-  const sponsorsByCompany: {
-    [companyName: string]: {
-      jobs: Job[];
-      companyLogo: string;
-      website: string;
-    };
-  } = {};
+  // Use our helper to get a set of sponsored slots.
+  const sponsoredSlots = getSponsoredSlots(sponsoredJobs, platinumSponsors, 4);
 
-  sponsoredJobs.forEach((job) => {
-    const companyName = job.company.name;
-    if (!sponsorsByCompany[companyName]) {
-      sponsorsByCompany[companyName] = {
-        jobs: [],
-        companyLogo: job.company.logo ?? "",
-        website: job.company.website ?? "",
-      };
-    }
-    sponsorsByCompany[companyName].jobs.push(job);
-  });
-
-  // Convert grouped companies into an array with platinum flag
-  const sponsorCompanies = Object.entries(sponsorsByCompany).map(
-    ([companyName, data]) => ({
-      companyName,
-      isPlatinum: platinumSponsors.includes(companyName),
-      jobs: data.jobs,
-      companyLogo: data.companyLogo,
-      website: data.website,
-    }),
-  );
-
-  // Weighted random selection for sponsored slots.
-  const pickRandomCompany = () => {
-    const platinum = sponsorCompanies.filter((c) => c.isPlatinum);
-    const nonPlatinum = sponsorCompanies.filter((c) => !c.isPlatinum);
-
-    // 65% chance to choose platinum if available.
-    const choosePlatinum = Math.random() < 0.65 && platinum.length > 0;
-    const pool = choosePlatinum
-      ? platinum
-      : nonPlatinum.length > 0
-        ? nonPlatinum
-        : platinum;
-    if (pool.length === 0) return null;
-    return pool[Math.floor(Math.random() * pool.length)];
-  };
-
-  const sponsoredSlots: Job[] = [];
-  const usedJobIds = new Set<string>(); // Track individual job IDs
-  const companyJobTracker = new Set<string>(); // Track individual job IDs
-  const slots = 4;
-  for (let i = 0; i < slots; i++) {
-    let company = pickRandomCompany();
-    let attempts = 0;
-    let randomJob: Job | undefined;
-    while (attempts < 20) {
-      if (!company) break;
-      // Pick a random job from this company
-      const candidate =
-        company.jobs[Math.floor(Math.random() * company.jobs.length)];
-      if (!usedJobIds.has(candidate.id)) {
-        randomJob = candidate;
-        break;
-      }
-      attempts++;
-      // Optionally, try a different company if the candidate is already used
-      companyJobTracker.add(company.companyName);
-      company = pickRandomCompany();
-    }
-    if (company && randomJob && !usedJobIds.has(randomJob.id)) {
-      usedJobIds.add(randomJob.id);
-      sponsoredSlots.push(randomJob);
-    }
-  }
-
+  // Remove any duplicate jobs from the regular list that appear in the sponsored slots.
   const sponsoredJobIds = new Set(sponsoredSlots.map((job) => job.id));
   const jobsWithoutDuplicates = jobs.filter(
     (job) => !sponsoredJobIds.has(job.id),

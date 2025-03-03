@@ -23,12 +23,6 @@ export default function JobCard({ job, isSelected, isSponsor }: JobCardProps) {
       bd="2px solid selected"
       className={`p-4 rounded-xl transition-colors flex flex-col justify-between`}
     >
-      {/* Show a yellow "Sponsored" badge if this is a sponsor card */}
-      {isSponsor && (
-        <div className="mb-2">
-          <Badge text="Sponsor" color="accent"></Badge>
-        </div>
-      )}
       {/* Top section - company info */}
       <div className="flex flex-col gap-2">
         <div className={"flex justify-between"}>
@@ -64,6 +58,8 @@ export default function JobCard({ job, isSelected, isSponsor }: JobCardProps) {
 
       {/* Bottom section - badges */}
       <div className="flex gap-2 mt-auto">
+        {/* Show a yellow "Sponsored" badge if this is a sponsor card */}
+        {isSponsor && <Badge text="Sponsor" color="accent"></Badge>}
         {job.type && <Badge text={formatCapString(job.type)} />}
         {job.working_rights?.[0] && (
           <Badge

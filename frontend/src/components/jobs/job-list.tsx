@@ -23,11 +23,14 @@ export default function JobList({ jobs, sponsoredJobs }: JobListProps) {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   useEffect(() => {
-    // Effect to set initial selection when jobs change and no job is selected
-    if (jobs.length > 0 && !selectedJob) {
-      setSelectedJob(jobs[0]);
+    if (!selectedJob) {
+      if (sponsoredJobs.length > 0) {
+        setSelectedJob(sponsoredJobs[0]);
+      } else if (jobs.length > 0) {
+        setSelectedJob(jobs[0]);
+      }
     }
-  }, [jobs, selectedJob, setSelectedJob]);
+  }, [jobs, sponsoredJobs, selectedJob, setSelectedJob]);
 
   if (isLoading) return <JobListLoading />;
 
