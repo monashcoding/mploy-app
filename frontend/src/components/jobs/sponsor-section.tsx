@@ -10,9 +10,10 @@ import JobDetails from "./job-details";
 
 interface SponsorSectionProps {
   sponsoredJobs: Job[];
+  selectedJobID?: string;
 }
 
-export default function SponsorSection({ sponsoredJobs }: SponsorSectionProps) {
+export default function SponsorSection({ sponsoredJobs, selectedJobID }: SponsorSectionProps) {
   const { setSelectedJob } = useFilterContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -34,7 +35,7 @@ export default function SponsorSection({ sponsoredJobs }: SponsorSectionProps) {
               }}
               className="cursor-pointer"
             >
-              <JobCard job={job} isSponsor={true} />
+              <JobCard isSelected={selectedJobID === job.id} job={job} isSponsor={true} />
             </div>
           ))}
         </div>
