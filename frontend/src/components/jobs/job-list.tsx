@@ -50,7 +50,10 @@ export default function JobList({ jobs, sponsoredJobs }: JobListProps) {
             : undefined
         }
       >
-        <SponsorSection selectedJobID={selectedJob?.id} sponsoredJobs={sponsoredJobs}></SponsorSection>
+        <SponsorSection
+          selectedJobID={selectedJob?.id}
+          sponsoredJobs={sponsoredJobs}
+        ></SponsorSection>
         <div className="space-y-4 pr-1">
           {jobs.map((job) => (
             <div
