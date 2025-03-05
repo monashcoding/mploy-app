@@ -3,11 +3,12 @@ import FilterSection from "@/components/filters/filter-section";
 import JobList from "@/components/jobs/job-list";
 import JobDetails from "@/components/jobs/job-details";
 import { JobFilters } from "@/types/filters";
-import { getJobs } from "@/app/jobs/actions";
+import { getJobs, getSponsoredJobs } from "@/app/jobs/actions";
 import NoResults from "@/components/ui/no-results";
 import { Suspense } from "react";
 import JobListLoading from "@/components/layout/job-list-loading";
 import JobDetailsLoading from "@/components/layout/job-details-loading";
+import { getSponsoredSlots } from "@/lib/utils";
 
 export const metadata = {
   title: "Jobs",
@@ -22,7 +23,25 @@ export default async function JobsPage({
   // searchParams is a promise that resolves to an object containing the search
   // parameters of the current URL.
 
-  const { jobs, total } = await getJobs(await searchParams);
+  const filters = await searchParams;
+
+  // Fetch regular jobs with pagination.
+  const { jobs, total } = await getJobs(filters);
+
+  // Fetch all sponsored jobs (non-paginated) that match the filter.
+  const { jobs: sponsoredJobs } = await getSponsoredJobs(filters);
+
+  // Hardcode the platinum sponsor companies.
+  const platinumSponsors = ["IMC", "Atlassian"];
+
+  // Use our helper to get a set of sponsored slots.
+  const sponsoredSlots = getSponsoredSlots(sponsoredJobs, platinumSponsors, 4);
+
+  // Remove any duplicate jobs from the regular list that appear in the sponsored slots.
+  const sponsoredJobIds = new Set(sponsoredSlots.map((job) => job.id));
+  const jobsWithoutDuplicates = jobs.filter(
+    (job) => !sponsoredJobIds.has(job.id),
+  );
 
   return (
     <>
@@ -34,7 +53,10 @@ export default async function JobsPage({
         <div className="mt-4 flex flex-col lg:flex-row">
           <div id="job-list-container" className="lg:pr-1 w-full lg:w-[35%]">
             <Suspense fallback={<JobListLoading />}>
-              <JobList jobs={jobs} />
+              <JobList
+                jobs={jobsWithoutDuplicates}
+                sponsoredJobs={sponsoredSlots}
+              />
             </Suspense>
           </div>
 

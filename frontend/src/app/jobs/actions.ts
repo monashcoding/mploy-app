@@ -4,89 +4,103 @@
 import { MongoClient, ObjectId } from "mongodb";
 import { JobFilters } from "@/types/filters";
 import { Job } from "@/types/job";
-
 import serializeJob from "@/lib/utils";
 
 const PAGE_SIZE = 20;
 
+// Define the MongoJob interface with the correct DB field names.
 export interface MongoJob extends Omit<Job, "id"> {
   _id: ObjectId;
+  is_sponsored: boolean;
 }
 
 /**
- * Fetches paginated and filtered job listings from MongoDB.
- *
- * @param filters - Partial JobFilters object containing:
- *   - workingRights?: Array of required working rights
- *   - jobTypes?: Array of job types to include
- *   - industryFields?: Array of industry fields
- *   - search?: Full-text search on job titles and company names (case-insensitive)
- *   - page?: Page number (defaults to 1)
- *
- * @returns Promise containing:
- *   - jobs: Array of serialized Job objects
- *   - total: Total count of jobs matching the filters
- *
- * @throws Error if MongoDB connection fails or if MONGODB_URI is not configured
+ * Helper function to build a query object from filters.
+ * @param filters - The job filters from the client.
+ * @param additional - Additional query overrides (e.g. { is_sponsor: true }).
+ * @returns The query object to use with MongoDB.
  */
-export async function getJobs(
+function buildJobQuery(
   filters: Partial<JobFilters>,
-): Promise<{ jobs: Job[]; total: number }> {
+  additional?: Record<string, unknown>,
+) {
+  const array_jobs = JSON.parse(JSON.stringify(filters, null, 2));
+  const query = {
+    outdated: false,
+    ...(array_jobs["workingRights[]"] !== undefined &&
+      array_jobs["workingRights[]"].length && {
+        working_rights: {
+          $in: Array.isArray(array_jobs["workingRights[]"])
+            ? array_jobs["workingRights[]"]
+            : [array_jobs["workingRights[]"]],
+        },
+      }),
+    ...(array_jobs["locations[]"] !== undefined &&
+      array_jobs["locations[]"].length && {
+        locations: {
+          $in: Array.isArray(array_jobs["locations[]"])
+            ? array_jobs["locations[]"]
+            : [array_jobs["locations[]"]],
+        },
+      }),
+    ...(array_jobs["industryFields[]"] !== undefined &&
+      array_jobs["industryFields[]"].length && {
+        industry_field: {
+          $in: Array.isArray(array_jobs["industryFields[]"])
+            ? array_jobs["industryFields[]"]
+            : [array_jobs["industryFields[]"]],
+        },
+      }),
+    ...(array_jobs["jobTypes[]"] !== undefined &&
+      array_jobs["jobTypes[]"].length && {
+        type: {
+          $in: Array.isArray(array_jobs["jobTypes[]"])
+            ? array_jobs["jobTypes[]"]
+            : [array_jobs["jobTypes[]"]],
+        },
+      }),
+    ...(filters.search && {
+      $or: [
+        { title: { $regex: filters.search, $options: "i" } },
+        { "company.name": { $regex: filters.search, $options: "i" } },
+      ],
+    }),
+    ...additional,
+  };
+  return query;
+}
+
+/**
+ * Helper function to manage a MongoDB connection.
+ * @param callback - The function that uses the connected MongoClient.
+ * @returns The result from the callback.
+ */
+async function withDbConnection<T>(
+  callback: (client: MongoClient) => Promise<T>,
+): Promise<T> {
   if (!process.env.MONGODB_URI) {
     throw new Error(
       "MongoDB URI is not configured. Please check environment variables.",
     );
   }
-
-  const client = new MongoClient(process.env.MONGODB_URI ?? "");
-
+  const client = new MongoClient(process.env.MONGODB_URI);
   try {
     await client.connect();
-    const collection = client.db("default").collection("active_jobs");
-    const array_jobs = JSON.parse(JSON.stringify(filters, null, 2));
-    // Build the query object with proper typing
-    const query = {
-      outdated: false,
-      ...(array_jobs["workingRights[]"] !== undefined &&
-        array_jobs["workingRights[]"].length && {
-          working_rights: {
-            $in: Array.isArray(array_jobs["workingRights[]"])
-              ? array_jobs["workingRights[]"]
-              : [array_jobs["workingRights[]"]],
-          },
-        }),
-      ...(array_jobs["locations[]"] !== undefined &&
-        array_jobs["locations[]"].length && {
-          locations: {
-            $in: Array.isArray(array_jobs["locations[]"])
-              ? array_jobs["locations[]"]
-              : [array_jobs["locations[]"]],
-          },
-        }),
-      ...(array_jobs["industryFields[]"] !== undefined &&
-        array_jobs["industryFields[]"].length && {
-          industry_field: {
-            $in: Array.isArray(array_jobs["industryFields[]"])
-              ? array_jobs["industryFields[]"]
-              : [array_jobs["industryFields[]"]],
-          },
-        }),
-      ...(array_jobs["jobTypes[]"] !== undefined &&
-        array_jobs["jobTypes[]"].length && {
-          type: {
-            $in: Array.isArray(array_jobs["jobTypes[]"])
-              ? array_jobs["jobTypes[]"]
-              : [array_jobs["jobTypes[]"]],
-          },
-        }),
-      ...(filters.search && {
-        $or: [
-          { title: { $regex: filters.search, $options: "i" } },
-          { "company.name": { $regex: filters.search, $options: "i" } },
-        ],
-      }),
-    };
+    return await callback(client);
+  } finally {
+    await client.close();
+  }
+}
 
+/**
+ * Fetches paginated and filtered job listings from MongoDB.
+ */
+export async function getJobs(
+  filters: Partial<JobFilters>,
+): Promise<{ jobs: Job[]; total: number }> {
+  return await withDbConnection(async (client) => {
+    const collection = client.db("default").collection("active_jobs");
+    const query = buildJobQuery(filters);
     const page = filters.page || 1;
     const skip = (page - 1) * PAGE_SIZE;
 
@@ -98,34 +112,35 @@ export async function getJobs(
       jobs: (jobs as MongoJob[]).map(serializeJob),
       total,
     };
-  } catch (error) {
-    console.error("Server Error:", {
-      error,
-      timestamp: new Date().toISOString(),
-      filters,
-    });
-    throw new Error(
-      "Failed to fetch jobs from the server. Check the server console for more details.",
-    );
-  } finally {
-    await client.close();
-  }
+  });
 }
 
-export async function getJobById(id: string): Promise<Job | null> {
-  if (!process.env.MONGODB_URI) {
-    throw new Error(
-      "MongoDB URI is not configured. Please check environment variables.",
-    );
-  }
-
-  const client = new MongoClient(process.env.MONGODB_URI);
-
-  try {
-    await client.connect();
+/**
+ * Fetches all sponsored job listings from MongoDB that match the given filters.
+ * This function does not paginate results.
+ */
+export async function getSponsoredJobs(
+  filters: Partial<JobFilters>,
+): Promise<{ jobs: Job[]; total: number }> {
+  return await withDbConnection(async (client) => {
     const collection = client.db("default").collection("active_jobs");
+    // Add an override to filter only sponsored jobs.
+    const query = buildJobQuery(filters, { is_sponsored: true });
+    const jobs = await collection.find(query).toArray();
+    const total = jobs.length;
+    return {
+      jobs: (jobs as MongoJob[]).map(serializeJob),
+      total,
+    };
+  });
+}
 
-    // Convert the string ID to an ObjectId
+/**
+ * Fetches a single job by its id.
+ */
+export async function getJobById(id: string): Promise<Job | null> {
+  return await withDbConnection(async (client) => {
+    const collection = client.db("default").collection("active_jobs");
     const job = await collection.findOne({
       _id: new ObjectId(id),
       outdated: false,
@@ -133,13 +148,6 @@ export async function getJobById(id: string): Promise<Job | null> {
     if (!job) {
       return null;
     }
-
-    const typedJob = job as MongoJob;
-    return serializeJob(typedJob);
-  } catch (error) {
-    console.error("Server Error in getJobById:", error);
-    throw new Error("Failed to fetch job from the server.");
-  } finally {
-    await client.close();
-  }
+    return serializeJob(job as MongoJob);
+  });
 }

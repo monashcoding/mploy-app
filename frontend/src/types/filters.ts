@@ -11,12 +11,6 @@ export interface JobFilters {
   workingRights: WorkingRight[];
   industryFields: IndustryField[];
   page: number;
-  sortBy: SortBy;
-}
-
-export enum SortBy {
-  RECENT = "recent",
-  RELEVANT = "relevant",
 }
 
 export interface FilterState {

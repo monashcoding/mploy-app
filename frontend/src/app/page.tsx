@@ -15,11 +15,11 @@ export default function Page() {
   }, []);
 
   const handleGradJobsClick = () => {
-    router.push(`/jobs?jobTypes%5B%5D=GRADUATE&page=1&sortBy=recent`);
+    router.push(`/jobs?jobTypes%5B%5D=GRADUATE&page=1`);
   };
 
   const handleInternJobsClick = () => {
-    router.push(`/jobs?jobTypes%5B%5D=INTERN&page=1&sortBy=recent`);
+    router.push(`/jobs?jobTypes%5B%5D=INTERN&page=1`);
   };
 
   return (

@@ -9,12 +9,13 @@ import CompanyLogo from "@/components/jobs/company-logo";
 interface JobCardProps {
   job: Job;
   isSelected?: boolean;
+  isSponsor?: boolean;
 }
 const removeImageTags = (content: string): string => {
   return content.replace(/<img[^>]*>/g, "");
 };
 
-export default function JobCard({ job, isSelected }: JobCardProps) {
+export default function JobCard({ job, isSelected, isSponsor }: JobCardProps) {
   const washedDescription = job.one_liner ? removeImageTags(job.one_liner) : "";
   return (
     <Box
@@ -57,6 +58,8 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
 
       {/* Bottom section - badges */}
       <div className="flex gap-2 mt-auto">
+        {/* Show a yellow "Sponsored" badge if this is a sponsor card */}
+        {isSponsor && <Badge text="Sponsored" color="accent"></Badge>}
         {job.type && <Badge text={formatCapString(job.type)} />}
         {job.working_rights?.[0] && (
           <Badge
@@ -67,7 +70,7 @@ export default function JobCard({ job, isSelected }: JobCardProps) {
             }
           />
         )}
-        {job.industry_field && (
+        {!isSponsor && job.industry_field && (
           <Badge text={formatCapString(job.industry_field)} />
         )}
         {job.locations && job.locations.length > 0 && (
