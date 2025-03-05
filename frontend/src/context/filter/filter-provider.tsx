@@ -5,7 +5,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { FilterContext } from "./filter-context";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CreateQueryString } from "@/lib/utils";
-import { FilterState, SortBy } from "@/types/filters";
+import { FilterState } from "@/types/filters";
 import {
   Job,
   IndustryField,
@@ -26,7 +26,6 @@ const emptyFilterState: FilterState = {
     locations: [],
     workingRights: [],
     page: 1,
-    sortBy: SortBy.RECENT,
   },
   isLoading: false,
   error: null,
@@ -65,7 +64,6 @@ export function FilterProvider({ children }: { children: ReactNode }) {
             WORKING_RIGHTS.includes(field as WorkingRight),
           ) || [],
       page: 1,
-      sortBy: SortBy.RECENT,
     },
     isLoading: false,
     error: null,
