@@ -59,7 +59,7 @@ export default function JobCard({ job, isSelected, isSponsor }: JobCardProps) {
       {/* Bottom section - badges */}
       <div className="flex gap-2 mt-auto">
         {/* Show a yellow "Sponsored" badge if this is a sponsor card */}
-        {isSponsor && <Badge text="Sponsor" color="accent"></Badge>}
+        {isSponsor && <Badge text="Sponsored" color="accent"></Badge>}
         {job.type && <Badge text={formatCapString(job.type)} />}
         {job.working_rights?.[0] && (
           <Badge
@@ -70,7 +70,7 @@ export default function JobCard({ job, isSelected, isSponsor }: JobCardProps) {
             }
           />
         )}
-        {job.industry_field && (
+        {!isSponsor && job.industry_field && (
           <Badge text={formatCapString(job.industry_field)} />
         )}
         {job.locations && job.locations.length > 0 && (
