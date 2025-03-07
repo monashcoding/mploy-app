@@ -41,7 +41,9 @@ export default function JobCard({ job, isSelected, isSponsor }: JobCardProps) {
               <span className="text-sm lg:text-md font-bold line-clamp-2 leading-tight pr-2">
                 {job.title}
               </span>
-              <span className="text-xs truncate">{job.company.name}</span>
+              <span className="text-xs line-clamp-1 leading-tight">
+                {job.company.name}
+              </span>
             </div>
           </div>
           <span className={"text-xs flex-shrink-0"}>
