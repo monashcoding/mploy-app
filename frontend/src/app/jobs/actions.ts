@@ -97,41 +97,76 @@ async function withDbConnection<T>(
  */
 export async function getJobs(
   filters: Partial<JobFilters>,
+  minSponsors: number = -1,
+  prioritySponsors: Array<string> = ["IMC", "Atlassian"],
 ): Promise<{ jobs: Job[]; total: number }> {
   return await withDbConnection(async (client) => {
     const collection = client.db("default").collection("active_jobs");
     const query = buildJobQuery(filters);
     const page = filters.page || 1;
     const skip = (page - 1) * PAGE_SIZE;
+    minSponsors = minSponsors === -1 ? (page == 1 ? 3 : 0) : minSponsors;
 
-    const [jobs, total] = await Promise.all([
-      collection.find(query).skip(skip).limit(PAGE_SIZE).toArray(),
-      collection.countDocuments(query),
-    ]);
-    return {
-      jobs: (jobs as MongoJob[]).map(serializeJob),
-      total,
-    };
-  });
-}
+    if (minSponsors == 0) {
+      const [jobs, total] = await Promise.all([
+        collection.find(query).skip(skip).limit(PAGE_SIZE).toArray(),
+        collection.countDocuments(query),
+      ]);
+      return {
+        // Serialize Job and set highlight to false
+        jobs: (jobs as MongoJob[])
+          .map(serializeJob)
+          .map((job) => ({ ...job, highlight: false })),
+        total,
+      };
+    } else {
+      // Modify query to include sponsored job filtering
+      const sponsoredQuery = { ...query, is_sponsored: true };
 
-/**
- * Fetches all sponsored job listings from MongoDB that match the given filters.
- * This function does not paginate results.
- */
-export async function getSponsoredJobs(
-  filters: Partial<JobFilters>,
-): Promise<{ jobs: Job[]; total: number }> {
-  return await withDbConnection(async (client) => {
-    const collection = client.db("default").collection("active_jobs");
-    // Add an override to filter only sponsored jobs.
-    const query = buildJobQuery(filters, { is_sponsored: true });
-    const jobs = await collection.find(query).toArray();
-    const total = jobs.length;
-    return {
-      jobs: (jobs as MongoJob[]).map(serializeJob),
-      total,
-    };
+      // Fetch sponsored jobs (without priority filtering)
+      let sponsoredJobs = await collection
+        .aggregate([
+          { $match: sponsoredQuery },
+          { $sample: { size: minSponsors * 8 } },
+        ])
+        .toArray();
+
+      // Apply 65% chance selection for priority sponsors
+      sponsoredJobs = sponsoredJobs
+        .filter((job) => {
+          const isPriority = prioritySponsors.includes(job.company.name);
+          return isPriority ? Math.random() < 0.65 : Math.random() >= 0.35; // 65% chance for priority, 35% for others
+        })
+        .slice(0, minSponsors) // Ensure we only take the required number
+
+        .map((job) => ({ ...job, highlight: true })); // Add highlight property
+
+      // Get IDs of selected sponsored jobs to exclude them from regular jobs
+      const sponsoredJobIds = sponsoredJobs.map((job) => job._id);
+
+      // Modify the main query to exclude sponsored jobs we already fetched
+      const filteredQuery = { ...query, _id: { $nin: sponsoredJobIds } };
+
+      // Fetch remaining jobs with pagination
+      const [otherJobs, total] = await Promise.all([
+        collection
+          .find(filteredQuery)
+          .skip(skip)
+          .limit(PAGE_SIZE - sponsoredJobs.length)
+          .toArray(),
+        collection.countDocuments(query), // Total should still include all jobs matching the original query
+      ]);
+      // Merge jobs and make sure we don’t exceed PAGE_SIZE also add highlight property
+      const mergedJobs = [
+        ...sponsoredJobs.map((job) => ({ ...job, highlight: true })),
+        ...otherJobs.map((job) => ({ ...job, highlight: false })),
+      ].slice(0, PAGE_SIZE);
+
+      return {
+        jobs: (mergedJobs as MongoJob[]).map(serializeJob),
+        total,
+      };
+    }
   });
 }
 

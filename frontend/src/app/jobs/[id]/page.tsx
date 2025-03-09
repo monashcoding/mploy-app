@@ -1,7 +1,6 @@
 // src/app/jobs/[id]/page.tsx
 
 import { getJobById } from "@/app/jobs/actions";
-import { FilterProvider } from "@/context/filter/filter-provider";
 import { notFound } from "next/navigation";
 import { Job } from "@/types/job";
 import JobDetailsWrapper from "@/components/jobs/job-details-wrapper";
@@ -23,12 +22,10 @@ export default async function JobDetailPage({ params }: PageProps) {
   }
 
   return (
-    <FilterProvider>
-      <div className="h-screen max-w-4xl mx-auto overflow-hidden flex flex-col">
-        <div className="overflow-y-auto h-[calc(100svh-120px)] lg:h-[calc(100svh-180px)]">
-          <JobDetailsWrapper job={job} />
-        </div>
+    <div className="h-screen max-w-4xl mx-auto overflow-hidden flex flex-col">
+      <div className="overflow-y-auto h-[calc(100svh-120px)] lg:h-[calc(100svh-180px)]">
+        <JobDetailsWrapper job={job} />
       </div>
-    </FilterProvider>
+    </div>
   );
 }
