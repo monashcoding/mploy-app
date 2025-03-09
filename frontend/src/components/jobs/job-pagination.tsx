@@ -38,15 +38,17 @@ export default function JobPagination({ pageSize = 20 }: JobPaginationProps) {
   };
 
   return (
-    <div className="flex justify-center py-4">
+    //   mb-12 gives extra space for feedback button on mobile. it would've blocked the pagination controls.
+    <div className="flex justify-center py-4 mb-12 sm:mb-0">
       <Pagination
         autoContrast
         value={filters.filters.page}
         onChange={handlePageChange}
         total={totalPages}
-        siblings={1}
         size="md"
         gap={12}
+        boundaries={1}
+        siblings={0}
         radius="lg"
         color="accent"
         getItemProps={(page) => ({
