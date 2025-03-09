@@ -15,16 +15,16 @@ interface JobListProps {
   jobs: Job[]; // Regular jobs
 }
 
-export default function JobList({ jobs}: JobListProps) {
-//export default function JobList({ jobs, sponsoredJobs }: JobListProps) {
+export default function JobList({ jobs }: JobListProps) {
+  //export default function JobList({ jobs, sponsoredJobs }: JobListProps) {
   const { selectedJob, setSelectedJob, isLoading } = useFilterContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   useEffect(() => {
     if (!selectedJob) {
-        setSelectedJob(jobs[0]);
-      }
+      setSelectedJob(jobs[0]);
+    }
   }, [jobs, selectedJob, setSelectedJob]);
 
   if (isLoading) return <JobListLoading />;

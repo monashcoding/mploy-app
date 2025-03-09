@@ -37,9 +37,7 @@ export default async function JobsPage({
         <div className="mt-4 flex flex-col lg:flex-row">
           <div id="job-list-container" className="lg:pr-1 w-full lg:w-[35%]">
             <Suspense fallback={<JobListLoading />}>
-              <JobList
-                jobs={jobs}
-              />
+              <JobList jobs={jobs} />
             </Suspense>
           </div>
 

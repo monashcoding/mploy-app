@@ -77,7 +77,7 @@ export default function serializeJob(job: MongoJob): Job {
     application_url: job.application_url,
     close_date: serializeDate(job.close_date),
     is_sponsored: job.is_sponsored,
-    highlight: job.highlight
+    highlight: job.highlight,
   };
 }
 
@@ -175,6 +175,3 @@ export const formatWorkingRights = (rights: WorkingRight[]): string => {
     })
     .join(", ");
 };
-
-
-
