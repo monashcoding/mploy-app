@@ -21,12 +21,23 @@ import { Metadata } from "next";
 import FeedbackButton from "@/components/ui/feedback-button";
 import { Notifications } from "@mantine/notifications";
 
+import OgImage from "../assets/OgImage.png";
+
 export const metadata: Metadata = {
   title: {
     template: "%s | MAC Jobs Board",
     default: "MAC Jobs Board",
   },
-  description: "This is MACs Official Jobs Dashboard.",
+  openGraph: {
+    title: "MAC Jobs Board",
+    description: "Stay ahead with the job board that never sleeps.",
+    images: [
+      {
+        url: OgImage.src,
+        alt: "MAC Jobs Board",
+      },
+    ],
+  },
 };
 
 const poppins = Poppins({
