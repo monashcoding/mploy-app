@@ -46,3 +46,6 @@ main {
   padding: 0;
   overflow: hidden;
 }
+
+
+.prose { max-width: none; word-break: break-word;}
