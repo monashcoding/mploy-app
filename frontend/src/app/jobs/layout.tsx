@@ -1,5 +1,11 @@
 import { PropsWithChildren } from "react";
+import { FilterProvider } from "@/context/filter/filter-provider";
 
 export default function JobsLayout({ children }: PropsWithChildren) {
-  return <div className="max-w-7xl mx-auto">{children}</div>;
+
+    return(
+    <FilterProvider>
+        <div className="max-w-7xl mx-auto">{children}</div>;
+    </FilterProvider>
+    )
 }
