@@ -47,5 +47,7 @@ main {
   overflow: hidden;
 }
 
-
-.prose { max-width: none; word-break: break-word;}
+.prose {
+  max-width: none;
+  word-break: break-word;
+}
