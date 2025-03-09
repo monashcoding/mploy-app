@@ -77,6 +77,7 @@ export default function serializeJob(job: MongoJob): Job {
     application_url: job.application_url,
     close_date: serializeDate(job.close_date),
     is_sponsored: job.is_sponsored,
+    highlight: job.highlight
   };
 }
 
@@ -175,113 +176,5 @@ export const formatWorkingRights = (rights: WorkingRight[]): string => {
     .join(", ");
 };
 
-// Sponsor util
-export interface SponsorCompany {
-  companyName: string;
-  isPlatinum: boolean;
-  jobs: Job[];
-  companyLogo: string;
-  website: string;
-}
 
-/**
- * Groups sponsored jobs by company.
- * @param sponsoredJobs - Array of sponsored Job objects.
- * @param platinumSponsors - Array of company names that are platinum sponsors.
- * @returns An array of SponsorCompany objects.
- */
-export function groupSponsoredJobsByCompany(
-  sponsoredJobs: Job[],
-  platinumSponsors: string[],
-): SponsorCompany[] {
-  const sponsorsByCompany: {
-    [companyName: string]: {
-      jobs: Job[];
-      companyLogo: string;
-      website: string;
-    };
-  } = {};
 
-  sponsoredJobs.forEach((job) => {
-    const companyName = job.company.name;
-    if (!sponsorsByCompany[companyName]) {
-      sponsorsByCompany[companyName] = {
-        jobs: [],
-        companyLogo: job.company.logo ?? "",
-        website: job.company.website ?? "",
-      };
-    }
-    sponsorsByCompany[companyName].jobs.push(job);
-  });
-
-  return Object.entries(sponsorsByCompany).map(([companyName, data]) => ({
-    companyName,
-    isPlatinum: platinumSponsors.includes(companyName),
-    jobs: data.jobs,
-    companyLogo: data.companyLogo,
-    website: data.website,
-  }));
-}
-
-/**
- * Picks a random company from an array using weighted selection.
- * @param sponsorCompanies - Array of SponsorCompany objects.
- * @returns A randomly selected SponsorCompany or null.
- */
-function pickRandomCompany(
-  sponsorCompanies: SponsorCompany[],
-): SponsorCompany | null {
-  const platinum = sponsorCompanies.filter((c) => c.isPlatinum);
-  const nonPlatinum = sponsorCompanies.filter((c) => !c.isPlatinum);
-  const choosePlatinum = Math.random() < 0.65 && platinum.length > 0;
-  const pool = choosePlatinum
-    ? platinum
-    : nonPlatinum.length > 0
-      ? nonPlatinum
-      : platinum;
-  if (pool.length === 0) return null;
-  return pool[Math.floor(Math.random() * pool.length)];
-}
-
-/**
- * Returns a specified number of unique sponsored jobs (slots).
- * Allows the same company to be chosen multiple times if different jobs are available.
- * @param sponsoredJobs - Array of sponsored Job objects.
- * @param platinumSponsors - Array of company names that are platinum sponsors.
- * @param slots - Number of sponsored slots to pick.
- * @returns An array of Job objects to be used as sponsored slots.
- */
-export function getSponsoredSlots(
-  sponsoredJobs: Job[],
-  platinumSponsors: string[],
-  slots: number,
-): Job[] {
-  const sponsorCompanies = groupSponsoredJobsByCompany(
-    sponsoredJobs,
-    platinumSponsors,
-  );
-  const sponsoredSlots: Job[] = [];
-  const usedJobIds = new Set<string>();
-
-  for (let i = 0; i < slots; i++) {
-    let company = pickRandomCompany(sponsorCompanies);
-    let attempts = 0;
-    let randomJob: Job | undefined;
-    while (attempts < 20) {
-      if (!company) break;
-      const candidate =
-        company.jobs[Math.floor(Math.random() * company.jobs.length)];
-      if (!usedJobIds.has(candidate.id)) {
-        randomJob = candidate;
-        break;
-      }
-      attempts++;
-      company = pickRandomCompany(sponsorCompanies);
-    }
-    if (company && randomJob && !usedJobIds.has(randomJob.id)) {
-      usedJobIds.add(randomJob.id);
-      sponsoredSlots.push(randomJob);
-    }
-  }
-  return sponsoredSlots;
-}

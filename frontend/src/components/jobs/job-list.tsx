@@ -10,27 +10,22 @@ import JobDetails from "@/components/jobs/job-details";
 import JobListLoading from "@/components/layout/job-list-loading";
 import JobPagination from "@/components/jobs/job-pagination";
 import { useMediaQuery } from "@mantine/hooks";
-import SponsorSection from "./sponsor-section";
 
 interface JobListProps {
   jobs: Job[]; // Regular jobs
-  sponsoredJobs: Job[]; // Sponsored jobs
 }
 
-export default function JobList({ jobs, sponsoredJobs }: JobListProps) {
+export default function JobList({ jobs}: JobListProps) {
+//export default function JobList({ jobs, sponsoredJobs }: JobListProps) {
   const { selectedJob, setSelectedJob, isLoading } = useFilterContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   useEffect(() => {
     if (!selectedJob) {
-      if (sponsoredJobs.length > 0) {
-        setSelectedJob(sponsoredJobs[0]);
-      } else if (jobs.length > 0) {
         setSelectedJob(jobs[0]);
       }
-    }
-  }, [jobs, sponsoredJobs, selectedJob, setSelectedJob]);
+  }, [jobs, selectedJob, setSelectedJob]);
 
   if (isLoading) return <JobListLoading />;
 
@@ -50,10 +45,6 @@ export default function JobList({ jobs, sponsoredJobs }: JobListProps) {
             : undefined
         }
       >
-        <SponsorSection
-          selectedJobID={selectedJob?.id}
-          sponsoredJobs={sponsoredJobs}
-        ></SponsorSection>
         <div className="space-y-4 pr-1">
           {jobs.map((job) => (
             <div
@@ -70,7 +61,7 @@ export default function JobList({ jobs, sponsoredJobs }: JobListProps) {
               <JobCard
                 job={job}
                 isSelected={selectedJob?.id === job.id}
-                isSponsor={false}
+                isSponsor={job.highlight}
               />
             </div>
           ))}
