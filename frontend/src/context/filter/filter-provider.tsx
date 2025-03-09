@@ -63,7 +63,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
           .filter((field): field is WorkingRight =>
             WORKING_RIGHTS.includes(field as WorkingRight),
           ) || [],
-      page: 1,
+      page: Number(searchParams.get("page")) || 1,
     },
     isLoading: false,
     error: null,

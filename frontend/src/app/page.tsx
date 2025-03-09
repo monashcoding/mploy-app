@@ -1,25 +1,36 @@
 "use client";
 
 import { Button } from "@mantine/core";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
 import { IconArrowRight } from "@tabler/icons-react";
 import DotBackground from "@/components/ui/dot-background";
-
+import { useFilterContext } from "@/context/filter/filter-context";
 export default function Page() {
-  const router = useRouter();
+  const { filters, updateFilters } = useFilterContext();
 
   useEffect(() => {
     document.title = "Home | MAC Jobs Board";
   }, []);
 
   const handleGradJobsClick = () => {
-    router.push(`/jobs?jobTypes%5B%5D=GRADUATE&page=1`);
+    updateFilters({
+      filters: {
+        ...filters.filters,
+        jobTypes: ["GRADUATE"],
+        page: 1,
+      },
+    });
   };
 
   const handleInternJobsClick = () => {
-    router.push(`/jobs?jobTypes%5B%5D=INTERN&page=1`);
+    updateFilters({
+      filters: {
+        ...filters.filters,
+        jobTypes: ["INTERN"],
+        page: 1,
+      },
+    });
   };
 
   return (
