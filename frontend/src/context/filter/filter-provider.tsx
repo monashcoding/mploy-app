@@ -94,7 +94,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     if (pathname === "/") {
       setFilters(emptyFilterState);
     }
-  }, [pathname])
+  }, [pathname]);
 
   // Wrapper for SelectedJob to validate attributes first
   const setSelectedJob = (job: Job | null) => {
