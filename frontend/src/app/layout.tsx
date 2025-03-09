@@ -2,7 +2,7 @@
 // the tailwind class passed with className is not applied.
 import "@mantine/core/styles.css";
 import "./globals.css";
-import '@mantine/notifications/styles.css';
+import "@mantine/notifications/styles.css";
 
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -19,7 +19,7 @@ import { Poppins } from "next/font/google";
 import { FilterProvider } from "@/context/filter/filter-provider";
 import { Metadata } from "next";
 import FeedbackButton from "@/components/ui/feedback-button";
-import {Notifications} from "@mantine/notifications";
+import { Notifications } from "@mantine/notifications";
 
 export const metadata: Metadata = {
   title: {
