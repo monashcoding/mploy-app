@@ -89,6 +89,13 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     }
   }, [pathname, searchParams]);
 
+  useEffect(() => {
+    // clear filters on return to homepage
+    if (pathname === "/") {
+      setFilters(emptyFilterState);
+    }
+  }, [pathname]);
+
   // Wrapper for SelectedJob to validate attributes first
   const setSelectedJob = (job: Job | null) => {
     // Remove duplicates from working_rights
