@@ -1,14 +1,12 @@
 "use client";
 
 import { Button } from "@mantine/core";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
 import { IconArrowRight } from "@tabler/icons-react";
 import DotBackground from "@/components/ui/dot-background";
 import { useFilterContext } from "@/context/filter/filter-context";
 export default function Page() {
-  const router = useRouter();
   const { filters, updateFilters } = useFilterContext();
 
   useEffect(() => {
