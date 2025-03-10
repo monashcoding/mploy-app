@@ -61,7 +61,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
                 <NavBar />
                 <main className="">
                   {children}
-                  <FirstVisitNotification/>
+                  <FirstVisitNotification />
                   <FeedbackButton />
                   <Analytics />
                   <SpeedInsights />
