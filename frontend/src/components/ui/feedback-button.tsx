@@ -32,7 +32,6 @@ export default function FeedbackButton() {
       notifications.show({
         position: "top-center",
         autoClose: 1500,
-        withCloseButton: false,
         color: "red",
         message: "Feedback must be between 3 and 1k characters!",
       });
@@ -43,7 +42,6 @@ export default function FeedbackButton() {
       notifications.show({
         position: "top-center",
         autoClose: 1500,
-        withCloseButton: false,
         color: "red",
         message: "Please enter a valid email address!",
       });
@@ -64,7 +62,6 @@ export default function FeedbackButton() {
         notifications.show({
           position: "top-center",
           autoClose: 1500,
-          withCloseButton: false,
           title: "Thank you!",
           message: "Your feedback has been submitted.",
           color: "green",
