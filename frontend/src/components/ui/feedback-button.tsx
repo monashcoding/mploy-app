@@ -122,6 +122,7 @@ export default function FeedbackButton() {
             value={email}
             onChange={(e) => setEmail(e.currentTarget.value)}
             type="email"
+            size="md"
           />
 
           <Textarea
@@ -132,6 +133,7 @@ export default function FeedbackButton() {
             className="mb-6"
             required
             autosize
+            size="md"
             value={message}
             onChange={(e) => setMessage(e.currentTarget.value)}
           />
