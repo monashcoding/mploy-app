@@ -32,7 +32,6 @@ export default function FeedbackButton() {
       notifications.show({
         position: "top-center",
         autoClose: 1500,
-        withCloseButton: false,
         color: "red",
         message: "Feedback must be between 3 and 1k characters!",
       });
@@ -43,7 +42,6 @@ export default function FeedbackButton() {
       notifications.show({
         position: "top-center",
         autoClose: 1500,
-        withCloseButton: false,
         color: "red",
         message: "Please enter a valid email address!",
       });
@@ -64,7 +62,6 @@ export default function FeedbackButton() {
         notifications.show({
           position: "top-center",
           autoClose: 1500,
-          withCloseButton: false,
           title: "Thank you!",
           message: "Your feedback has been submitted.",
           color: "green",
@@ -122,6 +119,7 @@ export default function FeedbackButton() {
             value={email}
             onChange={(e) => setEmail(e.currentTarget.value)}
             type="email"
+            size="md"
           />
 
           <Textarea
@@ -132,6 +130,7 @@ export default function FeedbackButton() {
             className="mb-6"
             required
             autosize
+            size="md"
             value={message}
             onChange={(e) => setMessage(e.currentTarget.value)}
           />

@@ -22,6 +22,7 @@ import FeedbackButton from "@/components/ui/feedback-button";
 import { Notifications } from "@mantine/notifications";
 
 import OgImage from "../assets/OgImage.png";
+import FirstVisitNotification from "@/components/ui/first-visit-notification";
 
 export const metadata: Metadata = {
   title: {
@@ -60,6 +61,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
                 <NavBar />
                 <main className="">
                   {children}
+                  <FirstVisitNotification />
                   <FeedbackButton />
                   <Analytics />
                   <SpeedInsights />
