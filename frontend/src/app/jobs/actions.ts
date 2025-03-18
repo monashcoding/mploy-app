@@ -109,7 +109,12 @@ export async function getJobs(
 
     if (minSponsors == 0) {
       const [jobs, total] = await Promise.all([
-        collection.find(query).skip(skip).limit(PAGE_SIZE).toArray(),
+        collection
+          .find(query)
+          .sort({ created_at: -1 })
+          .skip(skip)
+          .limit(PAGE_SIZE)
+          .toArray(),
         collection.countDocuments(query),
       ]);
       return {
@@ -151,12 +156,13 @@ export async function getJobs(
       const [otherJobs, total] = await Promise.all([
         collection
           .find(filteredQuery)
+          .sort({ created_at: -1 })
           .skip(skip)
           .limit(PAGE_SIZE - sponsoredJobs.length)
           .toArray(),
         collection.countDocuments(query), // Total should still include all jobs matching the original query
       ]);
-      // Merge jobs and make sure we don’t exceed PAGE_SIZE also add highlight property
+      // Merge jobs and make sure we don't exceed PAGE_SIZE also add highlight property
       const mergedJobs = [
         ...sponsoredJobs.map((job) => ({ ...job, highlight: true })),
         ...otherJobs.map((job) => ({ ...job, highlight: false })),
