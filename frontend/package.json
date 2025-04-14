@@ -33,7 +33,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.1.7",
+    "eslint-config-next": "15.3.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "postcss": "^8.5.3",
     "postcss-preset-mantine": "^1.17.0",
