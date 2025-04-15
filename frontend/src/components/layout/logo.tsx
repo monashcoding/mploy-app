@@ -1,5 +1,12 @@
-import { Text } from "@mantine/core";
+import MacLogo from "@/assets/mac.svg";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function Logo() {
-  return <Text>JOB BOARD</Text>;
+  return (
+    <Link href="/" className="flex space-x-3 items-center h-8 cursor-pointer">
+      <Image src={MacLogo} className="h-10 w-10" alt="MAC Logo" />
+      <span className="text-lg lg:text-xl">Jobs</span>
+    </Link>
+  );
 }

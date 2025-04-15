@@ -1,28 +1,53 @@
-import SearchBar from "@/components/jobs/search/search-bar";
-import FilterSection from "@/components/jobs/filters/filter-section";
-import JobList from "@/components/jobs/details/job-list";
-import JobDetails from "@/components/jobs/details/job-details";
-import { Title } from "@mantine/core";
+// frontend/src/app/jobs/page.tsx
+import FilterSection from "@/components/filters/filter-section";
+import JobList from "@/components/jobs/job-list";
+import JobDetails from "@/components/jobs/job-details";
+import { JobFilters } from "@/types/filters";
+import { getJobs } from "@/app/jobs/actions";
+import NoResults from "@/components/ui/no-results";
+import { Suspense } from "react";
+import JobListLoading from "@/components/layout/job-list-loading";
+import JobDetailsLoading from "@/components/layout/job-details-loading";
 
-export default function JobsPage() {
+export const metadata = {
+  title: "Jobs",
+};
+
+export default async function JobsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Partial<JobFilters>>;
+}) {
+  // https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional
+  // searchParams is a promise that resolves to an object containing the search
+  // parameters of the current URL.
+
+  const filters = await searchParams;
+
+  // Fetch regular jobs with pagination.
+  const { jobs, total } = await getJobs(filters);
+
   return (
-    <div className="space-y-4">
-      <Title>Find Internships and Student Jobs</Title>
-      <SearchBar />
-      <FilterSection />
+    <>
+      <FilterSection _totalJobs={total} />
 
-      <div className="mt-4 flex flex-col lg:flex-row gap-2 h-[calc(100vh-330px)] ">
-        <div className="w-full lg:w-[35%] overflow-y-auto pr-2 no-scrollbar">
-          <JobList />
-        </div>
+      {total <= 0 ? (
+        <NoResults />
+      ) : (
+        <div className="mt-4 flex flex-col lg:flex-row">
+          <div id="job-list-container" className="lg:pr-1 w-full lg:w-[35%]">
+            <Suspense fallback={<JobListLoading />}>
+              <JobList jobs={jobs} />
+            </Suspense>
+          </div>
 
-        {/* Sticky Job Details - hidden on mobile, 70% on desktop */}
-        <div className="hidden lg:block lg:w-[65%]">
-          <div className="overflow-y-auto h-[calc(100vh-330px)]">
-            <JobDetails />
+          <div className="hidden lg:block lg:w-[65%] overflow-y-auto h-[calc(100svh-140px)] lg:h-[calc(100svh-180px)]">
+            <Suspense fallback={<JobDetailsLoading />}>
+              <JobDetails />
+            </Suspense>
           </div>
         </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 }

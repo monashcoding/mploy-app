@@ -19,6 +19,7 @@ repositories {
 }
 
 dependencies {
+	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	implementation("org.springframework.boot:spring-boot-starter")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.springframework.boot:spring-boot-starter-web")
@@ -30,3 +31,19 @@ kotlin {
 		freeCompilerArgs.addAll("-Xjsr305=strict")
 	}
 }
+
+tasks.register<Copy>("getDependencies") {
+    from(sourceSets.main.get().runtimeClasspath)
+    into("runtime/")
+
+    doFirst {
+        val runtimeDir = File("runtime")
+        runtimeDir.deleteRecursively()
+        runtimeDir.mkdir()
+    }
+
+    doLast {
+        File("runtime").deleteRecursively()
+    }
+}
+

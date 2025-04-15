@@ -1,41 +1,71 @@
 // frontend/src/types/job.ts
+export const JOB_TYPES = [
+  "PRE_PENULTIMATE",
+  "INTERN",
+  "GRADUATE",
+  "OTHER",
+] as const;
+export type JobType = (typeof JOB_TYPES)[number];
+
+export const LOCATIONS = [
+  "VIC",
+  "NSW",
+  "QLD",
+  "WA",
+  "NT",
+  "SA",
+  "ACT",
+  "TAS",
+  "AUSTRALIA",
+  "OTHERS",
+] as const;
+export type LocationType = (typeof LOCATIONS)[number];
+
+export const WORKING_RIGHTS = [
+  "AUS_CITIZEN_PR",
+  "NZ_CITIZEN_PR",
+  "INTERNATIONAL",
+  "OTHER_RIGHTS",
+] as const;
+export type WorkingRight = (typeof WORKING_RIGHTS)[number];
+
+export const INDUSTRY_FIELDS = [
+  "CONSULTING",
+  "BANKS",
+  "BIG_TECH",
+  "TECH",
+  "QUANT_TRADING",
+  "ENERGY",
+  "GOVERNMENT",
+  "MANUFACTURING",
+  "TELECOMMUNICATIONS",
+  "RETAIL",
+  "TRANSPORTATION",
+  "OTHER_INDUSTRY",
+] as const;
+export type IndustryField = (typeof INDUSTRY_FIELDS)[number];
+
+export interface Company {
+  name: string;
+  website?: string;
+  logo?: string;
+}
+
 export interface Job {
   id: string;
   title: string;
-  company: {
-    name: string;
-    website: string;
-  };
-  description: string;
-  type: string;
-  locations: string[];
-  studyFields: string[];
-  workingRights: string[];
-  applicationUrl: string;
-  closeDate: string;
-  startDate: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// frontend/src/types/filters.ts
-export interface JobFilters {
-  search: string;
-  studyFields: string[];
-  jobTypes: string[];
-  locations: string[];
-  workingRights: string[];
-  page: number;
-  sortBy: "recent" | "relevant";
-}
-
-// frontend/src/types/api.ts
-export interface JobsResponse {
-  jobs: Job[];
-  total: number;
-}
-
-export interface ApiError {
-  message: string;
-  code: string;
+  description?: string;
+  one_liner?: string;
+  company: Company;
+  application_url?: string;
+  source_urls: string[];
+  type?: JobType;
+  close_date?: string;
+  locations: LocationType[];
+  industry_field?: IndustryField;
+  working_rights: WorkingRight[];
+  created_at: string;
+  updated_at: string;
+  is_sponsored: boolean;
+  highlight: boolean;
 }
