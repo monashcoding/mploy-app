@@ -4,7 +4,7 @@
 import JobCard from "@/components/jobs/job-card";
 import { useFilterContext } from "@/context/filter/filter-context";
 import { Job } from "@/types/job";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Modal, ScrollArea } from "@mantine/core";
 import JobDetails from "@/components/jobs/job-details";
 import JobListLoading from "@/components/layout/job-list-loading";
@@ -17,15 +17,44 @@ interface JobListProps {
 
 export default function JobList({ jobs }: JobListProps) {
   //export default function JobList({ jobs, sponsoredJobs }: JobListProps) {
-  const { selectedJob, setSelectedJob, isLoading } = useFilterContext();
+  const { selectedJob, setSelectedJob, isLoading, filters } =
+    useFilterContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
-  useEffect(() => {
-    if (!selectedJob) {
-      setSelectedJob(jobs[0]);
-    }
-  }, [jobs, selectedJob, setSelectedJob]);
+  const sortedJobs = useMemo(() => {
+    const copy = [...jobs];
+    copy.sort((a, b) => {
+      // Primary key → highlighted first
+      const highDiff = (b.highlight ? 1 : 0) - (a.highlight ? 1 : 0);
+      if (highDiff !== 0) return highDiff;
+
+      if (filters.filters.sortBy === "closingdesc") {
+        const aTime = a.close_date
+          ? new Date(a.close_date).getTime()
+          : Number.MAX_SAFE_INTEGER;
+        const bTime = b.close_date
+          ? new Date(b.close_date).getTime()
+          : Number.MAX_SAFE_INTEGER;
+        return aTime - bTime;           
+      }
+
+      // default "recent"
+      return (
+        new Date(b.created_at).getTime() -
+        new Date(a.created_at).getTime()
+      );
+    });
+    return copy;
+    }, [jobs, filters.filters.sortBy]);
+
+    useEffect(() => {
+      const selectionMissing = !selectedJob || !sortedJobs.some((job) => job.id === selectedJob.id)
+      
+      if (selectionMissing && sortedJobs.length > 0) {
+        setSelectedJob(sortedJobs[0])
+      }
+      }, [selectedJob, sortedJobs, setSelectedJob]);
 
   if (isLoading) return <JobListLoading />;
 
@@ -46,7 +75,7 @@ export default function JobList({ jobs }: JobListProps) {
         }
       >
         <div className="space-y-4 pr-1">
-          {jobs.map((job) => (
+          {sortedJobs.map((job) => (
             <div
               key={job.id}
               onClick={() => {
@@ -61,7 +90,7 @@ export default function JobList({ jobs }: JobListProps) {
               <JobCard
                 job={job}
                 isSelected={selectedJob?.id === job.id}
-                isSponsor={job.highlight}
+                isSponsor={!!job.highlight}
               />
             </div>
           ))}

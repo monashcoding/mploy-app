@@ -5,6 +5,7 @@ import { useFilterContext } from "@/context/filter/filter-context";
 import { useEffect } from "react";
 import FilterModal from "@/components/filters/filter-modal";
 import ResetFilters from "@/components/filters/reset-filters";
+import DropdownSort from "@/components/filters/dropdown-sort";
 
 interface FilterSectionProps {
   _totalJobs: number;
@@ -24,6 +25,7 @@ export default function FilterSection({ _totalJobs }: FilterSectionProps) {
       </Text>
 
       <div className="flex flex-row items-center">
+        <DropdownSort/>
         <ResetFilters className={"pr-4"} />
         <FilterModal />
       </div>

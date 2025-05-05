@@ -5,7 +5,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { FilterContext } from "./filter-context";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CreateQueryString } from "@/lib/utils";
-import { FilterState } from "@/types/filters";
+import { FilterState, SortBy } from "@/types/filters";
 import {
   Job,
   IndustryField,
@@ -26,6 +26,7 @@ const emptyFilterState: FilterState = {
     locations: [],
     workingRights: [],
     page: 1,
+    sortBy: SortBy.RECENT_ASC,
   },
   isLoading: false,
   error: null,
@@ -63,7 +64,8 @@ export function FilterProvider({ children }: { children: ReactNode }) {
           .filter((field): field is WorkingRight =>
             WORKING_RIGHTS.includes(field as WorkingRight),
           ) || [],
-      page: Number(searchParams.get("page")) || 1,
+      page: 1,
+      sortBy: SortBy.RECENT_ASC,
     },
     isLoading: false,
     error: null,
@@ -88,13 +90,6 @@ export function FilterProvider({ children }: { children: ReactNode }) {
       setSelectedJob(null);
     }
   }, [pathname, searchParams]);
-
-  useEffect(() => {
-    // clear filters on return to homepage
-    if (pathname === "/") {
-      setFilters(emptyFilterState);
-    }
-  }, [pathname]);
 
   // Wrapper for SelectedJob to validate attributes first
   const setSelectedJob = (job: Job | null) => {
