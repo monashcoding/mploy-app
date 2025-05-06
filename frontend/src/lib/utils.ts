@@ -145,33 +145,44 @@ export function formatISODate(isoDate: string): string {
 }
 
 export const formatWorkingRights = (rights: WorkingRight[]): string => {
-  // If all rights are present, return "Any"
-  if (rights.length === WORKING_RIGHTS.length) {
+  // If all rights except OTHER_RIGHTS are present, return "Any Working Rights"
+  const essentialRights = WORKING_RIGHTS.filter((right) => right !== "OTHER_RIGHTS");
+  const hasAllEssentialRights = essentialRights.every((right) => rights.includes(right));
+
+  if (hasAllEssentialRights) {
     return "Any Working Rights";
   }
 
   // Check for AUS and NZ Citizens/PR combination
   const hasAus = rights.includes("AUS_CITIZEN_PR");
   const hasNz = rights.includes("NZ_CITIZEN_PR");
+  const hasInt = rights.includes("INTERNATIONAL");
+  const formattedRights: string[] = [];
+
   if (hasAus && hasNz) {
-    return "AUS & NZ Citizen/PR";
+    formattedRights.push("AUS & NZ Citizen/PR");
+  } else {
+    if (hasAus) formattedRights.push("AUS Citizen/PR");
+    if (hasNz) formattedRights.push("NZ Citizen/PR");
+  }
+
+  if (hasInt) {
+    formattedRights.push("International");
   }
 
   // Format remaining cases
-  return rights
-    .map((right) => {
+  rights.forEach((right) => {
+    if (!["AUS_CITIZEN_PR", "NZ_CITIZEN_PR", "INTERNATIONAL"].includes(right)) {
       switch (right) {
-        case "AUS_CITIZEN_PR":
-          return "AUS Citizen/PR";
-        case "NZ_CITIZEN_PR":
-          return "NZ Citizen/PR";
-        case "INTERNATIONAL":
-          return "International";
         case "OTHER_RIGHTS":
-          return "Other";
+          formattedRights.push("Other");
+          break;
         default:
-          return formatCapString(right);
+          formattedRights.push(formatCapString(right));
+          break;
       }
-    })
-    .join(", ");
+    }
+  });
+
+  return formattedRights.join(", ");
 };
