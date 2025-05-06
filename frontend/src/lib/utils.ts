@@ -146,8 +146,12 @@ export function formatISODate(isoDate: string): string {
 
 export const formatWorkingRights = (rights: WorkingRight[]): string => {
   // If all rights except OTHER_RIGHTS are present, return "Any Working Rights"
-  const essentialRights = WORKING_RIGHTS.filter((right) => right !== "OTHER_RIGHTS");
-  const hasAllEssentialRights = essentialRights.every((right) => rights.includes(right));
+  const essentialRights = WORKING_RIGHTS.filter(
+    (right) => right !== "OTHER_RIGHTS",
+  );
+  const hasAllEssentialRights = essentialRights.every((right) =>
+    rights.includes(right),
+  );
 
   if (hasAllEssentialRights) {
     return "Any Working Rights";
