@@ -109,10 +109,10 @@ export async function getJobs(
 
     // derive sort object from filters.sortBy
     const sortMap: Record<string, Record<string, 1 | -1>> = {
-      recent_desc:  { created_at: 1 },
-      recent_asc:   { created_at: -1 },
-      closing_asc:  { close_date: 1 },
-      closing_desc: { close_date: -1 },
+      recent_desc: { created_at: 1 },
+      recent_asc: { created_at: -1 },
+      closing_desc: { close_date: 1 },
+      closing_asc: { close_date: -1 },
     };
 
     const sort = sortMap[(filters.sortBy as string) ?? "posted_desc"] ?? {
@@ -121,12 +121,7 @@ export async function getJobs(
 
     if (minSponsors == 0) {
       const [jobs, total] = await Promise.all([
-        collection
-          .find(query)
-          .sort(sort)
-          .skip(skip)
-          .limit(PAGE_SIZE)
-          .toArray(),
+        collection.find(query).sort(sort).skip(skip).limit(PAGE_SIZE).toArray(),
         collection.countDocuments(query),
       ]);
       return {

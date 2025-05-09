@@ -24,10 +24,10 @@ export default function FilterSection({ _totalJobs }: FilterSectionProps) {
         {isLoading ? "" : totalJobs + " Results"}
       </Text>
 
-      <div className="flex flex-row items-center">
-        <DropdownSort/>
-        <ResetFilters className={"pr-4"} />
+      <div className="flex flex-row items-center gap-4">
+        <ResetFilters className={"p-0"} />
         <FilterModal />
+        <DropdownSort />
       </div>
     </div>
   );

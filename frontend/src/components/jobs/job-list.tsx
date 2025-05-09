@@ -17,8 +17,7 @@ interface JobListProps {
 
 export default function JobList({ jobs }: JobListProps) {
   //export default function JobList({ jobs, sponsoredJobs }: JobListProps) {
-  const { selectedJob, setSelectedJob, isLoading } =
-    useFilterContext();
+  const { selectedJob, setSelectedJob, isLoading } = useFilterContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
