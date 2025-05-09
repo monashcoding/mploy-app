@@ -107,11 +107,23 @@ export async function getJobs(
     const skip = (page - 1) * PAGE_SIZE;
     minSponsors = minSponsors === -1 ? (page == 1 ? 3 : 0) : minSponsors;
 
+    // derive sort object from filters.sortBy
+    const sortMap: Record<string, Record<string, 1 | -1>> = {
+      recent_desc:  { created_at: 1 },
+      recent_asc:   { created_at: -1 },
+      closing_asc:  { close_date: 1 },
+      closing_desc: { close_date: -1 },
+    };
+
+    const sort = sortMap[(filters.sortBy as string) ?? "posted_desc"] ?? {
+      created_at: -1,
+    };
+
     if (minSponsors == 0) {
       const [jobs, total] = await Promise.all([
         collection
           .find(query)
-          .sort({ created_at: -1 })
+          .sort(sort)
           .skip(skip)
           .limit(PAGE_SIZE)
           .toArray(),
@@ -156,7 +168,7 @@ export async function getJobs(
       const [otherJobs, total] = await Promise.all([
         collection
           .find(filteredQuery)
-          .sort({ created_at: -1 })
+          .sort(sort)
           .skip(skip)
           .limit(PAGE_SIZE - sponsoredJobs.length)
           .toArray(),

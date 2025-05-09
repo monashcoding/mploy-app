@@ -8,10 +8,10 @@ export default function DropdownSort() {
   return (
     <Select
       data={[
-        { value: "recentasc", label: "Newest" },
-        { value: "recentdesc", label: "Oldest"},
-        { value: "closingdesc", label: "Closing Date DESC" },
-        { value: "closingasc", label: "Closing Date ASC" },
+        { value: "recent_asc", label: "Newest" },
+        { value: "recent_desc", label: "Oldest"},
+        { value: "closing_desc", label: "Closing Soon" },
+        { value: "closing_asc", label: "Closing Latest" },
       ]}
       value={filters.filters.sortBy}
       onChange={(value) => {

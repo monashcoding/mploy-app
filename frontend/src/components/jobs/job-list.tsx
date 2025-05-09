@@ -17,7 +17,7 @@ interface JobListProps {
 
 export default function JobList({ jobs }: JobListProps) {
   //export default function JobList({ jobs, sponsoredJobs }: JobListProps) {
-  const { selectedJob, setSelectedJob, isLoading, filters } =
+  const { selectedJob, setSelectedJob, isLoading } =
     useFilterContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 1024px)");
@@ -27,34 +27,19 @@ export default function JobList({ jobs }: JobListProps) {
     copy.sort((a, b) => {
       // Primary key → highlighted first
       const highDiff = (b.highlight ? 1 : 0) - (a.highlight ? 1 : 0);
-      if (highDiff !== 0) return highDiff;
-
-      if (filters.filters.sortBy === "closingdesc") {
-        const aTime = a.close_date
-          ? new Date(a.close_date).getTime()
-          : Number.MAX_SAFE_INTEGER;
-        const bTime = b.close_date
-          ? new Date(b.close_date).getTime()
-          : Number.MAX_SAFE_INTEGER;
-        return aTime - bTime;           
-      }
-
-      // default "recent"
-      return (
-        new Date(b.created_at).getTime() -
-        new Date(a.created_at).getTime()
-      );
+      return highDiff;
     });
     return copy;
-    }, [jobs, filters.filters.sortBy]);
+  }, [jobs]);
 
-    useEffect(() => {
-      const selectionMissing = !selectedJob || !sortedJobs.some((job) => job.id === selectedJob.id)
-      
-      if (selectionMissing && sortedJobs.length > 0) {
-        setSelectedJob(sortedJobs[0])
-      }
-      }, [selectedJob, sortedJobs, setSelectedJob]);
+  useEffect(() => {
+    const selectionMissing =
+      !selectedJob || !sortedJobs.some((job) => job.id === selectedJob.id);
+
+    if (selectionMissing && sortedJobs.length > 0) {
+      setSelectedJob(sortedJobs[0]);
+    }
+  }, [selectedJob, sortedJobs, setSelectedJob]);
 
   if (isLoading) return <JobListLoading />;
 

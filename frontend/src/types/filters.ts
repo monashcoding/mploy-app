@@ -15,10 +15,10 @@ export interface JobFilters {
 }
 
 export enum SortBy {
-  RECENT_DESC = "recentdesc",
-  RECENT_ASC = "recentasc",
-  CLOSING_DESC = "closingdesc",
-  CLOSING_ASC = "closingasc",
+  RECENT_DESC = "recent_desc",
+  RECENT_ASC = "recent_asc",
+  CLOSING_DESC = "closing_desc",
+  CLOSING_ASC = "closing_asc",
 }
 
 export interface FilterState {
