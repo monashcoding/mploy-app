@@ -10,7 +10,7 @@
     "format": "npx prettier . --write"
   },
   "dependencies": {
-    "@mantine/core": "^7.17.0",
+    "@mantine/core": "^8.3.0",
     "@mantine/hooks": "^7.16.1",
     "@mantine/notifications": "^7.17.1",
     "@next/third-parties": "^15.2.0",
