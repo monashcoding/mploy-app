@@ -30,7 +30,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./frontend
-          file: ./frontend/Dockerfile
+          file: ./frontend/Dockerfile.dev
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:development
 
@@ -58,3 +58,4 @@ jobs:
             NOTION_API_KEY=${{ secrets.NOTION_API_KEY }}
             NOTION_DATABASE_ID=${{ secrets.NOTION_DATABASE_ID }}
             MONGODB_URI=${{ secrets.MONGODB_URI }}
+            NODE_ENV=development
