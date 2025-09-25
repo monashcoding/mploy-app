@@ -64,8 +64,8 @@ jobs:
           resourceGroup: ${{ secrets.AZURE_RESOURCE_GROUP_DEV }}
           imageToDeploy: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:development
           targetPort: 3000
-          environmentVariables: |
-            NOTION_API_KEY=${{ secrets.NOTION_API_KEY }}
-            NOTION_DATABASE_ID=${{ secrets.NOTION_DATABASE_ID }}
-            MONGODB_URI=${{ secrets.MONGODB_URI }}
+          environmentVariables: >
+            NOTION_API_KEY=${{ secrets.NOTION_API_KEY }},
+            NOTION_DATABASE_ID=${{ secrets.NOTION_DATABASE_ID }},
+            MONGODB_URI=${{ secrets.MONGODB_URI }},
             NODE_ENV=development
