@@ -32,7 +32,7 @@ jobs:
           VERSION="v$(date +'%Y.%m.%d')-${GITHUB_RUN_NUMBER}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Build and push :production and versioned tags
+      - name: Build and push :production and versioned tags (with ACR cache)
         uses: docker/build-push-action@v6
         with:
           context: ./frontend
@@ -41,6 +41,8 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:production
             ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:${{ steps.vars.outputs.version }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:buildcache,mode=max
 
   deploy:
     needs: build-and-push
