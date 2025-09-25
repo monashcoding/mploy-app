@@ -26,6 +26,7 @@ RUN npm ci --only=production && npm install pino-pretty  # Keep for potential fu
 # Copy built assets from builder
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+RUN mkdir -p ./public
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 # Create non-root user
