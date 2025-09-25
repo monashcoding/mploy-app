@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { Text, Button } from "@mantine/core";
-import { useRouter } from "next/navigation";
 
 export default function Error({
   error,
