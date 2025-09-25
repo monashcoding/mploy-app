@@ -22,7 +22,7 @@
     "isomorphic-dompurify": "^2.22.0",
     "jsdom": "^26.0.0",
     "mongodb": "^6.14.2",
-    "next": "15.1.7",
+    "next": "15.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
