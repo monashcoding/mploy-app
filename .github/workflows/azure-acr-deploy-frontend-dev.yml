@@ -1,4 +1,4 @@
-name: Frontend - Build and Deploy on Azure (ACR)
+name: Frontend - Build and Deploy on Azure (Dev)
 
 on:
   push:
@@ -10,26 +10,14 @@ on:
 
 env:
   REGISTRY: mploycontainerregistry-hncsekeah2gagbgb.azurecr.io
-  FRONTEND_IMAGE_NAME: nextjs-frontend-dev
+  FRONTEND_IMAGE_NAME: nextjs-frontend
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    outputs:
-      short_sha: ${{ steps.extract-sha.outputs.short_sha }}
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Extract short SHA
-        id: extract-sha
-        run: |
-          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
-          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
-          echo "Using short SHA: $SHORT_SHA"
 
       - name: Log in to Azure Container Registry
         uses: docker/login-action@v3
@@ -38,46 +26,33 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}
-          tags: |
-            type=sha,format=short
-            type=ref,event=branch
-            latest
-
-      - name: Build and push Docker image
+      - name: Build and push :development
         uses: docker/build-push-action@v6
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:development
 
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
     environment: development
-
     steps:
       - name: Azure login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy to Azure Container Apps
-        id: deploy
+      - name: Deploy to Azure Container Apps (Dev)
         uses: azure/container-apps-deploy-action@v2
         with:
           registryUrl: ${{ env.REGISTRY }}
           registryUsername: ${{ secrets.ACR_USERNAME }}
           registryPassword: ${{ secrets.ACR_PASSWORD }}
           containerAppName: mploy-frontend-dev
-          resourceGroup: ${{ secrets.AZURE_RESOURCE_GROUP }}
-          imageToDeploy: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:sha-${{ needs.build-and-push.outputs.short_sha }}
+          resourceGroup: ${{ secrets.AZURE_RESOURCE_GROUP_DEV }}
+          imageToDeploy: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:development
           targetPort: 3000
           environmentVariables: |
             NOTION_API_KEY=${{ secrets.NOTION_API_KEY }}
