@@ -1,38 +1,39 @@
 FROM node:20-alpine AS base
-
-# Install dependencies only when needed
-FROM base AS deps
 WORKDIR /app
+
+FROM base AS deps
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-# Rebuild the source code only when needed
 FROM base AS builder
-WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY tsconfig.json next.config.ts ./
+COPY public ./public
+COPY src ./src
 RUN npm run build
 
-# Dev/Staging image: Built app with dev logging
 FROM base AS runner
 WORKDIR /app
-
 ENV NODE_ENV=development
 
-# Install runtime deps (including pino-pretty for transport) - but not used now
-COPY package.json package-lock.json* ./
-RUN npm ci --only=production && npm install pino-pretty  # Keep for potential future use
+# Copy runtime deps from deps stage (no double install!)
+COPY --from=deps /app/node_modules ./node_modules
 
-# Copy built assets from builder
+# Optionally include dev tool
+RUN npm install --global pino-pretty
+
+# Copy built assets
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 # Create non-root user
-RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 nodejs \
+ && adduser --system --uid 1001 nextjs
 USER nextjs
 
 EXPOSE 3000
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
 CMD ["npm", "start"]
