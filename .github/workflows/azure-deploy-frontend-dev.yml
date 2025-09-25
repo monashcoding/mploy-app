@@ -2,10 +2,10 @@ name: Frontend - Build and Deploy on Azure
 
 on:
   push:
-    branches: [ development ]
+    branches: [development]
     paths:
-      - 'frontend/**'
-      - '.github/workflows/azure-deploy-frontend-dev.yml'
+      - "**"
+      - ".github/workflows/azure-deploy-frontend-dev.yml"
   workflow_dispatch:
 
 env:
@@ -52,8 +52,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
