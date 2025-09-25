@@ -4,10 +4,14 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# MonoRepo Specific
-/packages/*/node_modules/
-**/dist/
-**/build/
+# Next.js
+.next/
+out/
+.vercel/
+
+# Env files
+.env*.local
+.env.*.local
 
 # OS-specific
 .DS_Store
@@ -33,8 +37,6 @@ coverage/
 *.sqlite
 
 # Miscellaneous
-.env
-.env.local
 *.local
 *.lock
 *.bak
@@ -62,7 +64,8 @@ desktop.ini
 # Lock file for pnpm
 pnpm-lock.yaml
 
-/repo-to-text/
-
 # Typescript build info
-frontend/tsconfig.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Docker
+Dockerfile.*.env

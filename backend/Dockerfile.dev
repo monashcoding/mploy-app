@@ -1,7 +1,0 @@
-FROM gradle:8.12-jdk21 AS build
-WORKDIR /app
-ENV HOME /root
-COPY . .
-RUN chmod +x ./gradlew
-RUN chmod +x start.sh && ./gradlew getDependencies
-CMD ["sh", "start.sh"]
