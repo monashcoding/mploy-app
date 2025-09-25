@@ -11,7 +11,6 @@ export default function SearchBar() {
   const [searchValue, setSearchValue] = useState(filters.filters.search || "");
 
   useEffect(() => {
-    console.log("search filter updated");
     setSearchValue(filters.filters.search || "");
   }, [filters.filters.search]);
 
