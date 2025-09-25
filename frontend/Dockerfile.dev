@@ -1,16 +1,39 @@
 FROM node:20-alpine AS base
 
-# Install dependencies
+# Install dependencies only when needed
 FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-# Dev image
-FROM base AS dev
+# Rebuild the source code only when needed
+FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN npm run build
+
+# Dev/Staging image: Built app with dev logging
+FROM base AS runner
+WORKDIR /app
+
 ENV NODE_ENV=development
+
+# Install runtime deps (including pino-pretty for transport) - but not used now
+COPY package.json package-lock.json* ./
+RUN npm ci --only=production && npm install pino-pretty  # Keep for potential future use
+
+# Copy built assets from builder
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
+USER nextjs
+
 EXPOSE 3000
-CMD ["npm", "run", "dev"]
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
+
+CMD ["npm", "start"]
