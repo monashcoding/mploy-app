@@ -1,6 +1,3 @@
-// /src/app/jobs/actions.ts
-"use server";
-
 import { MongoClient, ObjectId } from "mongodb";
 import { JobFilters } from "@/types/filters";
 import { Job } from "@/types/job";

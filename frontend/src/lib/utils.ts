@@ -1,6 +1,6 @@
 import { FilterState } from "@/types/filters";
 import { Job, WORKING_RIGHTS, WorkingRight } from "@/types/job";
-import { MongoJob } from "@/app/jobs/actions";
+import { MongoJob } from "@/actions/jobs.fetch";
 
 /**
  * Creates a URL query string from a partial FilterState object.

@@ -1,4 +1,3 @@
-// frontend/src/app/actions/feedback.ts
 "use server";
 
 import logger from "@/lib/logger";
