@@ -1,6 +1,6 @@
 // src/app/jobs/[id]/page.tsx
 
-import { getJobById } from "@/app/jobs/actions";
+import { getJobById } from "@/actions/jobs.fetch";
 import { notFound } from "next/navigation";
 import { Job } from "@/types/job";
 import JobDetailsWrapper from "@/components/jobs/job-details-wrapper";

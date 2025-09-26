@@ -3,7 +3,7 @@ import FilterSection from "@/components/filters/filter-section";
 import JobList from "@/components/jobs/job-list";
 import JobDetails from "@/components/jobs/job-details";
 import { JobFilters } from "@/types/filters";
-import { getJobs } from "@/app/jobs/actions";
+import { getJobs } from "@/actions/jobs.fetch";
 import NoResults from "@/components/ui/no-results";
 import { Suspense } from "react";
 import JobListLoading from "@/components/layout/job-list-loading";
@@ -12,6 +12,8 @@ import JobDetailsLoading from "@/components/layout/job-details-loading";
 export const metadata = {
   title: "Jobs",
 };
+
+export const revalidate = 3600; // 1 hour cache
 
 export default async function JobsPage({
   searchParams,

@@ -12,7 +12,7 @@ import {
 } from "@mantine/core";
 import { IconMessageCircle } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
-import { submitFeedback } from "@/app/actions";
+import { submitFeedback } from "@/actions/feedback.actions";
 
 export default function FeedbackButton() {
   const [opened, setOpened] = useState(false);
