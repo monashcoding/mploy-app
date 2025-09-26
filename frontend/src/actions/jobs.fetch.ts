@@ -3,13 +3,54 @@ import { JobFilters } from "@/types/filters";
 import { Job } from "@/types/job";
 import serializeJob from "@/lib/utils";
 import logger from "@/lib/logger";
+import { LRUCache } from "lru-cache";
 
 const PAGE_SIZE = 20;
 
-// Define the MongoJob interface with the correct DB field names.
-export interface MongoJob extends Omit<Job, "id"> {
-  _id: ObjectId;
-  is_sponsored: boolean;
+// Shared cache for job results
+type CacheValue = { jobs: Job[]; total: number } | Job;
+
+const jobCache = new LRUCache<string, CacheValue>({
+  max: 500,
+  ttl: 1000 * 3600, // 1 hour
+  allowStale: false,
+});
+
+// Helper to normalize filters for cache key (handles string vs array for array fields)
+function normalizeFiltersForKey(
+  filters: Partial<JobFilters>,
+): Record<string, string> {
+  const arrayFields = [
+    "workingRights[]",
+    "locations[]",
+    "industryFields[]",
+    "jobTypes[]",
+  ];
+  const normalized: Record<string, string> = {
+    search: (filters.search || "").toLowerCase().trim(),
+    page: (filters.page || 1).toString(),
+  };
+
+  arrayFields.forEach((field) => {
+    const val = filters[field as keyof Partial<JobFilters>];
+    if (val !== undefined) {
+      const arr = Array.isArray(val)
+        ? val
+        : typeof val === "string"
+          ? [val]
+          : [];
+      normalized[field] = arr.sort().join(",");
+    }
+  });
+
+  // Include other scalar fields if present
+  if (filters.jobTypes)
+    normalized.jobTypes = (filters.jobTypes as string[]).sort().join(",");
+  if (filters.locations)
+    normalized.locations = (filters.locations as string[]).sort().join(",");
+  // Add similar for others if needed, but since searchParams uses [] keys, prioritize those
+
+  return normalized;
 }
 
 /**
@@ -103,15 +144,26 @@ export async function getJobs(
   minSponsors: number = -1,
   prioritySponsors: Array<string> = ["IMC", "Atlassian"],
 ): Promise<{ jobs: Job[]; total: number }> {
+  const page = filters.page || 1;
+  const normalizedFilters = normalizeFiltersForKey(filters);
+  const priorityStr = prioritySponsors.sort().join(",");
+  const cacheKey = `jobs:${JSON.stringify(normalizedFilters)}:${page}:${minSponsors}:${priorityStr}`;
+
+  // Check cache first
+  const cached = jobCache.get(cacheKey);
+  if (cached) {
+    logger.debug({ cacheKey }, "Returning cached jobs");
+    return cached as { jobs: Job[]; total: number };
+  }
+
+  logger.info(
+    { filters, minSponsors, prioritySponsors },
+    "Fetching jobs with filters",
+  );
+
   return await withDbConnection(async (client) => {
-    logger.info(
-      { filters, minSponsors, prioritySponsors },
-      "Fetching jobs with filters",
-    );
     const collection = client.db("default").collection("active_jobs");
     const query = buildJobQuery(filters);
-    const page = filters.page || 1;
-    const skip = (page - 1) * PAGE_SIZE;
     minSponsors = minSponsors === -1 ? (page == 1 ? 3 : 0) : minSponsors;
 
     try {
@@ -120,18 +172,20 @@ export async function getJobs(
           collection
             .find(query)
             .sort({ created_at: -1 })
-            .skip(skip)
+            .skip((page - 1) * PAGE_SIZE)
             .limit(PAGE_SIZE)
             .toArray(),
           collection.countDocuments(query),
         ]);
         logger.debug({ total }, "Fetched non-sponsored jobs");
-        return {
+        const result = {
           jobs: (jobs as MongoJob[])
             .map(serializeJob)
             .map((job) => ({ ...job, highlight: false })),
           total,
         };
+        jobCache.set(cacheKey, result);
+        return result;
       } else {
         const sponsoredQuery = { ...query, is_sponsored: true };
 
@@ -158,7 +212,7 @@ export async function getJobs(
           collection
             .find(filteredQuery)
             .sort({ created_at: -1 })
-            .skip(skip)
+            .skip((page - 1) * PAGE_SIZE)
             .limit(PAGE_SIZE - sponsoredJobs.length)
             .toArray(),
           collection.countDocuments(query),
@@ -177,10 +231,12 @@ export async function getJobs(
           },
           "Fetched sponsored and other jobs",
         );
-        return {
+        const result = {
           jobs: (mergedJobs as MongoJob[]).map(serializeJob),
           total,
         };
+        jobCache.set(cacheKey, result);
+        return result;
       }
     } catch (error) {
       logger.error({ query, filters }, "Error fetching jobs");
@@ -193,7 +249,17 @@ export async function getJobs(
  * Fetches a single job by its id.
  */
 export async function getJobById(id: string): Promise<Job | null> {
+  const cacheKey = `job:${id}`;
+
+  // Check cache first
+  const cached = jobCache.get(cacheKey);
+  if (cached) {
+    logger.debug({ id }, "Returning cached job");
+    return cached as Job;
+  }
+
   logger.info({ id }, "Fetching job by ID");
+
   return await withDbConnection(async (client) => {
     const collection = client.db("default").collection("active_jobs");
     const job = await collection.findOne({
@@ -205,6 +271,14 @@ export async function getJobById(id: string): Promise<Job | null> {
       return null;
     }
     logger.debug({ id }, "Job fetched successfully");
-    return serializeJob(job as MongoJob);
+    const serializedJob = serializeJob(job as MongoJob);
+    jobCache.set(cacheKey, serializedJob);
+    return serializedJob;
   });
+}
+
+// Define the MongoJob interface with the correct DB field names.
+export interface MongoJob extends Omit<Job, "id"> {
+  _id: ObjectId;
+  is_sponsored: boolean;
 }
