@@ -21,7 +21,6 @@ import { Metadata } from "next";
 import FeedbackButton from "@/components/ui/feedback-button";
 import { Notifications } from "@mantine/notifications";
 
-import OgImage from "../assets/OgImage.png";
 import FirstVisitNotification from "@/components/ui/first-visit-notification";
 
 export const metadata: Metadata = {
@@ -34,7 +33,7 @@ export const metadata: Metadata = {
     description: "Stay ahead with the job board that never sleeps.",
     images: [
       {
-        url: OgImage.src,
+        url: "/OgImage.png",
         alt: "MAC Jobs Board",
       },
     ],

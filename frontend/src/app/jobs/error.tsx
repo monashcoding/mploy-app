@@ -12,13 +12,18 @@ export default function JobError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error(error);
+    console.error("Jobs page error:", {
+      message: error.message,
+      stack: error.stack,
+      digest: error.digest,
+    });
   }, [error]);
 
   return (
     <div className="flex flex-col items-center gap-4 p-4">
       <Text>
-        Failed to render jobs page. Check the console for more details.
+        Oops! Something went wrong while loading the jobs. Please try refreshing
+        the page.
       </Text>
       <Button onClick={reset}>Try again</Button>
     </div>

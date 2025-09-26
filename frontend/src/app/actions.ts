@@ -1,6 +1,8 @@
 // frontend/src/app/actions/feedback.ts
 "use server";
 
+import logger from "@/lib/logger";
+
 // Type for our form data
 export interface FeedbackFormData {
   email?: string;
@@ -12,10 +14,12 @@ export async function submitFeedback(data: FeedbackFormData) {
   const notionApiKey = process.env.NOTION_API_KEY;
 
   if (!databaseId) {
+    logger.error("NOTION_DATABASE_ID environment variable is not set");
     throw new Error("NOTION_DATABASE_ID environment variable is not set");
   }
 
   if (!notionApiKey) {
+    logger.error("NOTION_API_KEY environment variable is not set");
     throw new Error("NOTION_API_KEY environment variable is not set");
   }
 
@@ -61,17 +65,29 @@ export async function submitFeedback(data: FeedbackFormData) {
 
     if (!response.ok) {
       const errorData = await response.json();
+      logger.error(
+        { error: errorData, status: response.status },
+        "Notion API error during feedback submission",
+      );
       return {
         success: false,
-        message: `Notion returned an API error: ${errorData.message || response.statusText}`,
+        message: `We're sorry, but there was an issue submitting your feedback. Please try again later.`,
       };
     }
 
-    return { success: true, message: "Feedback submitted successfully." };
+    logger.info(
+      { email: data.email || "Anonymous" },
+      "Feedback submitted successfully",
+    );
+    return {
+      success: true,
+      message: "Thank you! Your feedback has been submitted successfully.",
+    };
   } catch (error) {
+    logger.error(error, "Unexpected error during feedback submission");
     return {
       success: false,
-      message: `Encountered an internal error: ${error}`,
+      message: `An unexpected error occurred while submitting your feedback. Please try again.`,
     };
   }
 }

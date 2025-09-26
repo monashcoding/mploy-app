@@ -5,6 +5,7 @@ import { MongoClient, ObjectId } from "mongodb";
 import { JobFilters } from "@/types/filters";
 import { Job } from "@/types/job";
 import serializeJob from "@/lib/utils";
+import logger from "@/lib/logger";
 
 const PAGE_SIZE = 20;
 
@@ -79,6 +80,7 @@ async function withDbConnection<T>(
   callback: (client: MongoClient) => Promise<T>,
 ): Promise<T> {
   if (!process.env.MONGODB_URI) {
+    logger.error("MONGODB_URI environment variable is not set");
     throw new Error(
       "MongoDB URI is not configured. Please check environment variables.",
     );
@@ -86,7 +88,11 @@ async function withDbConnection<T>(
   const client = new MongoClient(process.env.MONGODB_URI);
   try {
     await client.connect();
+    logger.debug("MongoDB connected successfully");
     return await callback(client);
+  } catch (error) {
+    logger.error(error, "Failed to connect to MongoDB or execute callback");
+    throw error;
   } finally {
     await client.close();
   }
@@ -100,6 +106,10 @@ export async function getJobs(
   minSponsors: number = -1,
   prioritySponsors: Array<string> = ["IMC", "Atlassian"],
 ): Promise<{ jobs: Job[]; total: number }> {
+  logger.info(
+    { filters, minSponsors, prioritySponsors },
+    "Fetching jobs with filters",
+  );
   return await withDbConnection(async (client) => {
     const collection = client.db("default").collection("active_jobs");
     const query = buildJobQuery(filters);
@@ -107,71 +117,77 @@ export async function getJobs(
     const skip = (page - 1) * PAGE_SIZE;
     minSponsors = minSponsors === -1 ? (page == 1 ? 3 : 0) : minSponsors;
 
-    if (minSponsors == 0) {
-      const [jobs, total] = await Promise.all([
-        collection
-          .find(query)
-          .sort({ created_at: -1 })
-          .skip(skip)
-          .limit(PAGE_SIZE)
-          .toArray(),
-        collection.countDocuments(query),
-      ]);
-      return {
-        // Serialize Job and set highlight to false
-        jobs: (jobs as MongoJob[])
-          .map(serializeJob)
-          .map((job) => ({ ...job, highlight: false })),
-        total,
-      };
-    } else {
-      // Modify query to include sponsored job filtering
-      const sponsoredQuery = { ...query, is_sponsored: true };
+    try {
+      if (minSponsors == 0) {
+        const [jobs, total] = await Promise.all([
+          collection
+            .find(query)
+            .sort({ created_at: -1 })
+            .skip(skip)
+            .limit(PAGE_SIZE)
+            .toArray(),
+          collection.countDocuments(query),
+        ]);
+        logger.debug({ total }, "Fetched non-sponsored jobs");
+        return {
+          jobs: (jobs as MongoJob[])
+            .map(serializeJob)
+            .map((job) => ({ ...job, highlight: false })),
+          total,
+        };
+      } else {
+        const sponsoredQuery = { ...query, is_sponsored: true };
 
-      // Fetch sponsored jobs (without priority filtering)
-      let sponsoredJobs = await collection
-        .aggregate([
-          { $match: sponsoredQuery },
-          { $sample: { size: minSponsors * 8 } },
-        ])
-        .toArray();
+        let sponsoredJobs = await collection
+          .aggregate([
+            { $match: sponsoredQuery },
+            { $sample: { size: minSponsors * 8 } },
+          ])
+          .toArray();
 
-      // Apply 65% chance selection for priority sponsors
-      sponsoredJobs = sponsoredJobs
-        .filter((job) => {
-          const isPriority = prioritySponsors.includes(job.company.name);
-          return isPriority ? Math.random() < 0.65 : Math.random() >= 0.35; // 65% chance for priority, 35% for others
-        })
-        .slice(0, minSponsors) // Ensure we only take the required number
+        sponsoredJobs = sponsoredJobs
+          .filter((job) => {
+            const isPriority = prioritySponsors.includes(job.company.name);
+            return isPriority ? Math.random() < 0.65 : Math.random() >= 0.35;
+          })
+          .slice(0, minSponsors)
+          .map((job) => ({ ...job, highlight: true }));
 
-        .map((job) => ({ ...job, highlight: true })); // Add highlight property
+        const sponsoredJobIds = sponsoredJobs.map((job) => job._id);
 
-      // Get IDs of selected sponsored jobs to exclude them from regular jobs
-      const sponsoredJobIds = sponsoredJobs.map((job) => job._id);
+        const filteredQuery = { ...query, _id: { $nin: sponsoredJobIds } };
 
-      // Modify the main query to exclude sponsored jobs we already fetched
-      const filteredQuery = { ...query, _id: { $nin: sponsoredJobIds } };
+        const [otherJobs, total] = await Promise.all([
+          collection
+            .find(filteredQuery)
+            .sort({ created_at: -1 })
+            .skip(skip)
+            .limit(PAGE_SIZE - sponsoredJobs.length)
+            .toArray(),
+          collection.countDocuments(query),
+        ]);
 
-      // Fetch remaining jobs with pagination
-      const [otherJobs, total] = await Promise.all([
-        collection
-          .find(filteredQuery)
-          .sort({ created_at: -1 })
-          .skip(skip)
-          .limit(PAGE_SIZE - sponsoredJobs.length)
-          .toArray(),
-        collection.countDocuments(query), // Total should still include all jobs matching the original query
-      ]);
-      // Merge jobs and make sure we don't exceed PAGE_SIZE also add highlight property
-      const mergedJobs = [
-        ...sponsoredJobs.map((job) => ({ ...job, highlight: true })),
-        ...otherJobs.map((job) => ({ ...job, highlight: false })),
-      ].slice(0, PAGE_SIZE);
+        const mergedJobs = [
+          ...sponsoredJobs.map((job) => ({ ...job, highlight: true })),
+          ...otherJobs.map((job) => ({ ...job, highlight: false })),
+        ].slice(0, PAGE_SIZE);
 
-      return {
-        jobs: (mergedJobs as MongoJob[]).map(serializeJob),
-        total,
-      };
+        logger.debug(
+          {
+            sponsoredCount: sponsoredJobs.length,
+            otherCount: otherJobs.length,
+            total,
+          },
+          "Fetched sponsored and other jobs",
+        );
+        return {
+          jobs: (mergedJobs as MongoJob[]).map(serializeJob),
+          total,
+        };
+      }
+    } catch (error) {
+      logger.error({ query, filters }, "Error fetching jobs");
+      throw error;
     }
   });
 }
@@ -180,6 +196,7 @@ export async function getJobs(
  * Fetches a single job by its id.
  */
 export async function getJobById(id: string): Promise<Job | null> {
+  logger.info({ id }, "Fetching job by ID");
   return await withDbConnection(async (client) => {
     const collection = client.db("default").collection("active_jobs");
     const job = await collection.findOne({
@@ -187,8 +204,10 @@ export async function getJobById(id: string): Promise<Job | null> {
       outdated: false,
     });
     if (!job) {
+      logger.warn({ id }, "Job not found");
       return null;
     }
+    logger.debug({ id }, "Job fetched successfully");
     return serializeJob(job as MongoJob);
   });
 }

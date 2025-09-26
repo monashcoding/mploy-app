@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 import { Job } from "@/types/job";
 import JobDetailsWrapper from "@/components/jobs/job-details-wrapper";
 import { Metadata } from "next";
-import OgImage from "@/assets/OgImage.png";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -38,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       images: [
         {
-          url: OgImage.src,
+          url: "/OgImage.png",
           alt: title,
         },
       ],
