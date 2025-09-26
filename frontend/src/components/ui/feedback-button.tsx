@@ -76,10 +76,11 @@ export default function FeedbackButton() {
         });
       }
     } catch (error) {
+      console.error("Feedback submission error:", error);
       notifications.show({
         position: "top-center",
         title: "Error",
-        message: "Failed to submit feedback: " + error,
+        message: `Failed to submit feedback: ${error instanceof Error ? error.message : "An unknown error occurred"}. Please try again.`,
         color: "red",
       });
     } finally {
