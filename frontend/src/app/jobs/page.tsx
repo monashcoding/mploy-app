@@ -13,6 +13,8 @@ export const metadata = {
   title: "Jobs",
 };
 
+export const revalidate = 3600; // 1 hour cache
+
 export default async function JobsPage({
   searchParams,
 }: {

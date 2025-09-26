@@ -103,11 +103,11 @@ export async function getJobs(
   minSponsors: number = -1,
   prioritySponsors: Array<string> = ["IMC", "Atlassian"],
 ): Promise<{ jobs: Job[]; total: number }> {
-  logger.info(
-    { filters, minSponsors, prioritySponsors },
-    "Fetching jobs with filters",
-  );
   return await withDbConnection(async (client) => {
+    logger.info(
+      { filters, minSponsors, prioritySponsors },
+      "Fetching jobs with filters",
+    );
     const collection = client.db("default").collection("active_jobs");
     const query = buildJobQuery(filters);
     const page = filters.page || 1;
