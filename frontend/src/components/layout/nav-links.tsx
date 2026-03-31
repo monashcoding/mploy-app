@@ -19,6 +19,12 @@ export default function NavLinks() {
       >
         Jobs
       </Link>
+      <Link
+        className={`text-lg ${pathname === "/sign-in" ? "font-bold underline-fancy" : ""}`}
+        href="/sign-in"
+      >
+        Sign in
+      </Link>
     </>
   );
 }

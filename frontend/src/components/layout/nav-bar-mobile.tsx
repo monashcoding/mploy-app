@@ -14,6 +14,7 @@ export const NavBarMobile = () => {
   const menuItems = [
     { href: "/", label: "Home" },
     { href: "/jobs", label: "Jobs" },
+    { href: "/sign-in", label: "Sign in" },
   ];
 
   return (

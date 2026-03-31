@@ -22,6 +22,7 @@ import FeedbackButton from "@/components/ui/feedback-button";
 import { Notifications } from "@mantine/notifications";
 
 import FirstVisitNotification from "@/components/ui/first-visit-notification";
+import AuthSessionProvider from "@/components/auth/session-provider";
 
 export const metadata: Metadata = {
   title: {
@@ -53,22 +54,24 @@ export default function RootLayout({ children }: PropsWithChildren) {
       </Head>
       <body className={`${poppins.className}`}>
         <Suspense>
-          <MantineProvider theme={theme} defaultColorScheme="dark">
-            <FilterProvider>
-              <div className="min-h-screen flex flex-col px-6">
-                <Notifications />
-                <NavBar />
-                <main className="">
-                  {children}
-                  <FirstVisitNotification />
-                  <FeedbackButton />
-                  <Analytics />
-                  <SpeedInsights />
-                  <GoogleAnalytics gaId="G-1RXLVCFJC0" />
-                </main>
-              </div>
-            </FilterProvider>
-          </MantineProvider>
+          <AuthSessionProvider>
+            <MantineProvider theme={theme} defaultColorScheme="dark">
+              <FilterProvider>
+                <div className="min-h-screen flex flex-col px-6">
+                  <Notifications />
+                  <NavBar />
+                  <main className="">
+                    {children}
+                    <FirstVisitNotification />
+                    <FeedbackButton />
+                    <Analytics />
+                    <SpeedInsights />
+                    <GoogleAnalytics gaId="G-1RXLVCFJC0" />
+                  </main>
+                </div>
+              </FilterProvider>
+            </MantineProvider>
+          </AuthSessionProvider>
         </Suspense>
       </body>
     </html>

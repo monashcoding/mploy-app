@@ -1,19 +1,24 @@
 // frontend/src/components/jobs/job-details.tsx
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { ActionIcon, Button, Card, ScrollArea } from "@mantine/core";
+import { ActionIcon, Button, Card, Modal, ScrollArea, Text } from "@mantine/core";
 import { IconCheck, IconCopy, IconExternalLink } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
 import JobDescription from "@/components/jobs/job-description";
 import JobHeader from "@/components/jobs/job-header";
 import JobDetailsLoading from "@/components/layout/job-details-loading";
 import JobSummary from "@/components/jobs/job-summary";
+import { upsertLocalStartedApplication } from "@/lib/local-applications";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 export default function JobDetails() {
   const { selectedJob, isLoading } = useFilterContext();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isCopied, setIsCopied] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [showSigninModal, setShowSigninModal] = useState(false);
+  const { data: session } = useSession();
 
   // Scroll to top whenever a new job is selected
   useEffect(() => {
@@ -35,6 +40,10 @@ export default function JobDetails() {
   }
 
   const handleApplyClick = () => {
+    if (!session?.user) {
+      upsertLocalStartedApplication(selectedJob);
+      setShowSigninModal(true);
+    }
     window.open(selectedJob.application_url, "_blank");
   };
 
@@ -57,7 +66,34 @@ export default function JobDetails() {
   };
 
   return (
-    <Card bd="2px solid selected" className="h-full rounded-xl flex flex-col">
+    <>
+      <Modal
+        opened={showSigninModal}
+        onClose={() => setShowSigninModal(false)}
+        title="Track your applications"
+        centered
+      >
+        <Text size="sm" c="dimmed" mb="md">
+          Sign in to track all your applications across devices and manage
+          statuses like Applied, Rejected, Accepted, etc.
+        </Text>
+        <div className="flex gap-3 justify-end">
+          <Button variant="default" onClick={() => setShowSigninModal(false)}>
+            Not now
+          </Button>
+          <Button
+            component={Link}
+            href={`/sign-in?callbackUrl=${encodeURIComponent("/my-applications")}`}
+            bg="accent"
+            c="black"
+            onClick={() => setShowSigninModal(false)}
+          >
+            Sign in
+          </Button>
+        </div>
+      </Modal>
+
+      <Card bd="2px solid selected" className="h-full rounded-xl flex flex-col">
       <ScrollArea
         offsetScrollbars
         type="hover"
@@ -104,6 +140,7 @@ export default function JobDetails() {
           {isCopied ? "Copied!" : "Copy Link"}
         </Button>
       </div>
-    </Card>
+      </Card>
+    </>
   );
 }
