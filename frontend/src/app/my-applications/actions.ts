@@ -59,13 +59,34 @@ export async function listApplications(): Promise<DbApplication[]> {
     .limit(500)
     .toArray();
 
+  if (!docs.length) return [];
+
+  // Bulk-fetch logos from active_jobs for snapshots that don't have one
+  const jobIds = docs
+    .map((d) => { try { return new ObjectId(d.jobId); } catch { return null; } })
+    .filter((id): id is ObjectId => id !== null);
+
+  const logoMap = new Map<string, string | undefined>();
+  if (jobIds.length) {
+    const jobs = await db
+      .collection("active_jobs")
+      .find({ _id: { $in: jobIds } }, { projection: { _id: 1, "company.logo": 1 } })
+      .toArray();
+    for (const job of jobs) {
+      logoMap.set(job._id.toString(), job.company?.logo);
+    }
+  }
+
   return docs.map((d) => ({
     _id: d._id.toString(),
     jobId: d.jobId,
     status: d.status,
     startedAt: new Date(d.startedAt).toISOString(),
     updatedAt: new Date(d.updatedAt).toISOString(),
-    jobSnapshot: d.jobSnapshot,
+    jobSnapshot: {
+      ...d.jobSnapshot,
+      logo: d.jobSnapshot.logo ?? logoMap.get(d.jobId),
+    },
   })) as DbApplication[];
 }
 

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
   ActionIcon,
+  Box,
   Checkbox,
   Group,
   Popover,
@@ -29,27 +30,21 @@ import {
   syncLocalApplications,
   updateApplicationStatus,
 } from "@/app/my-applications/actions";
-
-const DS = {
-  surface: "#1a1a1a",
-  surfaceHigh: "#20201f",
-  primary: "#ffdd73",
-  onPrimary: "#624e00",
-};
+import CompanyLogo from "@/components/jobs/company-logo";
 
 const STATUS_ORDER: ApplicationStatus[] = [
+  "STARTED",
   "APPLIED",
   "ACCEPTED",
   "REJECTED",
   "INTERVIEW",
-  "STARTED",
 ];
 
 function statusPalette(status: ApplicationStatus | string) {
   switch (status) {
     case "STARTED":   return { solid: "#9ca3af", muted: "rgba(156,163,175,0.18)" };
     case "APPLIED":   return { solid: "#60a5fa", muted: "rgba(96,165,250,0.18)" };
-    case "INTERVIEW": return { solid: "#ffdd73", muted: "rgba(255,221,115,0.18)" };
+    case "INTERVIEW": return { solid: "#ffe22f", muted: "rgba(255,226,47,0.18)" };
     case "ACCEPTED":  return { solid: "#4ade80", muted: "rgba(74,222,128,0.18)" };
     case "REJECTED":  return { solid: "#ff7351", muted: "rgba(255,115,81,0.18)" };
     default:          return { solid: "#9ca3af", muted: "rgba(156,163,175,0.18)" };
@@ -188,82 +183,43 @@ export default function MyApplicationsClient({
 
   if (sessionStatus === "unauthenticated") {
     return (
-      <div
-        style={{
-          padding: "1rem 1.5rem",
-          borderRadius: "0.75rem",
-          backgroundColor: "rgba(255,221,115,0.08)",
-          color: DS.primary,
-          fontSize: "0.875rem",
-        }}
+      <Box
+        bg="secondary"
+        bd="2px solid selected"
+        className="rounded-xl p-4 text-sm"
       >
         You&apos;re not signed in.{" "}
         <Link
-          style={{ textDecoration: "underline", fontWeight: 600 }}
+          className="underline font-semibold"
           href="/sign-in?callbackUrl=%2Fmy-applications"
         >
           Sign in
         </Link>{" "}
         to view and manage your applications across devices.
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+    <div className="flex flex-col gap-6">
       {syncMessage && (
-        <div
-          style={{
-            padding: "0.875rem 1.25rem",
-            borderRadius: "0.75rem",
-            backgroundColor: "rgba(74,222,128,0.08)",
-            color: "#4ade80",
-            fontSize: "0.875rem",
-          }}
+        <Box
+          bg="secondary"
+          bd="2px solid selected"
+          className="rounded-xl px-4 py-3 text-sm"
         >
           {syncMessage}
-        </div>
+        </Box>
       )}
 
       {/* Page header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-end",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "1rem",
-        }}
-      >
+      <div className="flex items-end justify-between flex-wrap gap-3">
         <div>
-          <Title
-            order={2}
-            style={{
-              fontSize: "1.75rem",
-              fontWeight: 700,
-              letterSpacing: "-0.02em",
-              color: "#ffffff",
-              marginBottom: "0.75rem",
-              lineHeight: 1.2,
-            }}
-          >
+          <Title order={2} className="font-bold mb-2" style={{ letterSpacing: "-0.02em" }}>
             My Applications
           </Title>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "0.5rem",
-              alignItems: "center",
-            }}
-          >
-            <Text
-              style={{
-                fontSize: "0.8rem",
-                color: "rgba(255,255,255,0.35)",
-                marginRight: "0.25rem",
-              }}
-            >
+          <div className="flex flex-wrap gap-2 items-center">
+            <Text size="xs" c="dimmed" className="mr-1">
               {total} total
             </Text>
             {STATUS_ORDER.map((s) => (
@@ -276,22 +232,15 @@ export default function MyApplicationsClient({
           </div>
         </div>
 
-        {/* Filter popover — ghost/secondary style */}
+        {/* Filter popover */}
         <Popover position="bottom-end" shadow="md" withinPortal>
           <Popover.Target>
             <button
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium cursor-pointer"
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.375rem",
-                padding: "0.5rem 1rem",
-                borderRadius: "0.75rem",
-                border: "1px solid rgba(255,255,255,0.15)",
                 background: "transparent",
+                border: "2px solid #3a3a3a",
                 color: "rgba(255,255,255,0.65)",
-                fontSize: "0.875rem",
-                fontWeight: 500,
-                cursor: "pointer",
                 fontFamily: "inherit",
               }}
             >
@@ -301,8 +250,8 @@ export default function MyApplicationsClient({
           </Popover.Target>
           <Popover.Dropdown
             style={{
-              backgroundColor: DS.surfaceHigh,
-              border: "1px solid rgba(255,255,255,0.08)",
+              backgroundColor: "#2e2e2e",
+              border: "2px solid #3a3a3a",
               borderRadius: "0.75rem",
             }}
           >
@@ -319,9 +268,7 @@ export default function MyApplicationsClient({
                     label={
                       <Group gap="xs" align="center">
                         <StatusDot status={s} />
-                        <Text size="sm" c="white">
-                          {capitalize(s)}
-                        </Text>
+                        <Text size="sm">{capitalize(s)}</Text>
                       </Group>
                     }
                   />
@@ -339,51 +286,25 @@ export default function MyApplicationsClient({
 
           return (
             <div key={status}>
-              {/* Section header */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.625rem",
-                  marginBottom: "0.875rem",
-                  paddingLeft: "0.125rem",
-                }}
-              >
+              <div className="flex items-center gap-2 mb-2 pl-0.5">
                 <Title
-                  order={4}
-                  style={{
-                    fontSize: "1.05rem",
-                    fontWeight: 700,
-                    color: "rgba(255,255,255,0.85)",
-                    letterSpacing: "-0.01em",
-                  }}
+                  order={5}
+                  className="font-bold"
+                  style={{ letterSpacing: "-0.01em" }}
                 >
                   {capitalize(status)}
                 </Title>
                 <StatusChip status={status} count={statusApps.length} />
               </div>
 
-              {/* Cards container */}
-              <div
-                style={{
-                  borderRadius: "0.875rem",
-                  backgroundColor: DS.surface,
-                  overflow: "hidden",
-                }}
+              <Box
+                bg="secondary"
+                bd="2px solid selected"
+                className="rounded-xl overflow-hidden"
               >
                 {statusApps.length === 0 ? (
-                  <div
-                    style={{
-                      padding: "2rem",
-                      textAlign: "center",
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: "rgba(255,255,255,0.2)",
-                        fontSize: "0.875rem",
-                      }}
-                    >
+                  <div className="py-8 text-center">
+                    <Text size="sm" c="dimmed">
                       No {capitalize(status).toLowerCase()} applications
                     </Text>
                   </div>
@@ -391,21 +312,16 @@ export default function MyApplicationsClient({
                   <Table>
                     <Table.Thead>
                       <Table.Tr
-                        style={{
-                          borderBottom: "1px solid rgba(255,255,255,0.05)",
-                        }}
+                        style={{ borderBottom: "2px solid #3a3a3a" }}
                       >
                         {["Role", "Company", "Status", "Updated"].map(
                           (col) => (
                             <Table.Th
                               key={col}
+                              className="text-xs font-semibold uppercase tracking-widest"
                               style={{
-                                color: "rgba(255,255,255,0.3)",
-                                fontSize: "0.7rem",
-                                fontWeight: 700,
-                                letterSpacing: "0.07em",
-                                textTransform: "uppercase",
-                                padding: "0.875rem 1.25rem",
+                                color: "rgba(255,255,255,0.35)",
+                                padding: "0.75rem 1rem",
                                 background: "transparent",
                               }}
                             >
@@ -414,7 +330,7 @@ export default function MyApplicationsClient({
                           )
                         )}
                         <Table.Th
-                          style={{ padding: "0.875rem 1.25rem", background: "transparent" }}
+                          style={{ padding: "0.75rem 1rem", background: "transparent" }}
                         />
                       </Table.Tr>
                     </Table.Thead>
@@ -427,46 +343,44 @@ export default function MyApplicationsClient({
                             key={a._id}
                             style={{
                               cursor: url ? "pointer" : "default",
-                              backgroundColor: isHovered
-                                ? DS.surfaceHigh
-                                : "transparent",
+                              backgroundColor: isHovered ? "#3a3a3a" : "transparent",
                               transition: "background-color 0.12s ease",
                               borderBottom:
                                 i < statusApps.length - 1
-                                  ? "1px solid rgba(255,255,255,0.04)"
+                                  ? "1px solid #3a3a3a"
                                   : "none",
                             }}
                             onMouseEnter={() => setHoveredRow(a._id)}
                             onMouseLeave={() => setHoveredRow(null)}
                             onClick={() =>
-                              url &&
-                              window.open(url, "_blank", "noreferrer")
+                              url && window.open(url, "_blank", "noreferrer")
                             }
                           >
-                            <Table.Td style={{ padding: "1rem 1.25rem" }}>
-                              <Text
-                                style={{
-                                  fontWeight: 600,
-                                  fontSize: "0.9375rem",
-                                  color: "#ffffff",
-                                  lineHeight: 1.3,
-                                }}
-                              >
+                            {/* Role */}
+                            <Table.Td style={{ padding: "0.875rem 1rem" }}>
+                              <span className="text-sm font-bold line-clamp-2 leading-tight">
                                 {a.jobSnapshot.title}
-                              </Text>
+                              </span>
                             </Table.Td>
-                            <Table.Td style={{ padding: "1rem 1.25rem" }}>
-                              <Text
-                                style={{
-                                  fontSize: "0.875rem",
-                                  color: "rgba(255,255,255,0.45)",
-                                }}
-                              >
-                                {a.jobSnapshot.companyName}
-                              </Text>
+
+                            {/* Company with logo */}
+                            <Table.Td style={{ padding: "0.875rem 1rem" }}>
+                              <div className="flex items-center gap-2">
+                                <CompanyLogo
+                                  name={a.jobSnapshot.companyName}
+                                  logo={a.jobSnapshot.logo}
+                                  applicationUrl={a.jobSnapshot.applicationUrl}
+                                  className="h-7 w-7 flex-shrink-0"
+                                />
+                                <span className="text-xs line-clamp-1">
+                                  {a.jobSnapshot.companyName}
+                                </span>
+                              </div>
                             </Table.Td>
+
+                            {/* Status select */}
                             <Table.Td
-                              style={{ padding: "1rem 1.25rem" }}
+                              style={{ padding: "0.875rem 1rem" }}
                               onClick={(e) => e.stopPropagation()}
                             >
                               <Select
@@ -475,16 +389,10 @@ export default function MyApplicationsClient({
                                   label: capitalize(s),
                                 }))}
                                 value={a.status}
-                                leftSection={
-                                  <StatusDot status={a.status} />
-                                }
+                                leftSection={<StatusDot status={a.status} />}
                                 renderOption={({ option }) => (
                                   <Group gap="xs" align="center">
-                                    <StatusDot
-                                      status={
-                                        option.value as ApplicationStatus
-                                      }
-                                    />
+                                    <StatusDot status={option.value as ApplicationStatus} />
                                     <Text size="sm">{option.label}</Text>
                                   </Group>
                                 )}
@@ -500,52 +408,39 @@ export default function MyApplicationsClient({
                                 w={155}
                                 styles={{
                                   input: {
-                                    backgroundColor: DS.surfaceHigh,
+                                    backgroundColor: "#3a3a3a",
                                     border: "none",
-                                    color: "#fff",
                                     borderRadius: "0.5rem",
                                   },
                                   dropdown: {
-                                    backgroundColor: DS.surfaceHigh,
-                                    border:
-                                      "1px solid rgba(255,255,255,0.08)",
+                                    backgroundColor: "#2e2e2e",
+                                    border: "2px solid #3a3a3a",
                                     borderRadius: "0.75rem",
                                   },
                                 }}
                               />
                             </Table.Td>
-                            <Table.Td style={{ padding: "1rem 1.25rem" }}>
-                              <Text
-                                style={{
-                                  fontSize: "0.8125rem",
-                                  color: "rgba(255,255,255,0.3)",
-                                }}
-                              >
-                                {new Date(
-                                  a.updatedAt
-                                ).toLocaleDateString()}
+
+                            {/* Updated date */}
+                            <Table.Td style={{ padding: "0.875rem 1rem" }}>
+                              <Text size="xs" c="dimmed">
+                                {new Date(a.updatedAt).toLocaleDateString()}
                               </Text>
                             </Table.Td>
+
+                            {/* Actions */}
                             <Table.Td
-                              style={{ padding: "1rem 1.25rem" }}
+                              style={{ padding: "0.875rem 1rem" }}
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <Group
-                                gap="xs"
-                                justify="flex-end"
-                                wrap="nowrap"
-                              >
+                              <Group gap="xs" justify="flex-end" wrap="nowrap">
                                 {status === "STARTED" && (
                                   <button
+                                    className="text-xs font-bold rounded-xl px-3 py-1.5 cursor-pointer"
                                     style={{
-                                      padding: "0.375rem 0.875rem",
-                                      borderRadius: "0.75rem",
-                                      backgroundColor: DS.primary,
-                                      color: DS.onPrimary,
-                                      fontSize: "0.8125rem",
-                                      fontWeight: 700,
+                                      backgroundColor: "#ffe22f",
+                                      color: "black",
                                       border: "none",
-                                      cursor: "pointer",
                                       fontFamily: "inherit",
                                     }}
                                     onClick={() =>
@@ -564,9 +459,7 @@ export default function MyApplicationsClient({
                                   size="sm"
                                   variant="subtle"
                                   color="red"
-                                  onClick={() =>
-                                    handleDelete(a._id, a.jobId)
-                                  }
+                                  onClick={() => handleDelete(a._id, a.jobId)}
                                 >
                                   <IconTrash size={14} />
                                 </ActionIcon>
@@ -578,7 +471,7 @@ export default function MyApplicationsClient({
                     </Table.Tbody>
                   </Table>
                 )}
-              </div>
+              </Box>
             </div>
           );
         }

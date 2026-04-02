@@ -40,6 +40,7 @@ export function upsertLocalStartedApplication(job: Job): LocalApplication {
       title: job.title,
       companyName: job.company?.name || "Unknown",
       applicationUrl: job.application_url,
+      logo: job.company?.logo,
     },
   };
 

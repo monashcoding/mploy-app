@@ -49,6 +49,7 @@ export default function JobDetails() {
         title: selectedJob.title,
         companyName: selectedJob.company?.name || "Unknown",
         applicationUrl: selectedJob.application_url,
+        logo: selectedJob.company?.logo,
       });
     } else {
       upsertLocalStartedApplication(selectedJob);

@@ -13,6 +13,7 @@ export type ApplicationJobSnapshot = {
   title: string;
   companyName: string;
   applicationUrl?: string;
+  logo?: string;
 };
 
 export type LocalApplication = {
