@@ -69,6 +69,26 @@ export async function listApplications(): Promise<DbApplication[]> {
   })) as DbApplication[];
 }
 
+export async function addApplication(jobId: string, jobSnapshot: import("@/types/application").ApplicationJobSnapshot) {
+  const session = await getServerSession(authOptions);
+  const userId = requireUserId(session);
+
+  const client = await clientPromise;
+  const db = client.db(process.env.MONGODB_DATABASE || "default");
+  const now = new Date();
+
+  await db.collection("applications").updateOne(
+    { userId: new ObjectId(userId), jobId },
+    {
+      $set: { updatedAt: now, jobSnapshot },
+      $setOnInsert: { startedAt: now, status: "STARTED" },
+    },
+    { upsert: true },
+  );
+
+  return { ok: true };
+}
+
 export async function updateApplicationStatus(jobId: string, status: ApplicationStatus) {
   const session = await getServerSession(authOptions);
   const userId = requireUserId(session);

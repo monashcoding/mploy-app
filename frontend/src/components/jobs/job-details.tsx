@@ -9,6 +9,7 @@ import JobHeader from "@/components/jobs/job-header";
 import JobDetailsLoading from "@/components/layout/job-details-loading";
 import JobSummary from "@/components/jobs/job-summary";
 import { upsertLocalStartedApplication } from "@/lib/local-applications";
+import { addApplication } from "@/app/my-applications/actions";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 
@@ -40,11 +41,19 @@ export default function JobDetails() {
   }
 
   const handleApplyClick = () => {
-    if (!session?.user) {
+    window.open(selectedJob.application_url, "_blank");
+
+    if (session?.user) {
+      addApplication(selectedJob.id, {
+        jobId: selectedJob.id,
+        title: selectedJob.title,
+        companyName: selectedJob.company?.name || "Unknown",
+        applicationUrl: selectedJob.application_url,
+      });
+    } else {
       upsertLocalStartedApplication(selectedJob);
       setShowSigninModal(true);
     }
-    window.open(selectedJob.application_url, "_blank");
   };
 
   const handleCopyLink = () => {
