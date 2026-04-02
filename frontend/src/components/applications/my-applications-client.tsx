@@ -8,14 +8,16 @@ import {
   Badge,
   Button,
   Card,
+  Checkbox,
   Group,
-  MultiSelect,
+  Popover,
   Select,
+  Stack,
   Table,
   Text,
   Title,
 } from "@mantine/core";
-import { IconTrash } from "@tabler/icons-react";
+import { IconChevronDown, IconTrash } from "@tabler/icons-react";
 import Link from "next/link";
 import {
   APPLICATION_STATUSES,
@@ -53,8 +55,34 @@ function statusColor(status: ApplicationStatus) {
   }
 }
 
+function statusDotColor(status: ApplicationStatus | string) {
+  switch (status) {
+    case "STARTED":   return "var(--mantine-color-gray-5)";
+    case "APPLIED":   return "var(--mantine-color-blue-5)";
+    case "INTERVIEW": return "var(--mantine-color-yellow-5)";
+    case "OFFER":     return "var(--mantine-color-teal-5)";
+    case "ACCEPTED":  return "var(--mantine-color-green-5)";
+    case "REJECTED":  return "var(--mantine-color-red-5)";
+    default:          return "var(--mantine-color-gray-5)";
+  }
+}
+
 function capitalize(s: string) {
   return s.charAt(0) + s.slice(1).toLowerCase();
+}
+
+function StatusDot({ status }: { status: ApplicationStatus | string }) {
+  return (
+    <div
+      style={{
+        width: 8,
+        height: 8,
+        borderRadius: "50%",
+        backgroundColor: statusDotColor(status),
+        flexShrink: 0,
+      }}
+    />
+  );
 }
 
 export default function MyApplicationsClient({ initial }: { initial: DbApplication[] }) {
@@ -146,16 +174,35 @@ export default function MyApplicationsClient({ initial }: { initial: DbApplicati
           </div>
         </Card>
 
-        <Card withBorder radius="lg" p="md">
-          <MultiSelect
-            label="Show sections"
-            data={STATUS_ORDER.map((s) => ({ value: s, label: capitalize(s) }))}
-            value={selectedStatuses}
-            onChange={setSelectedStatuses}
-            w={220}
-            size="sm"
-          />
-        </Card>
+        <Popover position="bottom-start" shadow="md" withinPortal>
+          <Popover.Target>
+            <Button
+              variant="default"
+              size="sm"
+              rightSection={<IconChevronDown size={14} />}
+            >
+              Show sections
+            </Button>
+          </Popover.Target>
+          <Popover.Dropdown>
+            <Checkbox.Group value={selectedStatuses} onChange={setSelectedStatuses}>
+              <Stack gap="xs">
+                {STATUS_ORDER.map((s) => (
+                  <Checkbox
+                    key={s}
+                    value={s}
+                    label={
+                      <Group gap="xs" align="center">
+                        <StatusDot status={s} />
+                        <Text size="sm">{capitalize(s)}</Text>
+                      </Group>
+                    }
+                  />
+                ))}
+              </Stack>
+            </Checkbox.Group>
+          </Popover.Dropdown>
+        </Popover>
       </div>
 
       {/* Per-status sections */}
@@ -195,11 +242,18 @@ export default function MyApplicationsClient({ initial }: { initial: DbApplicati
                         <Select
                           data={APPLICATION_STATUSES.map((s) => ({ value: s, label: capitalize(s) }))}
                           value={a.status}
+                          leftSection={<StatusDot status={a.status} />}
+                          renderOption={({ option }) => (
+                            <Group gap="xs" align="center">
+                              <StatusDot status={option.value} />
+                              <Text size="sm">{option.label}</Text>
+                            </Group>
+                          )}
                           onChange={async (value) => {
                             if (!value) return;
                             await handleStatusChange(a._id, a.jobId, a.status, value as ApplicationStatus);
                           }}
-                          w={140}
+                          w={155}
                         />
                       </Table.Td>
                       <Table.Td>{new Date(a.updatedAt).toLocaleDateString()}</Table.Td>
