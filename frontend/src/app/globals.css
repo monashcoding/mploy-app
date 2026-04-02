@@ -39,8 +39,7 @@
 }
 
 html,
-body,
-main {
+body {
   height: 100svh;
   margin: 0;
   padding: 0;

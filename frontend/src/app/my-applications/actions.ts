@@ -89,6 +89,21 @@ export async function addApplication(jobId: string, jobSnapshot: import("@/types
   return { ok: true };
 }
 
+export async function deleteApplication(jobId: string) {
+  const session = await getServerSession(authOptions);
+  const userId = requireUserId(session);
+
+  const client = await clientPromise;
+  const db = client.db(process.env.MONGODB_DATABASE || "default");
+
+  await db.collection("applications").deleteOne({
+    userId: new ObjectId(userId),
+    jobId,
+  });
+
+  return { ok: true };
+}
+
 export async function updateApplicationStatus(jobId: string, status: ApplicationStatus) {
   const session = await getServerSession(authOptions);
   const userId = requireUserId(session);

@@ -5,7 +5,6 @@ export const APPLICATION_STATUSES = [
   "ACCEPTED",
   "INTERVIEW",
   "OFFER",
-  "WITHDREW",
 ] as const;
 
 export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number];

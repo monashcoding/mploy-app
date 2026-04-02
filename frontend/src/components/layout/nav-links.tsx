@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Avatar, Menu } from "@mantine/core";
-import { IconUser, IconLogout, IconClipboardList } from "@tabler/icons-react";
+import { IconUser, IconLogout } from "@tabler/icons-react";
 
 export default function NavLinks() {
   const pathname = usePathname();
@@ -21,8 +21,14 @@ export default function NavLinks() {
         Jobs
       </Link>
 
+      {status === "authenticated" && (
+        <Link className={linkClass("/my-applications")} href="/my-applications">
+          Applications
+        </Link>
+      )}
+
       {status === "authenticated" ? (
-        <Menu position="bottom-end" offset={8} width={180}>
+        <Menu position="bottom-end" offset={8}>
           <Menu.Target>
             <Avatar
               src={session.user?.image ?? undefined}
@@ -44,13 +50,6 @@ export default function NavLinks() {
           </Menu.Target>
           <Menu.Dropdown>
             <Menu.Label>{session.user?.email}</Menu.Label>
-            <Menu.Item
-              component={Link}
-              href="/my-applications"
-              leftSection={<IconClipboardList size={16} />}
-            >
-              My Applications
-            </Menu.Item>
             <Menu.Divider />
             <Menu.Item
               color="red"

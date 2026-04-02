@@ -47,7 +47,7 @@ export const NavBarMobile = () => {
             >
               <IconSearch size={20} />
             </Button>
-            <Menu position="bottom-end" offset={8} width={150}>
+            <Menu position="bottom-end" offset={8}>
               <Menu.Target>
                 <Button variant="subtle" className="p-0">
                   <IconMenu2 size={20} />
