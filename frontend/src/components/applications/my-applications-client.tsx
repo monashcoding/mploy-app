@@ -286,7 +286,7 @@ export default function MyApplicationsClient({
 
           return (
             <div key={status}>
-              <div className="flex items-center gap-2 mb-2 pl-0.5">
+              <div className="flex items-center gap-2 mb-3 pl-1">
                 <Title
                   order={5}
                   className="font-bold"
@@ -309,29 +309,29 @@ export default function MyApplicationsClient({
                     </Text>
                   </div>
                 ) : (
-                  <Table>
+                  <Table style={{ tableLayout: "fixed", width: "100%" }}>
+                    <colgroup>
+                      <col style={{ width: "auto" }} />          {/* Role — fills remaining space */}
+                      <col style={{ width: "200px" }} />         {/* Company */}
+                      <col style={{ width: "165px" }} />         {/* Status */}
+                      <col style={{ width: "100px" }} />         {/* Updated */}
+                      <col style={{ width: "130px" }} />         {/* Actions */}
+                    </colgroup>
                     <Table.Thead>
-                      <Table.Tr
-                        style={{ borderBottom: "2px solid #3a3a3a" }}
-                      >
-                        {["Role", "Company", "Status", "Updated"].map(
-                          (col) => (
-                            <Table.Th
-                              key={col}
-                              className="text-xs font-semibold uppercase tracking-widest"
-                              style={{
-                                color: "rgba(255,255,255,0.35)",
-                                padding: "0.75rem 1rem",
-                                background: "transparent",
-                              }}
-                            >
-                              {col}
-                            </Table.Th>
-                          )
-                        )}
-                        <Table.Th
-                          style={{ padding: "0.75rem 1rem", background: "transparent" }}
-                        />
+                      <Table.Tr style={{ borderBottom: "2px solid #3a3a3a" }}>
+                        <Table.Th className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", padding: "0.75rem 1rem", background: "transparent" }}>
+                          Role
+                        </Table.Th>
+                        <Table.Th className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", padding: "0.75rem 1rem", background: "transparent" }}>
+                          Company
+                        </Table.Th>
+                        <Table.Th className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", padding: "0.75rem 1rem", background: "transparent", textAlign: "right" }}>
+                          Status
+                        </Table.Th>
+                        <Table.Th className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", padding: "0.75rem 1rem", background: "transparent", textAlign: "right" }}>
+                          Updated
+                        </Table.Th>
+                        <Table.Th style={{ padding: "0.75rem 1rem", background: "transparent" }} />
                       </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
@@ -345,16 +345,11 @@ export default function MyApplicationsClient({
                               cursor: url ? "pointer" : "default",
                               backgroundColor: isHovered ? "#3a3a3a" : "transparent",
                               transition: "background-color 0.12s ease",
-                              borderBottom:
-                                i < statusApps.length - 1
-                                  ? "1px solid #3a3a3a"
-                                  : "none",
+                              borderBottom: i < statusApps.length - 1 ? "1px solid #3a3a3a" : "none",
                             }}
                             onMouseEnter={() => setHoveredRow(a._id)}
                             onMouseLeave={() => setHoveredRow(null)}
-                            onClick={() =>
-                              url && window.open(url, "_blank", "noreferrer")
-                            }
+                            onClick={() => url && window.open(url, "_blank", "noreferrer")}
                           >
                             {/* Role */}
                             <Table.Td style={{ padding: "0.875rem 1rem" }}>
@@ -365,7 +360,7 @@ export default function MyApplicationsClient({
 
                             {/* Company with logo */}
                             <Table.Td style={{ padding: "0.875rem 1rem" }}>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 min-w-0">
                                 <CompanyLogo
                                   name={a.jobSnapshot.companyName}
                                   logo={a.jobSnapshot.logo}
@@ -380,7 +375,7 @@ export default function MyApplicationsClient({
 
                             {/* Status select */}
                             <Table.Td
-                              style={{ padding: "0.875rem 1rem" }}
+                              style={{ padding: "0.875rem 1rem", textAlign: "right" }}
                               onClick={(e) => e.stopPropagation()}
                             >
                               <Select
@@ -398,14 +393,8 @@ export default function MyApplicationsClient({
                                 )}
                                 onChange={async (value) => {
                                   if (!value) return;
-                                  await handleStatusChange(
-                                    a._id,
-                                    a.jobId,
-                                    a.status,
-                                    value as ApplicationStatus
-                                  );
+                                  await handleStatusChange(a._id, a.jobId, a.status, value as ApplicationStatus);
                                 }}
-                                w={155}
                                 styles={{
                                   input: {
                                     backgroundColor: "#3a3a3a",
@@ -422,7 +411,7 @@ export default function MyApplicationsClient({
                             </Table.Td>
 
                             {/* Updated date */}
-                            <Table.Td style={{ padding: "0.875rem 1rem" }}>
+                            <Table.Td style={{ padding: "0.875rem 1rem", textAlign: "right" }}>
                               <Text size="xs" c="dimmed">
                                 {new Date(a.updatedAt).toLocaleDateString()}
                               </Text>
@@ -444,12 +433,7 @@ export default function MyApplicationsClient({
                                       fontFamily: "inherit",
                                     }}
                                     onClick={() =>
-                                      handleStatusChange(
-                                        a._id,
-                                        a.jobId,
-                                        "STARTED",
-                                        "APPLIED"
-                                      )
+                                      handleStatusChange(a._id, a.jobId, "STARTED", "APPLIED")
                                     }
                                   >
                                     Mark Applied
