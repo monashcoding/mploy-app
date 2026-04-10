@@ -1,20 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
   ActionIcon,
   Box,
+  Button,
   Checkbox,
   Group,
+  Modal,
   Popover,
   Select,
   Stack,
   Table,
   Text,
+  TextInput,
   Title,
 } from "@mantine/core";
-import { IconChevronDown, IconTrash } from "@tabler/icons-react";
+import { IconCheck, IconChevronDown, IconPlus, IconTrash } from "@tabler/icons-react";
 import Link from "next/link";
 import {
   APPLICATION_STATUSES,
@@ -26,6 +29,7 @@ import {
   getLocalApplications,
 } from "@/lib/local-applications";
 import {
+  createCustomApplication,
   deleteApplication,
   syncLocalApplications,
   updateApplicationStatus,
@@ -122,6 +126,12 @@ export default function MyApplicationsClient({
     )
   );
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const [customTitle, setCustomTitle] = useState("");
+  const [customCompany, setCustomCompany] = useState("");
+  const [customStatus, setCustomStatus] = useState<ApplicationStatus>("APPLIED");
+  const [customDate, setCustomDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [customLoading, setCustomLoading] = useState(false);
 
   useEffect(() => {
     if (sessionStatus !== "authenticated") return;
@@ -195,6 +205,22 @@ export default function MyApplicationsClient({
     }
   }
 
+  async function handleCreateCustom() {
+    if (!customTitle.trim() || !customCompany.trim()) return;
+    setCustomLoading(true);
+    try {
+      const newApp = await createCustomApplication(customTitle.trim(), customCompany.trim(), customStatus, customDate);
+      setApps((prev) => [newApp, ...prev]);
+      setAddOpen(false);
+      setCustomTitle("");
+      setCustomCompany("");
+      setCustomStatus("APPLIED");
+      setCustomDate(new Date().toISOString().slice(0, 10));
+    } finally {
+      setCustomLoading(false);
+    }
+  }
+
   if (sessionStatus === "unauthenticated") {
     return (
       <Box
@@ -246,6 +272,18 @@ export default function MyApplicationsClient({
           </div>
         </div>
 
+        {/* Header actions */}
+        <div className="flex items-center gap-2">
+          <button
+            className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-medium cursor-pointer"
+            style={{ background: "#ffe22f", border: "none", color: "#1f1f1f", fontFamily: "inherit" }}
+            onClick={() => setAddOpen(true)}
+          >
+            <IconPlus size={13} />
+            <span className="hidden sm:inline">Add application</span>
+            <span className="sm:hidden">Add</span>
+          </button>
+
         {/* Filter popover */}
         <Popover position="bottom-end" shadow="md" withinPortal>
           <Popover.Target>
@@ -292,7 +330,80 @@ export default function MyApplicationsClient({
             </Checkbox.Group>
           </Popover.Dropdown>
         </Popover>
+        </div>{/* end header actions */}
       </div>
+
+      {/* Add custom application modal */}
+      <Modal
+        opened={addOpen}
+        onClose={() => setAddOpen(false)}
+        title={<Text fw={700} size="sm">Add application</Text>}
+        styles={{
+          content: { backgroundColor: "#2e2e2e", border: "2px solid #3a3a3a", borderRadius: "1rem" },
+          header: { backgroundColor: "#2e2e2e" },
+          overlay: { backdropFilter: "blur(2px)" },
+        }}
+      >
+        <Stack gap="sm">
+          <TextInput
+            label="Role"
+            placeholder="e.g. Software Engineer"
+            value={customTitle}
+            onChange={(e) => setCustomTitle(e.currentTarget.value)}
+            styles={{
+              input: { backgroundColor: "#3a3a3a", border: "none", borderRadius: "0.5rem", color: "white" },
+              label: { color: "rgba(255,255,255,0.65)", marginBottom: "0.25rem" },
+            }}
+          />
+          <TextInput
+            label="Company"
+            placeholder="e.g. Acme Corp"
+            value={customCompany}
+            onChange={(e) => setCustomCompany(e.currentTarget.value)}
+            styles={{
+              input: { backgroundColor: "#3a3a3a", border: "none", borderRadius: "0.5rem", color: "white" },
+              label: { color: "rgba(255,255,255,0.65)", marginBottom: "0.25rem" },
+            }}
+          />
+          <Select
+            label="Status"
+            data={APPLICATION_STATUSES.map((s) => ({ value: s, label: capitalize(s) }))}
+            value={customStatus}
+            onChange={(v) => v && setCustomStatus(v as ApplicationStatus)}
+            leftSection={<StatusDot status={customStatus} />}
+            renderOption={({ option }) => (
+              <Group gap="xs" align="center">
+                <StatusDot status={option.value as ApplicationStatus} />
+                <Text size="sm">{option.label}</Text>
+              </Group>
+            )}
+            styles={{
+              input: { backgroundColor: "#3a3a3a", border: "none", borderRadius: "0.5rem" },
+              dropdown: { backgroundColor: "#2e2e2e", border: "2px solid #3a3a3a", borderRadius: "0.75rem" },
+              label: { color: "rgba(255,255,255,0.65)", marginBottom: "0.25rem" },
+            }}
+          />
+          <TextInput
+            type="date"
+            label="Updated"
+            value={customDate}
+            onChange={(e) => setCustomDate(e.currentTarget.value)}
+            styles={{
+              input: { backgroundColor: "#3a3a3a", border: "none", borderRadius: "0.5rem", color: "white", colorScheme: "dark" } as React.CSSProperties,
+              label: { color: "rgba(255,255,255,0.65)", marginBottom: "0.25rem" },
+            }}
+          />
+          <Button
+            fullWidth
+            loading={customLoading}
+            disabled={!customTitle.trim() || !customCompany.trim()}
+            onClick={handleCreateCustom}
+            style={{ backgroundColor: "#ffe22f", color: "#1f1f1f", borderRadius: "0.75rem", fontWeight: 700, marginTop: "0.25rem" }}
+          >
+            Add application
+          </Button>
+        </Stack>
+      </Modal>
 
       {/* Per-status sections */}
       {STATUS_ORDER.filter((s) => selectedStatuses.includes(s)).map(
@@ -426,11 +537,11 @@ export default function MyApplicationsClient({
                                   <Group gap="xs" justify="flex-end" wrap="nowrap">
                                     {status === "STARTED" && (
                                       <button
-                                        className="text-xs font-bold rounded-xl px-3 py-1.5 cursor-pointer"
+                                        className="inline-flex items-center gap-1 text-xs font-bold rounded-xl px-3 py-1.5 cursor-pointer whitespace-nowrap"
                                         style={{ backgroundColor: "#ffe22f", color: "black", border: "none", fontFamily: "inherit" }}
                                         onClick={() => handleStatusChange(a._id, a.jobId, "STARTED", "APPLIED")}
                                       >
-                                        Mark Applied
+                                        Applied <IconCheck size={11} />
                                       </button>
                                     )}
                                     <ActionIcon
@@ -514,11 +625,11 @@ export default function MyApplicationsClient({
                               <Group gap="xs" wrap="nowrap">
                                 {status === "STARTED" && (
                                   <button
-                                    className="text-xs font-bold rounded-xl px-3 py-1.5 cursor-pointer whitespace-nowrap"
+                                    className="inline-flex items-center gap-1 text-xs font-bold rounded-xl px-3 py-1.5 cursor-pointer whitespace-nowrap"
                                     style={{ backgroundColor: "#ffe22f", color: "black", border: "none", fontFamily: "inherit" }}
                                     onClick={() => handleStatusChange(a._id, a.jobId, "STARTED", "APPLIED")}
                                   >
-                                    Mark Applied
+                                    Applied <IconCheck size={11} />
                                   </button>
                                 )}
                                 <ActionIcon

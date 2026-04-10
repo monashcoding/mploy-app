@@ -4,7 +4,7 @@ import clientPromise from "@/lib/mongodb";
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import { ObjectId } from "mongodb";
-import { ApplicationStatus, DbApplication, LocalApplication } from "@/types/application";
+import { ApplicationJobSnapshot, ApplicationStatus, DbApplication, LocalApplication } from "@/types/application";
 
 function requireUserId(session: Awaited<ReturnType<typeof getServerSession>>) {
   const id = (session?.user as unknown as { id?: string } | undefined)?.id;
@@ -123,6 +123,41 @@ export async function deleteApplication(jobId: string) {
   });
 
   return { ok: true };
+}
+
+export async function createCustomApplication(
+  title: string,
+  companyName: string,
+  status: ApplicationStatus,
+  date: string, // "YYYY-MM-DD"
+): Promise<DbApplication> {
+  const session = await getServerSession(authOptions);
+  const userId = requireUserId(session);
+
+  const client = await clientPromise;
+  const db = client.db(process.env.MONGODB_DATABASE || "default");
+
+  const jobId = `custom_${new ObjectId().toString()}`;
+  const jobSnapshot: ApplicationJobSnapshot = { jobId, title, companyName };
+  const parsedDate = new Date(date);
+
+  const result = await db.collection("applications").insertOne({
+    userId: new ObjectId(userId),
+    jobId,
+    status,
+    startedAt: parsedDate,
+    updatedAt: parsedDate,
+    jobSnapshot,
+  });
+
+  return {
+    _id: result.insertedId.toString(),
+    jobId,
+    status,
+    startedAt: parsedDate.toISOString(),
+    updatedAt: parsedDate.toISOString(),
+    jobSnapshot,
+  };
 }
 
 export async function updateApplicationStatus(jobId: string, status: ApplicationStatus) {
