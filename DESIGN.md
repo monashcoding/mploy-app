@@ -62,7 +62,7 @@ Depth in this system is a result of light physics, not artificial decoration.
 *   **Glass Action:** Semi-transparent `surface-bright` with backdrop blur for secondary utility actions.
 
 ### Chips (Status & Tags)
-*   **Status Chips:** Use a muted version of the status color for the background (e.g., 20% opacity) with a high-contrast dot indicator and solid text.
+*   **Status Chips:** Use a muted version of the status color for the background (e.g., 20% opacity) with a high-contrast and solid text.
 *   **Filter Chips:** Use `surface-variant` with a radius of `full` (9999px) for a soft, pill-shaped aesthetic.
 
 ### Cards & Lists

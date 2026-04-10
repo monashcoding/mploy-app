@@ -77,9 +77,11 @@ function StatusDot({ status }: { status: ApplicationStatus | string }) {
 function StatusChip({
   status,
   count,
+  small,
 }: {
   status: ApplicationStatus;
   count?: number;
+  small?: boolean;
 }) {
   const { solid, muted } = statusPalette(status);
   return (
@@ -87,25 +89,19 @@ function StatusChip({
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 5,
-        padding: "3px 10px",
+        justifyContent: "center",
+        padding: small ? "2px 5px" : "3px 10px",
         borderRadius: 9999,
         backgroundColor: muted,
-        fontSize: "0.775rem",
+        fontSize: small ? "0.6rem" : "0.775rem",
         fontWeight: 600,
         color: solid,
         letterSpacing: "0.01em",
+        width: small ? "100%" : undefined,
+        whiteSpace: "nowrap",
+        overflow: "hidden",
       }}
     >
-      <span
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: "50%",
-          backgroundColor: solid,
-          flexShrink: 0,
-        }}
-      />
       {capitalize(status)}
       {count !== undefined ? `: ${count}` : ""}
     </span>
@@ -254,20 +250,26 @@ export default function MyApplicationsClient({
 
       {/* Page header */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-        <div>
-          <Title order={2} className="font-bold mb-2" style={{ letterSpacing: "-0.02em" }}>
-            My Applications
-          </Title>
-          <div className="flex flex-wrap gap-2 items-center">
-            <Text size="xs" c="dimmed" className="mr-1">
-              {total} total
-            </Text>
+        <div className="flex items-start justify-between gap-3 sm:block">
+          <div>
+            <Title order={2} className="font-bold mb-2" style={{ letterSpacing: "-0.02em" }}>
+              Applications
+            </Title>
+            {/* Desktop: inline chip row */}
+            <div className="hidden sm:flex flex-wrap gap-2 items-center">
+              <Text size="xs" c="dimmed" className="mr-1">
+                {total} total
+              </Text>
+              {STATUS_ORDER.map((s) => (
+                <StatusChip key={s} status={s} count={grouped.get(s)?.length ?? 0} />
+              ))}
+            </div>
+          </div>
+
+          {/* Mobile: 3+2 grid aligned right */}
+          <div className="sm:hidden grid grid-flow-col grid-rows-3 gap-1 shrink-0">
             {STATUS_ORDER.map((s) => (
-              <StatusChip
-                key={s}
-                status={s}
-                count={grouped.get(s)?.length ?? 0}
-              />
+              <StatusChip key={s} status={s} count={grouped.get(s)?.length ?? 0} small />
             ))}
           </div>
         </div>
@@ -423,10 +425,11 @@ export default function MyApplicationsClient({
                 <StatusChip status={status} count={statusApps.length} />
               </div>
 
+              {/* Desktop: single Box table — hidden on mobile */}
               <Box
                 bg="secondary"
                 bd="2px solid selected"
-                className="rounded-xl overflow-hidden"
+                className="hidden sm:block rounded-xl overflow-hidden"
               >
                 {statusApps.length === 0 ? (
                   <div className="py-8 text-center">
@@ -435,169 +438,68 @@ export default function MyApplicationsClient({
                     </Text>
                   </div>
                 ) : (
-                  <>
-                    {/* Desktop table — hidden on mobile */}
-                    <div className="hidden sm:block">
-                      <Table style={{ tableLayout: "fixed", width: "100%" }}>
-                        <colgroup>
-                          <col style={{ width: "auto" }} />
-                          <col style={{ width: "200px" }} />
-                          <col style={{ width: "165px" }} />
-                          <col style={{ width: "100px" }} />
-                          <col style={{ width: "130px" }} />
-                        </colgroup>
-                        <Table.Thead>
-                          <Table.Tr style={{ borderBottom: "2px solid #3a3a3a" }}>
-                            <Table.Th className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", padding: "0.75rem 1rem", background: "transparent" }}>
-                              Role
-                            </Table.Th>
-                            <Table.Th className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", padding: "0.75rem 1rem", background: "transparent" }}>
-                              Company
-                            </Table.Th>
-                            <Table.Th className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", padding: "0.75rem 1rem", background: "transparent", textAlign: "right" }}>
-                              Status
-                            </Table.Th>
-                            <Table.Th className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", padding: "0.75rem 1rem", background: "transparent", textAlign: "right" }}>
-                              Updated
-                            </Table.Th>
-                            <Table.Th style={{ padding: "0.75rem 1rem", background: "transparent" }} />
-                          </Table.Tr>
-                        </Table.Thead>
-                        <Table.Tbody>
-                          {statusApps.map((a, i) => {
-                            const url = a.jobSnapshot.applicationUrl;
-                            const isHovered = hoveredRow === a._id;
-                            return (
-                              <Table.Tr
-                                key={a._id}
-                                style={{
-                                  cursor: url ? "pointer" : "default",
-                                  backgroundColor: isHovered ? "#3a3a3a" : "transparent",
-                                  transition: "background-color 0.12s ease",
-                                  borderBottom: i < statusApps.length - 1 ? "1px solid #3a3a3a" : "none",
-                                }}
-                                onMouseEnter={() => setHoveredRow(a._id)}
-                                onMouseLeave={() => setHoveredRow(null)}
-                                onClick={() => url && window.open(url, "_blank", "noreferrer")}
-                              >
-                                <Table.Td style={{ padding: "0.875rem 1rem" }}>
-                                  <span className="text-sm font-bold line-clamp-2 leading-tight">
-                                    {a.jobSnapshot.title}
-                                  </span>
-                                </Table.Td>
-                                <Table.Td style={{ padding: "0.875rem 1rem" }}>
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <CompanyLogo
-                                      name={a.jobSnapshot.companyName}
-                                      logo={a.jobSnapshot.logo}
-                                      applicationUrl={a.jobSnapshot.applicationUrl}
-                                      className="h-7 w-7 flex-shrink-0"
-                                    />
-                                    <span className="text-xs line-clamp-1">
-                                      {a.jobSnapshot.companyName}
-                                    </span>
-                                  </div>
-                                </Table.Td>
-                                <Table.Td
-                                  style={{ padding: "0.875rem 1rem", textAlign: "right" }}
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <Select
-                                    data={APPLICATION_STATUSES.map((s) => ({
-                                      value: s,
-                                      label: capitalize(s),
-                                    }))}
-                                    value={a.status}
-                                    leftSection={<StatusDot status={a.status} />}
-                                    renderOption={({ option }) => (
-                                      <Group gap="xs" align="center">
-                                        <StatusDot status={option.value as ApplicationStatus} />
-                                        <Text size="sm">{option.label}</Text>
-                                      </Group>
-                                    )}
-                                    onChange={async (value) => {
-                                      if (!value) return;
-                                      await handleStatusChange(a._id, a.jobId, a.status, value as ApplicationStatus);
-                                    }}
-                                    styles={{
-                                      input: { backgroundColor: "#3a3a3a", border: "none", borderRadius: "0.5rem" },
-                                      dropdown: { backgroundColor: "#2e2e2e", border: "2px solid #3a3a3a", borderRadius: "0.75rem" },
-                                    }}
-                                  />
-                                </Table.Td>
-                                <Table.Td style={{ padding: "0.875rem 1rem", textAlign: "right" }}>
-                                  <Text size="xs" c="dimmed">
-                                    {new Date(a.updatedAt).toLocaleDateString()}
-                                  </Text>
-                                </Table.Td>
-                                <Table.Td
-                                  style={{ padding: "0.875rem 1rem" }}
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <Group gap="xs" justify="flex-end" wrap="nowrap">
-                                    {status === "STARTED" && (
-                                      <button
-                                        className="inline-flex items-center gap-1 text-xs font-bold rounded-xl px-3 py-1.5 cursor-pointer whitespace-nowrap"
-                                        style={{ backgroundColor: "#ffe22f", color: "black", border: "none", fontFamily: "inherit" }}
-                                        onClick={() => handleStatusChange(a._id, a.jobId, "STARTED", "APPLIED")}
-                                      >
-                                        Applied <IconCheck size={11} />
-                                      </button>
-                                    )}
-                                    <ActionIcon
-                                      size="sm"
-                                      variant="subtle"
-                                      color="red"
-                                      onClick={() => handleDelete(a._id, a.jobId)}
-                                    >
-                                      <IconTrash size={14} />
-                                    </ActionIcon>
-                                  </Group>
-                                </Table.Td>
-                              </Table.Tr>
-                            );
-                          })}
-                        </Table.Tbody>
-                      </Table>
-                    </div>
-
-                    {/* Mobile cards — hidden on sm+ */}
-                    <div className="sm:hidden divide-y divide-[#3a3a3a]">
-                      {statusApps.map((a) => {
+                  <Table style={{ tableLayout: "fixed", width: "100%" }}>
+                    <colgroup>
+                      <col style={{ width: "auto" }} />
+                      <col style={{ width: "200px" }} />
+                      <col style={{ width: "165px" }} />
+                      <col style={{ width: "100px" }} />
+                      <col style={{ width: "130px" }} />
+                    </colgroup>
+                    <Table.Thead>
+                      <Table.Tr style={{ borderBottom: "2px solid #3a3a3a" }}>
+                        <Table.Th className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", padding: "0.75rem 1rem", background: "transparent" }}>
+                          Role
+                        </Table.Th>
+                        <Table.Th className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", padding: "0.75rem 1rem", background: "transparent" }}>
+                          Company
+                        </Table.Th>
+                        <Table.Th className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", padding: "0.75rem 1rem", background: "transparent", textAlign: "right" }}>
+                          Status
+                        </Table.Th>
+                        <Table.Th className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", padding: "0.75rem 1rem", background: "transparent", textAlign: "right" }}>
+                          Updated
+                        </Table.Th>
+                        <Table.Th style={{ padding: "0.75rem 1rem", background: "transparent" }} />
+                      </Table.Tr>
+                    </Table.Thead>
+                    <Table.Tbody>
+                      {statusApps.map((a, i) => {
                         const url = a.jobSnapshot.applicationUrl;
+                        const isHovered = hoveredRow === a._id;
                         return (
-                          <div
+                          <Table.Tr
                             key={a._id}
-                            className="p-3"
-                            style={{ cursor: url ? "pointer" : "default" }}
+                            style={{
+                              cursor: url ? "pointer" : "default",
+                              backgroundColor: isHovered ? "#3a3a3a" : "transparent",
+                              transition: "background-color 0.12s ease",
+                              borderBottom: i < statusApps.length - 1 ? "1px solid #3a3a3a" : "none",
+                            }}
+                            onMouseEnter={() => setHoveredRow(a._id)}
+                            onMouseLeave={() => setHoveredRow(null)}
                             onClick={() => url && window.open(url, "_blank", "noreferrer")}
                           >
-                            {/* Row 1: company + date */}
-                            <div className="flex items-center justify-between mb-1.5">
+                            <Table.Td style={{ padding: "0.875rem 1rem" }}>
+                              <span className="text-sm font-bold line-clamp-2 leading-tight">
+                                {a.jobSnapshot.title}
+                              </span>
+                            </Table.Td>
+                            <Table.Td style={{ padding: "0.875rem 1rem" }}>
                               <div className="flex items-center gap-2 min-w-0">
                                 <CompanyLogo
                                   name={a.jobSnapshot.companyName}
                                   logo={a.jobSnapshot.logo}
                                   applicationUrl={a.jobSnapshot.applicationUrl}
-                                  className="h-6 w-6 flex-shrink-0"
+                                  className="h-7 w-7 flex-shrink-0"
                                 />
-                                <span className="text-xs line-clamp-1 text-white/70">
+                                <span className="text-xs line-clamp-1">
                                   {a.jobSnapshot.companyName}
                                 </span>
                               </div>
-                              <Text size="xs" c="dimmed" className="flex-shrink-0 ml-2">
-                                {new Date(a.updatedAt).toLocaleDateString()}
-                              </Text>
-                            </div>
-
-                            {/* Row 2: role title */}
-                            <div className="text-sm font-bold leading-tight mb-3">
-                              {a.jobSnapshot.title}
-                            </div>
-
-                            {/* Row 3: status select + actions */}
-                            <div
-                              className="flex items-center justify-between gap-2"
+                            </Table.Td>
+                            <Table.Td
+                              style={{ padding: "0.875rem 1rem", textAlign: "right" }}
                               onClick={(e) => e.stopPropagation()}
                             >
                               <Select
@@ -622,7 +524,17 @@ export default function MyApplicationsClient({
                                   dropdown: { backgroundColor: "#2e2e2e", border: "2px solid #3a3a3a", borderRadius: "0.75rem" },
                                 }}
                               />
-                              <Group gap="xs" wrap="nowrap">
+                            </Table.Td>
+                            <Table.Td style={{ padding: "0.875rem 1rem", textAlign: "right" }}>
+                              <Text size="xs" c="dimmed">
+                                {new Date(a.updatedAt).toLocaleDateString()}
+                              </Text>
+                            </Table.Td>
+                            <Table.Td
+                              style={{ padding: "0.875rem 1rem" }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Group gap="xs" justify="flex-end" wrap="nowrap">
                                 {status === "STARTED" && (
                                   <button
                                     className="inline-flex items-center gap-1 text-xs font-bold rounded-xl px-3 py-1.5 cursor-pointer whitespace-nowrap"
@@ -641,14 +553,110 @@ export default function MyApplicationsClient({
                                   <IconTrash size={14} />
                                 </ActionIcon>
                               </Group>
-                            </div>
-                          </div>
+                            </Table.Td>
+                          </Table.Tr>
                         );
                       })}
-                    </div>
-                  </>
+                    </Table.Tbody>
+                  </Table>
                 )}
               </Box>
+
+              {/* Mobile: separate cards — hidden on sm+ */}
+              <div className="sm:hidden flex flex-col gap-2">
+                {statusApps.length === 0 ? (
+                  <Box bg="secondary" bd="2px solid selected" className="rounded-xl py-8 text-center">
+                    <Text size="sm" c="dimmed">
+                      No {capitalize(status).toLowerCase()} applications
+                    </Text>
+                  </Box>
+                ) : (
+                  statusApps.map((a) => {
+                    const url = a.jobSnapshot.applicationUrl;
+                    return (
+                      <Box
+                        key={a._id}
+                        bg="secondary"
+                        bd="2px solid selected"
+                        className="rounded-xl p-3"
+                        style={{ cursor: url ? "pointer" : "default" }}
+                        onClick={() => url && window.open(url, "_blank", "noreferrer")}
+                      >
+                        {/* Row 1: company + date */}
+                        <div className="flex items-center justify-between mb-1.5">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <CompanyLogo
+                              name={a.jobSnapshot.companyName}
+                              logo={a.jobSnapshot.logo}
+                              applicationUrl={a.jobSnapshot.applicationUrl}
+                              className="h-6 w-6 flex-shrink-0"
+                            />
+                            <span className="text-xs line-clamp-1 text-white/70">
+                              {a.jobSnapshot.companyName}
+                            </span>
+                          </div>
+                          <Text size="xs" c="dimmed" className="flex-shrink-0 ml-2">
+                            {new Date(a.updatedAt).toLocaleDateString()}
+                          </Text>
+                        </div>
+
+                        {/* Row 2: role title */}
+                        <div className="text-sm font-bold leading-tight mb-3">
+                          {a.jobSnapshot.title}
+                        </div>
+
+                        {/* Row 3: status select + actions */}
+                        <div
+                          className="flex items-center justify-between gap-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Select
+                            data={APPLICATION_STATUSES.map((s) => ({
+                              value: s,
+                              label: capitalize(s),
+                            }))}
+                            value={a.status}
+                            leftSection={<StatusDot status={a.status} />}
+                            renderOption={({ option }) => (
+                              <Group gap="xs" align="center">
+                                <StatusDot status={option.value as ApplicationStatus} />
+                                <Text size="sm">{option.label}</Text>
+                              </Group>
+                            )}
+                            onChange={async (value) => {
+                              if (!value) return;
+                              await handleStatusChange(a._id, a.jobId, a.status, value as ApplicationStatus);
+                            }}
+                            styles={{
+                              input: { backgroundColor: "#3a3a3a", border: "none", borderRadius: "0.5rem" },
+                              dropdown: { backgroundColor: "#2e2e2e", border: "2px solid #3a3a3a", borderRadius: "0.75rem" },
+                            }}
+                          />
+                          <Group gap="xs" wrap="nowrap">
+                            {status === "STARTED" && (
+                              <button
+                                className="inline-flex items-center gap-1 text-xs font-bold rounded-xl px-3 py-1.5 cursor-pointer whitespace-nowrap"
+                                style={{ backgroundColor: "#ffe22f", color: "black", border: "none", fontFamily: "inherit" }}
+                                onClick={() => handleStatusChange(a._id, a.jobId, "STARTED", "APPLIED")}
+                              >
+                                Applied <IconCheck size={11} />
+                              </button>
+                            )}
+                            <ActionIcon
+                              size="sm"
+                              variant="subtle"
+                              color="red"
+                              onClick={() => handleDelete(a._id, a.jobId)}
+                            >
+                              <IconTrash size={14} />
+                            </ActionIcon>
+                          </Group>
+                        </div>
+                      </Box>
+                    );
+                  })
+                )}
+              </div>
             </div>
           );
         }
