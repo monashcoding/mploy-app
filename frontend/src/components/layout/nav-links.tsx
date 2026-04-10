@@ -61,7 +61,7 @@ export default function NavLinks() {
           </Menu.Dropdown>
         </Menu>
       ) : (
-        <Link className={linkClass("/sign-in")} href="/sign-in">
+        <Link className={`${linkClass("/sign-in")} whitespace-nowrap`} href="/sign-in">
           Sign in
         </Link>
       )}
