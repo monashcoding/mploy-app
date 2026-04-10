@@ -116,8 +116,10 @@ export default function MyApplicationsClient({
   const { status: sessionStatus } = useSession();
   const [apps, setApps] = useState<DbApplication[]>(initial);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(
-    STATUS_ORDER as string[]
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(() =>
+    STATUS_ORDER.filter(
+      (s) => s !== "STARTED" || initial.some((a) => a.status === "STARTED")
+    )
   );
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
 
@@ -140,6 +142,18 @@ export default function MyApplicationsClient({
       }
     })();
   }, [sessionStatus]);
+
+  // Auto-untick STARTED when it becomes empty; re-tick when it gets apps again
+  useEffect(() => {
+    const startedCount = apps.filter((a) => a.status === "STARTED").length;
+    setSelectedStatuses((prev) => {
+      const has = prev.includes("STARTED");
+      if (startedCount === 0 && has) return prev.filter((s) => s !== "STARTED");
+      if (startedCount > 0 && !has)
+        return STATUS_ORDER.filter((s) => prev.includes(s) || s === "STARTED");
+      return prev;
+    });
+  }, [apps]);
 
   const grouped = useMemo(() => {
     const map = new Map<ApplicationStatus, DbApplication[]>();
@@ -236,7 +250,7 @@ export default function MyApplicationsClient({
         <Popover position="bottom-end" shadow="md" withinPortal>
           <Popover.Target>
             <button
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium cursor-pointer"
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-medium cursor-pointer"
               style={{
                 background: "transparent",
                 border: "2px solid #3a3a3a",
