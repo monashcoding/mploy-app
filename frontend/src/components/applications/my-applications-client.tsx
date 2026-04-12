@@ -35,6 +35,7 @@ import {
   updateApplicationStatus,
 } from "@/app/my-applications/actions";
 import CompanyLogo from "@/components/jobs/company-logo";
+import { formatISODate } from "@/lib/utils";
 
 const STATUS_ORDER: ApplicationStatus[] = [
   "STARTED",
@@ -454,7 +455,7 @@ export default function MyApplicationsClient({
                         <Table.Th className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", padding: "0.75rem 1rem", background: "transparent" }}>
                           Company
                         </Table.Th>
-                        <Table.Th className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", padding: "0.75rem 1rem", background: "transparent", textAlign: "right" }}>
+                        <Table.Th className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", padding: "0.75rem 1rem", background: "transparent", textAlign: "left" }}>
                           Status
                         </Table.Th>
                         <Table.Th className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", padding: "0.75rem 1rem", background: "transparent", textAlign: "right" }}>
@@ -499,7 +500,7 @@ export default function MyApplicationsClient({
                               </div>
                             </Table.Td>
                             <Table.Td
-                              style={{ padding: "0.875rem 1rem", textAlign: "right" }}
+                              style={{ padding: "0.875rem 1rem", textAlign: "left" }}
                               onClick={(e) => e.stopPropagation()}
                             >
                               <Select
@@ -520,14 +521,14 @@ export default function MyApplicationsClient({
                                   await handleStatusChange(a._id, a.jobId, a.status, value as ApplicationStatus);
                                 }}
                                 styles={{
-                                  input: { backgroundColor: "#3a3a3a", border: "none", borderRadius: "0.5rem" },
-                                  dropdown: { backgroundColor: "#2e2e2e", border: "2px solid #3a3a3a", borderRadius: "0.75rem" },
+                                  input: { backgroundColor: "#3a3a3a", border: "none", borderRadius: "0.5rem", minWidth: "9rem" },
+                                  dropdown: { backgroundColor: "#2e2e2e", border: "2px solid #3a3a3a", borderRadius: "0.75rem", minWidth: "9rem" },
                                 }}
                               />
                             </Table.Td>
                             <Table.Td style={{ padding: "0.875rem 1rem", textAlign: "right" }}>
                               <Text size="xs" c="dimmed">
-                                {new Date(a.updatedAt).toLocaleDateString()}
+                                {formatISODate(a.updatedAt)}
                               </Text>
                             </Table.Td>
                             <Table.Td
@@ -596,7 +597,7 @@ export default function MyApplicationsClient({
                             </span>
                           </div>
                           <Text size="xs" c="dimmed" className="flex-shrink-0 ml-2">
-                            {new Date(a.updatedAt).toLocaleDateString()}
+                            {formatISODate(a.updatedAt)}
                           </Text>
                         </div>
 

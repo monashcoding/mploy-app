@@ -6,8 +6,9 @@ import { getServerSession } from "next-auth";
 import { ObjectId } from "mongodb";
 import { ApplicationJobSnapshot, ApplicationStatus, DbApplication, LocalApplication } from "@/types/application";
 
-function requireUserId(session: Awaited<ReturnType<typeof getServerSession>>) {
-  const id = (session?.user as unknown as { id?: string } | undefined)?.id;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function requireUserId(session: any) {
+  const id = (session?.user as { id?: string } | undefined)?.id;
   if (!id) throw new Error("Not authenticated");
   return id;
 }
