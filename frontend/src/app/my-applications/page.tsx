@@ -1,6 +1,8 @@
 import MyApplicationsClient from "@/components/applications/my-applications-client";
 import { listApplications } from "./actions";
 
+export const dynamic = "force-dynamic";
+
 export default async function MyApplicationsPage() {
   const apps = await listApplications().catch(() => []);
 
