@@ -1,6 +1,6 @@
 "use server";
 
-import clientPromise from "@/lib/mongodb";
+import { getMongoClientPromise } from "@/lib/mongodb";
 import { hash } from "bcryptjs";
 
 export async function registerUser(input: {
@@ -20,7 +20,7 @@ export async function registerUser(input: {
     throw new Error("Password must be at least 8 characters");
   }
 
-  const client = await clientPromise;
+  const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
 
   const existing = await db.collection("users").findOne({ email });

@@ -1,7 +1,7 @@
 "use server";
 
-import clientPromise from "@/lib/mongodb";
-import { authOptions } from "@/lib/auth";
+import { getMongoClientPromise } from "@/lib/mongodb";
+import { getAuthOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import { ObjectId } from "mongodb";
 import {
@@ -19,12 +19,12 @@ function requireUserId(session: any) {
 }
 
 export async function syncLocalApplications(apps: LocalApplication[]) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(getAuthOptions());
   const userId = requireUserId(session);
 
   if (!apps.length) return { ok: true, upserted: 0 };
 
-  const client = await clientPromise;
+  const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
   const collection = db.collection("applications");
 
@@ -52,10 +52,10 @@ export async function syncLocalApplications(apps: LocalApplication[]) {
 }
 
 export async function listApplications(): Promise<DbApplication[]> {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(getAuthOptions());
   const userId = requireUserId(session);
 
-  const client = await clientPromise;
+  const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
 
   const docs = await db
@@ -109,10 +109,10 @@ export async function addApplication(
   jobId: string,
   jobSnapshot: import("@/types/application").ApplicationJobSnapshot,
 ) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(getAuthOptions());
   const userId = requireUserId(session);
 
-  const client = await clientPromise;
+  const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
   const now = new Date();
 
@@ -129,10 +129,10 @@ export async function addApplication(
 }
 
 export async function deleteApplication(jobId: string) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(getAuthOptions());
   const userId = requireUserId(session);
 
-  const client = await clientPromise;
+  const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
 
   await db.collection("applications").deleteOne({
@@ -149,10 +149,10 @@ export async function createCustomApplication(
   status: ApplicationStatus,
   date: string, // "YYYY-MM-DD"
 ): Promise<DbApplication> {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(getAuthOptions());
   const userId = requireUserId(session);
 
-  const client = await clientPromise;
+  const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
 
   const jobId = `custom_${new ObjectId().toString()}`;
@@ -182,10 +182,10 @@ export async function updateApplicationStatus(
   jobId: string,
   status: ApplicationStatus,
 ) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(getAuthOptions());
   const userId = requireUserId(session);
 
-  const client = await clientPromise;
+  const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
 
   await db.collection("applications").updateOne(
