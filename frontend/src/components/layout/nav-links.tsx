@@ -38,14 +38,16 @@ export default function NavLinks() {
               size="sm"
               className="cursor-pointer"
             >
-              {session.user?.name
-                ? session.user.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()
-                    .slice(0, 2)
-                : <IconUser size={16} />}
+              {session.user?.name ? (
+                session.user.name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase()
+                  .slice(0, 2)
+              ) : (
+                <IconUser size={16} />
+              )}
             </Avatar>
           </Menu.Target>
           <Menu.Dropdown>
@@ -61,7 +63,10 @@ export default function NavLinks() {
           </Menu.Dropdown>
         </Menu>
       ) : (
-        <Link className={`${linkClass("/sign-in")} whitespace-nowrap`} href="/sign-in">
+        <Link
+          className={`${linkClass("/sign-in")} whitespace-nowrap`}
+          href="/sign-in"
+        >
           Sign in
         </Link>
       )}

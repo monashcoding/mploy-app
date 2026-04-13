@@ -12,7 +12,10 @@ export default function SearchBar() {
 
   // Sync input DOM value when context changes externally (e.g. filters cleared)
   useEffect(() => {
-    if (inputRef.current && inputRef.current.value !== (filters.filters.search || "")) {
+    if (
+      inputRef.current &&
+      inputRef.current.value !== (filters.filters.search || "")
+    ) {
       inputRef.current.value = filters.filters.search || "";
     }
   }, [filters.filters.search]);

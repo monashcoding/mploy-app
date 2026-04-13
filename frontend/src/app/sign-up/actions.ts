@@ -40,4 +40,3 @@ export async function registerUser(input: {
 
   return { ok: true };
 }
-

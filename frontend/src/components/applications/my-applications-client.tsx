@@ -17,7 +17,12 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
-import { IconCheck, IconChevronDown, IconPlus, IconTrash } from "@tabler/icons-react";
+import {
+  IconCheck,
+  IconChevronDown,
+  IconPlus,
+  IconTrash,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import {
   APPLICATION_STATUSES,
@@ -47,12 +52,18 @@ const STATUS_ORDER: ApplicationStatus[] = [
 
 function statusPalette(status: ApplicationStatus | string) {
   switch (status) {
-    case "STARTED":   return { solid: "#9ca3af", muted: "rgba(156,163,175,0.18)" };
-    case "APPLIED":   return { solid: "#60a5fa", muted: "rgba(96,165,250,0.18)" };
-    case "INTERVIEW": return { solid: "#ffe22f", muted: "rgba(255,226,47,0.18)" };
-    case "ACCEPTED":  return { solid: "#4ade80", muted: "rgba(74,222,128,0.18)" };
-    case "REJECTED":  return { solid: "#ff7351", muted: "rgba(255,115,81,0.18)" };
-    default:          return { solid: "#9ca3af", muted: "rgba(156,163,175,0.18)" };
+    case "STARTED":
+      return { solid: "#9ca3af", muted: "rgba(156,163,175,0.18)" };
+    case "APPLIED":
+      return { solid: "#60a5fa", muted: "rgba(96,165,250,0.18)" };
+    case "INTERVIEW":
+      return { solid: "#ffe22f", muted: "rgba(255,226,47,0.18)" };
+    case "ACCEPTED":
+      return { solid: "#4ade80", muted: "rgba(74,222,128,0.18)" };
+    case "REJECTED":
+      return { solid: "#ff7351", muted: "rgba(255,115,81,0.18)" };
+    default:
+      return { solid: "#9ca3af", muted: "rgba(156,163,175,0.18)" };
   }
 }
 
@@ -119,15 +130,18 @@ export default function MyApplicationsClient({
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(() =>
     STATUS_ORDER.filter(
-      (s) => s !== "STARTED" || initial.some((a) => a.status === "STARTED")
-    )
+      (s) => s !== "STARTED" || initial.some((a) => a.status === "STARTED"),
+    ),
   );
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [customTitle, setCustomTitle] = useState("");
   const [customCompany, setCustomCompany] = useState("");
-  const [customStatus, setCustomStatus] = useState<ApplicationStatus>("APPLIED");
-  const [customDate, setCustomDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [customStatus, setCustomStatus] =
+    useState<ApplicationStatus>("APPLIED");
+  const [customDate, setCustomDate] = useState(() =>
+    new Date().toISOString().slice(0, 10),
+  );
   const [customLoading, setCustomLoading] = useState(false);
 
   useEffect(() => {
@@ -140,12 +154,10 @@ export default function MyApplicationsClient({
         const res = await syncLocalApplications(local);
         clearLocalApplications();
         setSyncMessage(
-          `Synced ${res.upserted} application${res.upserted === 1 ? "" : "s"} from this device.`
+          `Synced ${res.upserted} application${res.upserted === 1 ? "" : "s"} from this device.`,
         );
       } catch {
-        setSyncMessage(
-          "Couldn't sync local applications yet. Try refreshing."
-        );
+        setSyncMessage("Couldn't sync local applications yet. Try refreshing.");
       }
     })();
   }, [sessionStatus]);
@@ -178,16 +190,16 @@ export default function MyApplicationsClient({
     appId: string,
     jobId: string,
     oldStatus: ApplicationStatus,
-    next: ApplicationStatus
+    next: ApplicationStatus,
   ) {
     setApps((prev) =>
-      prev.map((p) => (p._id === appId ? { ...p, status: next } : p))
+      prev.map((p) => (p._id === appId ? { ...p, status: next } : p)),
     );
     try {
       await updateApplicationStatus(jobId, next);
     } catch {
       setApps((prev) =>
-        prev.map((p) => (p._id === appId ? { ...p, status: oldStatus } : p))
+        prev.map((p) => (p._id === appId ? { ...p, status: oldStatus } : p)),
       );
     }
   }
@@ -206,7 +218,12 @@ export default function MyApplicationsClient({
     if (!customTitle.trim() || !customCompany.trim()) return;
     setCustomLoading(true);
     try {
-      const newApp = await createCustomApplication(customTitle.trim(), customCompany.trim(), customStatus, customDate);
+      const newApp = await createCustomApplication(
+        customTitle.trim(),
+        customCompany.trim(),
+        customStatus,
+        customDate,
+      );
       setApps((prev) => [newApp, ...prev]);
       setAddOpen(false);
       setCustomTitle("");
@@ -253,7 +270,11 @@ export default function MyApplicationsClient({
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div className="flex items-start justify-between gap-3 sm:block">
           <div>
-            <Title order={2} className="font-bold mb-2" style={{ letterSpacing: "-0.02em" }}>
+            <Title
+              order={2}
+              className="font-bold mb-2"
+              style={{ letterSpacing: "-0.02em" }}
+            >
               Applications
             </Title>
             {/* Desktop: inline chip row */}
@@ -262,7 +283,11 @@ export default function MyApplicationsClient({
                 {total} total
               </Text>
               {STATUS_ORDER.map((s) => (
-                <StatusChip key={s} status={s} count={grouped.get(s)?.length ?? 0} />
+                <StatusChip
+                  key={s}
+                  status={s}
+                  count={grouped.get(s)?.length ?? 0}
+                />
               ))}
             </div>
           </div>
@@ -270,7 +295,12 @@ export default function MyApplicationsClient({
           {/* Mobile: 3+2 grid aligned right */}
           <div className="sm:hidden grid grid-flow-col grid-rows-3 gap-1 shrink-0">
             {STATUS_ORDER.map((s) => (
-              <StatusChip key={s} status={s} count={grouped.get(s)?.length ?? 0} small />
+              <StatusChip
+                key={s}
+                status={s}
+                count={grouped.get(s)?.length ?? 0}
+                small
+              />
             ))}
           </div>
         </div>
@@ -279,7 +309,12 @@ export default function MyApplicationsClient({
         <div className="flex items-center gap-2">
           <button
             className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-medium cursor-pointer"
-            style={{ background: "#ffe22f", border: "none", color: "#1f1f1f", fontFamily: "inherit" }}
+            style={{
+              background: "#ffe22f",
+              border: "none",
+              color: "#1f1f1f",
+              fontFamily: "inherit",
+            }}
             onClick={() => setAddOpen(true)}
           >
             <IconPlus size={13} />
@@ -287,62 +322,71 @@ export default function MyApplicationsClient({
             <span className="sm:hidden">Add</span>
           </button>
 
-        {/* Filter popover */}
-        <Popover position="bottom-end" shadow="md" withinPortal>
-          <Popover.Target>
-            <button
-              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-medium cursor-pointer"
+          {/* Filter popover */}
+          <Popover position="bottom-end" shadow="md" withinPortal>
+            <Popover.Target>
+              <button
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-medium cursor-pointer"
+                style={{
+                  background: "transparent",
+                  border: "2px solid #3a3a3a",
+                  color: "rgba(255,255,255,0.65)",
+                  fontFamily: "inherit",
+                }}
+              >
+                Show sections
+                <IconChevronDown size={14} />
+              </button>
+            </Popover.Target>
+            <Popover.Dropdown
               style={{
-                background: "transparent",
+                backgroundColor: "#2e2e2e",
                 border: "2px solid #3a3a3a",
-                color: "rgba(255,255,255,0.65)",
-                fontFamily: "inherit",
+                borderRadius: "0.75rem",
               }}
             >
-              Show sections
-              <IconChevronDown size={14} />
-            </button>
-          </Popover.Target>
-          <Popover.Dropdown
-            style={{
-              backgroundColor: "#2e2e2e",
-              border: "2px solid #3a3a3a",
-              borderRadius: "0.75rem",
-            }}
-          >
-            <Checkbox.Group
-              value={selectedStatuses}
-              onChange={setSelectedStatuses}
-            >
-              <Stack gap="xs">
-                {STATUS_ORDER.map((s) => (
-                  <Checkbox
-                    key={s}
-                    value={s}
-                    color="accent"
-                    iconColor="#1f1f1f"
-                    label={
-                      <Group gap="xs" align="center">
-                        <StatusDot status={s} />
-                        <Text size="sm">{capitalize(s)}</Text>
-                      </Group>
-                    }
-                  />
-                ))}
-              </Stack>
-            </Checkbox.Group>
-          </Popover.Dropdown>
-        </Popover>
-        </div>{/* end header actions */}
+              <Checkbox.Group
+                value={selectedStatuses}
+                onChange={setSelectedStatuses}
+              >
+                <Stack gap="xs">
+                  {STATUS_ORDER.map((s) => (
+                    <Checkbox
+                      key={s}
+                      value={s}
+                      color="accent"
+                      iconColor="#1f1f1f"
+                      label={
+                        <Group gap="xs" align="center">
+                          <StatusDot status={s} />
+                          <Text size="sm">{capitalize(s)}</Text>
+                        </Group>
+                      }
+                    />
+                  ))}
+                </Stack>
+              </Checkbox.Group>
+            </Popover.Dropdown>
+          </Popover>
+        </div>
+        {/* end header actions */}
       </div>
 
       {/* Add custom application modal */}
       <Modal
         opened={addOpen}
         onClose={() => setAddOpen(false)}
-        title={<Text fw={700} size="sm">Add application</Text>}
+        title={
+          <Text fw={700} size="sm">
+            Add application
+          </Text>
+        }
         styles={{
-          content: { backgroundColor: "#2e2e2e", border: "2px solid #3a3a3a", borderRadius: "1rem" },
+          content: {
+            backgroundColor: "#2e2e2e",
+            border: "2px solid #3a3a3a",
+            borderRadius: "1rem",
+          },
           header: { backgroundColor: "#2e2e2e" },
           overlay: { backdropFilter: "blur(2px)" },
         }}
@@ -354,8 +398,16 @@ export default function MyApplicationsClient({
             value={customTitle}
             onChange={(e) => setCustomTitle(e.currentTarget.value)}
             styles={{
-              input: { backgroundColor: "#3a3a3a", border: "none", borderRadius: "0.5rem", color: "white" },
-              label: { color: "rgba(255,255,255,0.65)", marginBottom: "0.25rem" },
+              input: {
+                backgroundColor: "#3a3a3a",
+                border: "none",
+                borderRadius: "0.5rem",
+                color: "white",
+              },
+              label: {
+                color: "rgba(255,255,255,0.65)",
+                marginBottom: "0.25rem",
+              },
             }}
           />
           <TextInput
@@ -364,13 +416,24 @@ export default function MyApplicationsClient({
             value={customCompany}
             onChange={(e) => setCustomCompany(e.currentTarget.value)}
             styles={{
-              input: { backgroundColor: "#3a3a3a", border: "none", borderRadius: "0.5rem", color: "white" },
-              label: { color: "rgba(255,255,255,0.65)", marginBottom: "0.25rem" },
+              input: {
+                backgroundColor: "#3a3a3a",
+                border: "none",
+                borderRadius: "0.5rem",
+                color: "white",
+              },
+              label: {
+                color: "rgba(255,255,255,0.65)",
+                marginBottom: "0.25rem",
+              },
             }}
           />
           <Select
             label="Status"
-            data={APPLICATION_STATUSES.map((s) => ({ value: s, label: capitalize(s) }))}
+            data={APPLICATION_STATUSES.map((s) => ({
+              value: s,
+              label: capitalize(s),
+            }))}
             value={customStatus}
             onChange={(v) => v && setCustomStatus(v as ApplicationStatus)}
             leftSection={<StatusDot status={customStatus} />}
@@ -381,9 +444,20 @@ export default function MyApplicationsClient({
               </Group>
             )}
             styles={{
-              input: { backgroundColor: "#3a3a3a", border: "none", borderRadius: "0.5rem" },
-              dropdown: { backgroundColor: "#2e2e2e", border: "2px solid #3a3a3a", borderRadius: "0.75rem" },
-              label: { color: "rgba(255,255,255,0.65)", marginBottom: "0.25rem" },
+              input: {
+                backgroundColor: "#3a3a3a",
+                border: "none",
+                borderRadius: "0.5rem",
+              },
+              dropdown: {
+                backgroundColor: "#2e2e2e",
+                border: "2px solid #3a3a3a",
+                borderRadius: "0.75rem",
+              },
+              label: {
+                color: "rgba(255,255,255,0.65)",
+                marginBottom: "0.25rem",
+              },
             }}
           />
           <TextInput
@@ -392,8 +466,17 @@ export default function MyApplicationsClient({
             value={customDate}
             onChange={(e) => setCustomDate(e.currentTarget.value)}
             styles={{
-              input: { backgroundColor: "#3a3a3a", border: "none", borderRadius: "0.5rem", color: "white", colorScheme: "dark" } as React.CSSProperties,
-              label: { color: "rgba(255,255,255,0.65)", marginBottom: "0.25rem" },
+              input: {
+                backgroundColor: "#3a3a3a",
+                border: "none",
+                borderRadius: "0.5rem",
+                color: "white",
+                colorScheme: "dark",
+              } as React.CSSProperties,
+              label: {
+                color: "rgba(255,255,255,0.65)",
+                marginBottom: "0.25rem",
+              },
             }}
           />
           <Button
@@ -401,7 +484,13 @@ export default function MyApplicationsClient({
             loading={customLoading}
             disabled={!customTitle.trim() || !customCompany.trim()}
             onClick={handleCreateCustom}
-            style={{ backgroundColor: "#ffe22f", color: "#1f1f1f", borderRadius: "0.75rem", fontWeight: 700, marginTop: "0.25rem" }}
+            style={{
+              backgroundColor: "#ffe22f",
+              color: "#1f1f1f",
+              borderRadius: "0.75rem",
+              fontWeight: 700,
+              marginTop: "0.25rem",
+            }}
           >
             Add application
           </Button>
@@ -449,19 +538,54 @@ export default function MyApplicationsClient({
                     </colgroup>
                     <Table.Thead>
                       <Table.Tr style={{ borderBottom: "2px solid #3a3a3a" }}>
-                        <Table.Th className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", padding: "0.75rem 1rem", background: "transparent" }}>
+                        <Table.Th
+                          className="text-xs font-semibold uppercase tracking-widest"
+                          style={{
+                            color: "rgba(255,255,255,0.35)",
+                            padding: "0.75rem 1rem",
+                            background: "transparent",
+                          }}
+                        >
                           Role
                         </Table.Th>
-                        <Table.Th className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", padding: "0.75rem 1rem", background: "transparent" }}>
+                        <Table.Th
+                          className="text-xs font-semibold uppercase tracking-widest"
+                          style={{
+                            color: "rgba(255,255,255,0.35)",
+                            padding: "0.75rem 1rem",
+                            background: "transparent",
+                          }}
+                        >
                           Company
                         </Table.Th>
-                        <Table.Th className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", padding: "0.75rem 1rem", background: "transparent", textAlign: "left" }}>
+                        <Table.Th
+                          className="text-xs font-semibold uppercase tracking-widest"
+                          style={{
+                            color: "rgba(255,255,255,0.35)",
+                            padding: "0.75rem 1rem",
+                            background: "transparent",
+                            textAlign: "left",
+                          }}
+                        >
                           Status
                         </Table.Th>
-                        <Table.Th className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)", padding: "0.75rem 1rem", background: "transparent", textAlign: "right" }}>
+                        <Table.Th
+                          className="text-xs font-semibold uppercase tracking-widest"
+                          style={{
+                            color: "rgba(255,255,255,0.35)",
+                            padding: "0.75rem 1rem",
+                            background: "transparent",
+                            textAlign: "right",
+                          }}
+                        >
                           Updated
                         </Table.Th>
-                        <Table.Th style={{ padding: "0.75rem 1rem", background: "transparent" }} />
+                        <Table.Th
+                          style={{
+                            padding: "0.75rem 1rem",
+                            background: "transparent",
+                          }}
+                        />
                       </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
@@ -473,13 +597,20 @@ export default function MyApplicationsClient({
                             key={a._id}
                             style={{
                               cursor: url ? "pointer" : "default",
-                              backgroundColor: isHovered ? "#3a3a3a" : "transparent",
+                              backgroundColor: isHovered
+                                ? "#3a3a3a"
+                                : "transparent",
                               transition: "background-color 0.12s ease",
-                              borderBottom: i < statusApps.length - 1 ? "1px solid #3a3a3a" : "none",
+                              borderBottom:
+                                i < statusApps.length - 1
+                                  ? "1px solid #3a3a3a"
+                                  : "none",
                             }}
                             onMouseEnter={() => setHoveredRow(a._id)}
                             onMouseLeave={() => setHoveredRow(null)}
-                            onClick={() => url && window.open(url, "_blank", "noreferrer")}
+                            onClick={() =>
+                              url && window.open(url, "_blank", "noreferrer")
+                            }
                           >
                             <Table.Td style={{ padding: "0.875rem 1rem" }}>
                               <span className="text-sm font-bold line-clamp-2 leading-tight">
@@ -500,7 +631,10 @@ export default function MyApplicationsClient({
                               </div>
                             </Table.Td>
                             <Table.Td
-                              style={{ padding: "0.875rem 1rem", textAlign: "left" }}
+                              style={{
+                                padding: "0.875rem 1rem",
+                                textAlign: "left",
+                              }}
                               onClick={(e) => e.stopPropagation()}
                             >
                               <Select
@@ -512,21 +646,43 @@ export default function MyApplicationsClient({
                                 leftSection={<StatusDot status={a.status} />}
                                 renderOption={({ option }) => (
                                   <Group gap="xs" align="center">
-                                    <StatusDot status={option.value as ApplicationStatus} />
+                                    <StatusDot
+                                      status={option.value as ApplicationStatus}
+                                    />
                                     <Text size="sm">{option.label}</Text>
                                   </Group>
                                 )}
                                 onChange={async (value) => {
                                   if (!value) return;
-                                  await handleStatusChange(a._id, a.jobId, a.status, value as ApplicationStatus);
+                                  await handleStatusChange(
+                                    a._id,
+                                    a.jobId,
+                                    a.status,
+                                    value as ApplicationStatus,
+                                  );
                                 }}
                                 styles={{
-                                  input: { backgroundColor: "#3a3a3a", border: "none", borderRadius: "0.5rem", minWidth: "9rem" },
-                                  dropdown: { backgroundColor: "#2e2e2e", border: "2px solid #3a3a3a", borderRadius: "0.75rem", minWidth: "9rem" },
+                                  input: {
+                                    backgroundColor: "#3a3a3a",
+                                    border: "none",
+                                    borderRadius: "0.5rem",
+                                    minWidth: "9rem",
+                                  },
+                                  dropdown: {
+                                    backgroundColor: "#2e2e2e",
+                                    border: "2px solid #3a3a3a",
+                                    borderRadius: "0.75rem",
+                                    minWidth: "9rem",
+                                  },
                                 }}
                               />
                             </Table.Td>
-                            <Table.Td style={{ padding: "0.875rem 1rem", textAlign: "right" }}>
+                            <Table.Td
+                              style={{
+                                padding: "0.875rem 1rem",
+                                textAlign: "right",
+                              }}
+                            >
                               <Text size="xs" c="dimmed">
                                 {formatISODate(a.updatedAt)}
                               </Text>
@@ -539,8 +695,20 @@ export default function MyApplicationsClient({
                                 {status === "STARTED" && (
                                   <button
                                     className="inline-flex items-center gap-1 text-xs font-bold rounded-xl px-3 py-1.5 cursor-pointer whitespace-nowrap"
-                                    style={{ backgroundColor: "#ffe22f", color: "black", border: "none", fontFamily: "inherit" }}
-                                    onClick={() => handleStatusChange(a._id, a.jobId, "STARTED", "APPLIED")}
+                                    style={{
+                                      backgroundColor: "#ffe22f",
+                                      color: "black",
+                                      border: "none",
+                                      fontFamily: "inherit",
+                                    }}
+                                    onClick={() =>
+                                      handleStatusChange(
+                                        a._id,
+                                        a.jobId,
+                                        "STARTED",
+                                        "APPLIED",
+                                      )
+                                    }
                                   >
                                     Applied <IconCheck size={11} />
                                   </button>
@@ -566,7 +734,11 @@ export default function MyApplicationsClient({
               {/* Mobile: separate cards — hidden on sm+ */}
               <div className="sm:hidden flex flex-col gap-2">
                 {statusApps.length === 0 ? (
-                  <Box bg="secondary" bd="2px solid selected" className="rounded-xl py-8 text-center">
+                  <Box
+                    bg="secondary"
+                    bd="2px solid selected"
+                    className="rounded-xl py-8 text-center"
+                  >
                     <Text size="sm" c="dimmed">
                       No {capitalize(status).toLowerCase()} applications
                     </Text>
@@ -581,7 +753,9 @@ export default function MyApplicationsClient({
                         bd="2px solid selected"
                         className="rounded-xl p-3"
                         style={{ cursor: url ? "pointer" : "default" }}
-                        onClick={() => url && window.open(url, "_blank", "noreferrer")}
+                        onClick={() =>
+                          url && window.open(url, "_blank", "noreferrer")
+                        }
                       >
                         {/* Row 1: company + date */}
                         <div className="flex items-center justify-between mb-1.5">
@@ -596,7 +770,11 @@ export default function MyApplicationsClient({
                               {a.jobSnapshot.companyName}
                             </span>
                           </div>
-                          <Text size="xs" c="dimmed" className="flex-shrink-0 ml-2">
+                          <Text
+                            size="xs"
+                            c="dimmed"
+                            className="flex-shrink-0 ml-2"
+                          >
                             {formatISODate(a.updatedAt)}
                           </Text>
                         </div>
@@ -620,25 +798,52 @@ export default function MyApplicationsClient({
                             leftSection={<StatusDot status={a.status} />}
                             renderOption={({ option }) => (
                               <Group gap="xs" align="center">
-                                <StatusDot status={option.value as ApplicationStatus} />
+                                <StatusDot
+                                  status={option.value as ApplicationStatus}
+                                />
                                 <Text size="sm">{option.label}</Text>
                               </Group>
                             )}
                             onChange={async (value) => {
                               if (!value) return;
-                              await handleStatusChange(a._id, a.jobId, a.status, value as ApplicationStatus);
+                              await handleStatusChange(
+                                a._id,
+                                a.jobId,
+                                a.status,
+                                value as ApplicationStatus,
+                              );
                             }}
                             styles={{
-                              input: { backgroundColor: "#3a3a3a", border: "none", borderRadius: "0.5rem" },
-                              dropdown: { backgroundColor: "#2e2e2e", border: "2px solid #3a3a3a", borderRadius: "0.75rem" },
+                              input: {
+                                backgroundColor: "#3a3a3a",
+                                border: "none",
+                                borderRadius: "0.5rem",
+                              },
+                              dropdown: {
+                                backgroundColor: "#2e2e2e",
+                                border: "2px solid #3a3a3a",
+                                borderRadius: "0.75rem",
+                              },
                             }}
                           />
                           <Group gap="xs" wrap="nowrap">
                             {status === "STARTED" && (
                               <button
                                 className="inline-flex items-center gap-1 text-xs font-bold rounded-xl px-3 py-1.5 cursor-pointer whitespace-nowrap"
-                                style={{ backgroundColor: "#ffe22f", color: "black", border: "none", fontFamily: "inherit" }}
-                                onClick={() => handleStatusChange(a._id, a.jobId, "STARTED", "APPLIED")}
+                                style={{
+                                  backgroundColor: "#ffe22f",
+                                  color: "black",
+                                  border: "none",
+                                  fontFamily: "inherit",
+                                }}
+                                onClick={() =>
+                                  handleStatusChange(
+                                    a._id,
+                                    a.jobId,
+                                    "STARTED",
+                                    "APPLIED",
+                                  )
+                                }
                               >
                                 Applied <IconCheck size={11} />
                               </button>
@@ -660,7 +865,7 @@ export default function MyApplicationsClient({
               </div>
             </div>
           );
-        }
+        },
       )}
     </div>
   );

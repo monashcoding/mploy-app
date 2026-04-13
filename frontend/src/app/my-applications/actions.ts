@@ -4,7 +4,12 @@ import clientPromise from "@/lib/mongodb";
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import { ObjectId } from "mongodb";
-import { ApplicationJobSnapshot, ApplicationStatus, DbApplication, LocalApplication } from "@/types/application";
+import {
+  ApplicationJobSnapshot,
+  ApplicationStatus,
+  DbApplication,
+  LocalApplication,
+} from "@/types/application";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function requireUserId(session: any) {
@@ -64,14 +69,23 @@ export async function listApplications(): Promise<DbApplication[]> {
 
   // Bulk-fetch logos from active_jobs for snapshots that don't have one
   const jobIds = docs
-    .map((d) => { try { return new ObjectId(d.jobId); } catch { return null; } })
+    .map((d) => {
+      try {
+        return new ObjectId(d.jobId);
+      } catch {
+        return null;
+      }
+    })
     .filter((id): id is ObjectId => id !== null);
 
   const logoMap = new Map<string, string | undefined>();
   if (jobIds.length) {
     const jobs = await db
       .collection("active_jobs")
-      .find({ _id: { $in: jobIds } }, { projection: { _id: 1, "company.logo": 1 } })
+      .find(
+        { _id: { $in: jobIds } },
+        { projection: { _id: 1, "company.logo": 1 } },
+      )
       .toArray();
     for (const job of jobs) {
       logoMap.set(job._id.toString(), job.company?.logo);
@@ -91,7 +105,10 @@ export async function listApplications(): Promise<DbApplication[]> {
   })) as DbApplication[];
 }
 
-export async function addApplication(jobId: string, jobSnapshot: import("@/types/application").ApplicationJobSnapshot) {
+export async function addApplication(
+  jobId: string,
+  jobSnapshot: import("@/types/application").ApplicationJobSnapshot,
+) {
   const session = await getServerSession(authOptions);
   const userId = requireUserId(session);
 
@@ -161,7 +178,10 @@ export async function createCustomApplication(
   };
 }
 
-export async function updateApplicationStatus(jobId: string, status: ApplicationStatus) {
+export async function updateApplicationStatus(
+  jobId: string,
+  status: ApplicationStatus,
+) {
   const session = await getServerSession(authOptions);
   const userId = requireUserId(session);
 
@@ -179,4 +199,3 @@ export async function updateApplicationStatus(jobId: string, status: Application
 
   return { ok: true };
 }
-

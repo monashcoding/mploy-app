@@ -27,4 +27,3 @@ export type LocalApplication = {
 export type DbApplication = LocalApplication & {
   _id: string;
 };
-

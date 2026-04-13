@@ -1,7 +1,14 @@
 // frontend/src/components/jobs/job-details.tsx
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { ActionIcon, Button, Card, Modal, ScrollArea, Text } from "@mantine/core";
+import {
+  ActionIcon,
+  Button,
+  Card,
+  Modal,
+  ScrollArea,
+  Text,
+} from "@mantine/core";
 import { IconCheck, IconCopy, IconExternalLink } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
 import JobDescription from "@/components/jobs/job-description";
@@ -104,52 +111,52 @@ export default function JobDetails() {
       </Modal>
 
       <Card bd="2px solid selected" className="h-full rounded-xl flex flex-col">
-      <ScrollArea
-        offsetScrollbars
-        type="hover"
-        className="flex-grow"
-        viewportRef={scrollRef}
-      >
-        <JobHeader job={selectedJob} />
-        {selectedJob && selectedJob.one_liner && (
-          <JobSummary one_liner={selectedJob.one_liner} />
-        )}
-        {selectedJob && selectedJob.description && (
-          <JobDescription description={selectedJob.description || ""} />
-        )}
-      </ScrollArea>
-
-      <div className="flex justify-between items-center mt-4 gap-4">
-        <Button
-          onClick={handleApplyClick}
-          bg="accent"
-          c="black"
-          leftSection={<IconExternalLink size={16} />}
+        <ScrollArea
+          offsetScrollbars
+          type="hover"
           className="flex-grow"
+          viewportRef={scrollRef}
         >
-          Apply Now
-        </Button>
-        <ActionIcon
-          onClick={handleCopyLink}
-          className="inline lg:hidden py-[1.1rem] w-9"
-          size="lg"
-          color={"selected"}
-          style={{ transition: "color 0.3s ease" }}
-        >
-          {isCopied ? <IconCheck size={16} /> : <IconCopy size={16} />}
-        </ActionIcon>
-        <Button
-          onClick={handleCopyLink}
-          color={"selected"}
-          className="font-light px-5 hidden lg:inline w-36"
-          leftSection={
-            isCopied ? <IconCheck size={16} /> : <IconCopy size={16} />
-          }
-          style={{ transition: "background-color 0.3s ease" }}
-        >
-          {isCopied ? "Copied!" : "Copy Link"}
-        </Button>
-      </div>
+          <JobHeader job={selectedJob} />
+          {selectedJob && selectedJob.one_liner && (
+            <JobSummary one_liner={selectedJob.one_liner} />
+          )}
+          {selectedJob && selectedJob.description && (
+            <JobDescription description={selectedJob.description || ""} />
+          )}
+        </ScrollArea>
+
+        <div className="flex justify-between items-center mt-4 gap-4">
+          <Button
+            onClick={handleApplyClick}
+            bg="accent"
+            c="black"
+            leftSection={<IconExternalLink size={16} />}
+            className="flex-grow"
+          >
+            Apply Now
+          </Button>
+          <ActionIcon
+            onClick={handleCopyLink}
+            className="inline lg:hidden py-[1.1rem] w-9"
+            size="lg"
+            color={"selected"}
+            style={{ transition: "color 0.3s ease" }}
+          >
+            {isCopied ? <IconCheck size={16} /> : <IconCopy size={16} />}
+          </ActionIcon>
+          <Button
+            onClick={handleCopyLink}
+            color={"selected"}
+            className="font-light px-5 hidden lg:inline w-36"
+            leftSection={
+              isCopied ? <IconCheck size={16} /> : <IconCopy size={16} />
+            }
+            style={{ transition: "background-color 0.3s ease" }}
+          >
+            {isCopied ? "Copied!" : "Copy Link"}
+          </Button>
+        </div>
       </Card>
     </>
   );

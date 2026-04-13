@@ -39,7 +39,9 @@ export const authOptions: NextAuthOptions = {
 
         const client = await clientPromise;
         const db = client.db(process.env.MONGODB_DATABASE || "default");
-        const user = (await db.collection("users").findOne({ email })) as DbUser | null;
+        const user = (await db
+          .collection("users")
+          .findOne({ email })) as DbUser | null;
         if (!user?.passwordHash) return null;
 
         const ok = await compare(password, user.passwordHash);
@@ -70,4 +72,3 @@ export const authOptions: NextAuthOptions = {
     signIn: "/sign-in",
   },
 };
-
