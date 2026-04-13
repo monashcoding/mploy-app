@@ -4,14 +4,17 @@ import { Input } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
 import { useDebouncedCallback } from "@mantine/hooks";
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
 export default function SearchBar() {
   const { filters, updateFilters } = useFilterContext();
-  const [searchValue, setSearchValue] = useState(filters.filters.search || "");
+  const inputRef = useRef<HTMLInputElement>(null);
 
+  // Sync input DOM value when context changes externally (e.g. filters cleared)
   useEffect(() => {
-    setSearchValue(filters.filters.search || "");
+    if (inputRef.current && inputRef.current.value !== (filters.filters.search || "")) {
+      inputRef.current.value = filters.filters.search || "";
+    }
   }, [filters.filters.search]);
 
   const handleSearch = useDebouncedCallback((value: string) => {
@@ -24,14 +27,10 @@ export default function SearchBar() {
     });
   }, 150);
 
-  const handleInputChange = (value: string) => {
-    setSearchValue(value);
-    handleSearch(value);
-  };
-
   return (
     <Input
-      value={searchValue}
+      ref={inputRef}
+      defaultValue={filters.filters.search || ""}
       leftSection={
         <IconSearch
           size={16}
@@ -39,7 +38,7 @@ export default function SearchBar() {
         />
       }
       placeholder="Search company or role..."
-      onChange={(e) => handleInputChange(e.currentTarget.value)}
+      onChange={(e) => handleSearch(e.currentTarget.value)}
       radius="lg"
       variant="filled"
       className="w-full"

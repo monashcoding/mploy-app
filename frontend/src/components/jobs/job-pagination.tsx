@@ -1,7 +1,6 @@
 // frontend/src/components/jobs/pagination.tsx
 "use client";
 
-import { useEffect, useState } from "react";
 import { Pagination } from "@mantine/core";
 import { useFilterContext } from "@/context/filter/filter-context";
 
@@ -10,15 +9,9 @@ interface JobPaginationProps {
 }
 
 export default function JobPagination({ pageSize = 20 }: JobPaginationProps) {
-  const [isReady, setIsReady] = useState(false);
   const { filters, updateFilters, totalJobs, isLoading } = useFilterContext();
 
-  useEffect(() => {
-    if (totalJobs !== undefined) {
-      setIsReady(true);
-    }
-  }, [totalJobs]);
-
+  const isReady = totalJobs !== undefined;
   const totalPages = Math.ceil(totalJobs / pageSize);
 
   if (!isReady || totalPages <= 1 || isLoading) return null;

@@ -1,5 +1,4 @@
 // frontend/src/components/jobs/filters/dropdown-filter.tsx
-import { useEffect, useState } from "react";
 import {
   Checkbox,
   Combobox,
@@ -30,14 +29,7 @@ export default function DropdownFilter({
   });
 
   const { filters, updateFilters } = useFilterContext();
-  const [localSelected, setLocalSelected] = useState<string[]>(
-    (filters.filters[filterKey] as string[]) || [],
-  );
-
-  // Sync when filters change
-  useEffect(() => {
-    setLocalSelected((filters.filters[filterKey] as string[]) || []);
-  }, [filters.filters, filterKey]);
+  const localSelected = (filters.filters[filterKey] as string[]) || [];
 
   // Updates locally selected value & filters
   const handleValueSelect = (value: string) => {
@@ -45,7 +37,6 @@ export default function DropdownFilter({
       ? localSelected.filter((item) => item !== value)
       : [...localSelected, value];
 
-    setLocalSelected(newValues);
     updateFilters({
       filters: {
         ...filters.filters,

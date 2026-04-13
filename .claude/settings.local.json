@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npx next:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(node -e \"console.log\\(require\\('eslint-config-next/package.json'\\).version\\)\")",
+      "Bash(npx tsc:*)"
     ]
   }
 }

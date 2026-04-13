@@ -1,7 +1,7 @@
 // frontend/src/context/jobs/jobs-provider.tsx
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useState } from "react";
 import { FilterContext } from "./filter-context";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CreateQueryString } from "@/lib/utils";
@@ -74,28 +74,6 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [totalJobs, setTotalJobs] = useState<number>(0);
 
-  const updateFilters = (newFilters: Partial<FilterState>) => {
-    setIsLoading(true);
-    setFilters((curr) => ({ ...curr, ...newFilters }));
-    setSelectedJob(null);
-    const params = CreateQueryString(newFilters);
-    router.push(`/jobs?${params}`);
-  };
-
-  useEffect(() => {
-    if (pathname === "/jobs") {
-      setIsLoading(false);
-      setSelectedJob(null);
-    }
-  }, [pathname, searchParams]);
-
-  useEffect(() => {
-    // clear filters on return to homepage
-    if (pathname === "/") {
-      setFilters(emptyFilterState);
-    }
-  }, [pathname]);
-
   // Wrapper for SelectedJob to validate attributes first
   const setSelectedJob = (job: Job | null) => {
     // Remove duplicates from working_rights
@@ -104,6 +82,32 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     }
     setSelectedJobInternal(job);
   };
+
+  const updateFilters = (newFilters: Partial<FilterState>) => {
+    setIsLoading(true);
+    setFilters((curr) => ({ ...curr, ...newFilters }));
+    setSelectedJob(null);
+    const params = CreateQueryString(newFilters);
+    router.push(`/jobs?${params}`);
+  };
+
+  // React-recommended render-time state adjustment: detect route changes
+  // and update state without effects (avoids cascading renders).
+  const searchParamsKey = searchParams.toString();
+  const [prev, setPrev] = useState({ pathname, searchParamsKey });
+
+  if (pathname !== prev.pathname || searchParamsKey !== prev.searchParamsKey) {
+    setPrev({ pathname, searchParamsKey });
+
+    if (pathname === "/jobs") {
+      setIsLoading(false);
+      setSelectedJobInternal(null);
+    }
+
+    if (pathname === "/") {
+      setFilters(emptyFilterState);
+    }
+  }
 
   const clearFilters = () => {
     setIsLoading(true);
