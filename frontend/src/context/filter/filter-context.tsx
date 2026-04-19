@@ -2,7 +2,7 @@
 
 // frontend/src/context/jobs/filter-context.tsx
 import { createContext, useContext } from "react";
-import { FilterState } from "@/types/filters";
+import { FilterState, ViewMode } from "@/types/filters";
 import { Job } from "@/types/job";
 
 interface FilterContextType {
@@ -14,6 +14,8 @@ interface FilterContextType {
   setTotalJobs: (totalJobs: number) => void;
   isLoading: boolean;
   clearFilters: () => void;
+  viewMode: ViewMode;
+  setViewMode: (mode: ViewMode) => void;
 }
 
 export const FilterContext = createContext<FilterContextType | undefined>(

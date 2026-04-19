@@ -14,6 +14,7 @@ export const NavBarMobile = () => {
   const menuItems = [
     { href: "/", label: "Home" },
     { href: "/jobs", label: "Jobs" },
+    { href: "https://monashcoding.com", label: "MAC ↗", external: true },
   ];
 
   return (
@@ -54,6 +55,7 @@ export const NavBarMobile = () => {
                     key={item.href}
                     component={Link}
                     href={item.href}
+                    target={"external" in item ? "_blank" : undefined}
                     className={pathname === item.href ? "font-bold" : ""}
                   >
                     {item.label}

@@ -9,6 +9,9 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
 
 import NavBar from "@/components/layout/nav-bar";
+import DotBackground from "@/components/ui/dot-background";
+import { InitialLoad } from "@/components/layout/initial-load";
+import { PageTransition } from "@/components/layout/page-transition";
 import { MantineProvider } from "@mantine/core";
 import { ColorSchemeScript } from "@mantine/core";
 import { PropsWithChildren, Suspense } from "react";
@@ -56,16 +59,21 @@ export default function RootLayout({ children }: PropsWithChildren) {
           <MantineProvider theme={theme} defaultColorScheme="dark">
             <FilterProvider>
               <div className="min-h-screen flex flex-col px-6">
+                <DotBackground />
                 <Notifications />
-                <NavBar />
-                <main className="">
-                  {children}
+                <InitialLoad>
+                  <NavBar />
+                  <main className="">
+                    <PageTransition>
+                      {children}
+                    </PageTransition>
                   <FirstVisitNotification />
                   <FeedbackButton />
                   <Analytics />
                   <SpeedInsights />
                   <GoogleAnalytics gaId="G-1RXLVCFJC0" />
                 </main>
+                </InitialLoad>
               </div>
             </FilterProvider>
           </MantineProvider>
