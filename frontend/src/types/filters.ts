@@ -1,6 +1,8 @@
 // frontend/src/types/filters.ts
 import { JobType, LocationType, WorkingRight, IndustryField } from "./job";
 
+export type ViewMode = "split" | "grid" | "dense";
+
 /**
  * JobFilters is a type that represents the filters that can be applied to the job search
  */

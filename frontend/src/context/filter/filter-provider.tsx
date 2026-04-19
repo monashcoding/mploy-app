@@ -1,11 +1,12 @@
 // frontend/src/context/jobs/jobs-provider.tsx
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState, useTransition } from "react";
 import { FilterContext } from "./filter-context";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CreateQueryString } from "@/lib/utils";
-import { FilterState } from "@/types/filters";
+import { FilterState, ViewMode } from "@/types/filters";
+import { transitionState } from "@/lib/transition-state";
 import {
   Job,
   IndustryField,
@@ -71,20 +72,32 @@ export function FilterProvider({ children }: { children: ReactNode }) {
 
   const [filters, setFilters] = useState<FilterState>(initialFilterState);
   const [selectedJob, setSelectedJobInternal] = useState<Job | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [isNavigating, setIsNavigating] = useState(false);
   const [totalJobs, setTotalJobs] = useState<number>(0);
+  const [viewMode, setViewMode] = useState<ViewMode>("split");
+
+  const isLoading = isPending || isNavigating;
 
   const updateFilters = (newFilters: Partial<FilterState>) => {
-    setIsLoading(true);
+    setIsNavigating(true);
     setFilters((curr) => ({ ...curr, ...newFilters }));
     setSelectedJob(null);
+
+    // Trigger dot background wave while loading
+    transitionState.active = true;
+    transitionState.direction = 1;
+    transitionState.startTime = performance.now();
+
     const params = CreateQueryString(newFilters);
-    router.push(`/jobs?${params}`);
+    startTransition(() => {
+      router.push(`/jobs?${params}`);
+    });
   };
 
   useEffect(() => {
     if (pathname === "/jobs") {
-      setIsLoading(false);
+      setIsNavigating(false);
       setSelectedJob(null);
     }
   }, [pathname, searchParams]);
@@ -106,10 +119,17 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   };
 
   const clearFilters = () => {
-    setIsLoading(true);
+    setIsNavigating(true);
     setFilters(emptyFilterState);
     setSelectedJob(null);
-    router.push("/jobs");
+
+    transitionState.active = true;
+    transitionState.direction = -1;
+    transitionState.startTime = performance.now();
+
+    startTransition(() => {
+      router.push("/jobs");
+    });
   };
 
   return (
@@ -123,6 +143,8 @@ export function FilterProvider({ children }: { children: ReactNode }) {
         updateFilters,
         setSelectedJob,
         clearFilters,
+        viewMode,
+        setViewMode,
       }}
     >
       {children}

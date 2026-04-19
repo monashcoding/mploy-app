@@ -16,13 +16,18 @@ export default function Badge({
 }: BadgeProps) {
   return (
     <MantineBadge
-      fw={300}
+      fw={400}
       className={className}
       tt="none"
       color={color}
       size={size}
-      radius={size === "lg" ? "lg" : "md"}
+      radius="md"
       autoContrast
+      styles={{
+        root: {
+          border: color === "accent" ? undefined : "1px solid rgba(255,255,255,0.08)",
+        },
+      }}
     >
       {text}
     </MantineBadge>

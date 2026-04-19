@@ -4,7 +4,6 @@ import { Button } from "@mantine/core";
 import { useEffect } from "react";
 import Link from "next/link";
 import { IconArrowRight } from "@tabler/icons-react";
-import DotBackground from "@/components/ui/dot-background";
 import { useFilterContext } from "@/context/filter/filter-context";
 export default function Page() {
   const { filters, updateFilters } = useFilterContext();
@@ -35,8 +34,6 @@ export default function Page() {
 
   return (
     <>
-      <DotBackground />
-
       <div className="flex flex-col items-center mt-20 md:mt-0 md:justify-center min-h-[80vh] text-center px-4">
         <div className="flex items-center gap-2 mb-4 md:mb-8">
           <Link

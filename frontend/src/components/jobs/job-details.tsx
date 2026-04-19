@@ -1,7 +1,7 @@
 // frontend/src/components/jobs/job-details.tsx
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { ActionIcon, Button, Card, ScrollArea } from "@mantine/core";
+import { Button, ScrollArea } from "@mantine/core";
 import { IconCheck, IconCopy, IconExternalLink } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
 import JobDescription from "@/components/jobs/job-description";
@@ -18,7 +18,7 @@ export default function JobDetails() {
   // Scroll to top whenever a new job is selected
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTo({ top: 0 });
+      scrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [selectedJob]);
 
@@ -30,7 +30,7 @@ export default function JobDetails() {
     };
   }, []);
 
-  if (!selectedJob || isLoading) {
+  if (!selectedJob) {
     return <JobDetailsLoading />;
   }
 
@@ -46,64 +46,72 @@ export default function JobDetails() {
 
     setIsCopied(true);
 
-    // Reset copied state after 2 seconds
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
 
     timeoutRef.current = setTimeout(() => {
       setIsCopied(false);
-    }, 500);
+    }, 1500);
   };
 
   return (
-    <Card bd="2px solid selected" className="h-full rounded-xl flex flex-col">
+    <div className="h-full flex flex-col rounded-xl border border-[rgba(255,255,255,0.06)] bg-secondary overflow-hidden">
       <ScrollArea
         offsetScrollbars
         type="hover"
         className="flex-grow"
         viewportRef={scrollRef}
       >
-        <JobHeader job={selectedJob} />
-        {selectedJob && selectedJob.one_liner && (
-          <JobSummary one_liner={selectedJob.one_liner} />
-        )}
-        {selectedJob && selectedJob.description && (
-          <JobDescription description={selectedJob.description || ""} />
-        )}
+        <div className="p-5 lg:p-6">
+          <JobHeader job={selectedJob} />
+          {selectedJob.one_liner && (
+            <JobSummary one_liner={selectedJob.one_liner} />
+          )}
+          {selectedJob.description && (
+            <JobDescription description={selectedJob.description} />
+          )}
+        </div>
       </ScrollArea>
 
-      <div className="flex justify-between items-center mt-4 gap-4">
+      {/* Sticky footer */}
+      <div className="flex items-center gap-3 px-5 lg:px-6 py-4 border-t border-[rgba(255,255,255,0.06)]">
         <Button
           onClick={handleApplyClick}
           bg="accent"
           c="black"
+          fw={600}
           leftSection={<IconExternalLink size={16} />}
           className="flex-grow"
+          radius="md"
+          size="md"
         >
           Apply Now
         </Button>
-        <ActionIcon
-          onClick={handleCopyLink}
-          className="inline lg:hidden py-[1.1rem] w-9"
-          size="lg"
-          color={"selected"}
-          style={{ transition: "color 0.3s ease" }}
-        >
-          {isCopied ? <IconCheck size={16} /> : <IconCopy size={16} />}
-        </ActionIcon>
         <Button
           onClick={handleCopyLink}
-          color={"selected"}
-          className="font-light px-5 hidden lg:inline w-36"
+          variant="subtle"
+          c="dimmed"
+          className="px-3 hidden lg:inline-flex"
           leftSection={
             isCopied ? <IconCheck size={16} /> : <IconCopy size={16} />
           }
-          style={{ transition: "background-color 0.3s ease" }}
+          radius="md"
+          size="md"
         >
           {isCopied ? "Copied!" : "Copy Link"}
         </Button>
+        <Button
+          onClick={handleCopyLink}
+          variant="subtle"
+          c="dimmed"
+          className="px-2 lg:hidden"
+          radius="md"
+          size="md"
+        >
+          {isCopied ? <IconCheck size={16} /> : <IconCopy size={16} />}
+        </Button>
       </div>
-    </Card>
+    </div>
   );
 }
