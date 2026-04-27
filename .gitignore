@@ -66,3 +66,6 @@ pnpm-lock.yaml
 
 # Typescript build info
 frontend/tsconfig.tsbuildinfo
+
+# Claude skills
+.claude/skills/
