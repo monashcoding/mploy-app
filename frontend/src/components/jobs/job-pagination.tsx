@@ -48,7 +48,7 @@ export default function JobPagination({ pageSize = 20 }: JobPaginationProps) {
         size="md"
         gap={12}
         boundaries={1}
-        siblings={0}
+        siblings={1}
         radius="lg"
         color="accent"
         getItemProps={(page) => ({
