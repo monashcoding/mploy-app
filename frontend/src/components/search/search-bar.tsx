@@ -4,15 +4,18 @@ import { Input } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
 import { useFilterContext } from "@/context/filter/filter-context";
 import { useDebouncedCallback } from "@mantine/hooks";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function SearchBar() {
   const { filters, updateFilters } = useFilterContext();
-  const [searchValue, setSearchValue] = useState(filters.filters.search || "");
+  const externalSearch = filters.filters.search || "";
+  const [searchValue, setSearchValue] = useState(externalSearch);
+  const [prevExternalSearch, setPrevExternalSearch] = useState(externalSearch);
 
-  useEffect(() => {
-    setSearchValue(filters.filters.search || "");
-  }, [filters.filters.search]);
+  if (prevExternalSearch !== externalSearch) {
+    setPrevExternalSearch(externalSearch);
+    setSearchValue(externalSearch);
+  }
 
   const handleSearch = useDebouncedCallback((value: string) => {
     updateFilters({
