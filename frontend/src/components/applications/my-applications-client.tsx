@@ -3,31 +3,30 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
-  ActionIcon,
   Box,
   Button,
   Checkbox,
   Group,
   Modal,
   Popover,
+  SegmentedControl,
   Select,
   Stack,
-  Table,
   Text,
   TextInput,
-  Title,
 } from "@mantine/core";
 import {
-  IconCheck,
   IconChevronDown,
+  IconLayoutKanban,
   IconPlus,
-  IconTrash,
+  IconTimeline,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import {
-  APPLICATION_STATUSES,
   ApplicationStatus,
   DbApplication,
+  StageColorRole,
+  UserStage,
 } from "@/types/application";
 import {
   clearLocalApplications,
@@ -37,112 +36,115 @@ import {
   createCustomApplication,
   deleteApplication,
   syncLocalApplications,
+  updateApplicationNotes,
   updateApplicationStatus,
 } from "@/app/my-applications/actions";
-import CompanyLogo from "@/components/jobs/company-logo";
-import { formatISODate } from "@/lib/utils";
+import NotesModal from "@/components/applications/notes-modal";
+import ApplicationsKanban, {
+  KanbanSort,
+} from "@/components/applications/applications-kanban";
+import ApplicationsTimeline from "@/components/applications/applications-timeline";
+import { rolePalette } from "@/lib/role-palette";
 
-const STATUS_ORDER: ApplicationStatus[] = [
-  "STARTED",
-  "APPLIED",
-  "ACCEPTED",
-  "REJECTED",
-  "INTERVIEW",
-];
+type ViewMode = "kanban" | "timeline";
+const VIEW_STORAGE_KEY = "mp:apps:view:v1";
+const SORT_STORAGE_KEY = "mp:apps:kanban-sort:v1";
 
-function statusPalette(status: ApplicationStatus | string) {
-  switch (status) {
-    case "STARTED":
-      return { solid: "#9ca3af", muted: "rgba(156,163,175,0.18)" };
-    case "APPLIED":
-      return { solid: "#60a5fa", muted: "rgba(96,165,250,0.18)" };
-    case "INTERVIEW":
-      return { solid: "#ffe22f", muted: "rgba(255,226,47,0.18)" };
-    case "ACCEPTED":
-      return { solid: "#4ade80", muted: "rgba(74,222,128,0.18)" };
-    case "REJECTED":
-      return { solid: "#ff7351", muted: "rgba(255,115,81,0.18)" };
-    default:
-      return { solid: "#9ca3af", muted: "rgba(156,163,175,0.18)" };
+function readView(): ViewMode {
+  if (typeof window === "undefined") return "kanban";
+  try {
+    const raw = window.localStorage.getItem(VIEW_STORAGE_KEY);
+    if (raw === "kanban" || raw === "timeline") return raw;
+  } catch {
+    // ignore
   }
+  return "kanban";
 }
 
-function capitalize(s: string) {
-  return s.charAt(0) + s.slice(1).toLowerCase();
+function readSort(): KanbanSort {
+  if (typeof window === "undefined") return "newest";
+  try {
+    const raw = window.localStorage.getItem(SORT_STORAGE_KEY);
+    if (raw === "newest" || raw === "oldest") return raw;
+  } catch {
+    // ignore
+  }
+  return "newest";
 }
 
-function StatusDot({ status }: { status: ApplicationStatus | string }) {
-  const { solid } = statusPalette(status);
+function StatusDot({ role }: { role: StageColorRole }) {
+  const { dot } = rolePalette(role);
   return (
     <div
       style={{
         width: 8,
         height: 8,
         borderRadius: "50%",
-        backgroundColor: solid,
+        backgroundColor: dot,
         flexShrink: 0,
       }}
     />
   );
 }
 
-function StatusChip({
-  status,
-  count,
-  small,
-}: {
-  status: ApplicationStatus;
-  count?: number;
-  small?: boolean;
-}) {
-  const { solid, muted } = statusPalette(status);
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: small ? "2px 5px" : "3px 10px",
-        borderRadius: 9999,
-        backgroundColor: muted,
-        fontSize: small ? "0.6rem" : "0.775rem",
-        fontWeight: 600,
-        color: solid,
-        letterSpacing: "0.01em",
-        width: small ? "100%" : undefined,
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-      }}
-    >
-      {capitalize(status)}
-      {count !== undefined ? `: ${count}` : ""}
-    </span>
-  );
-}
-
 export default function MyApplicationsClient({
   initial,
+  initialStages,
 }: {
   initial: DbApplication[];
+  initialStages: UserStage[];
 }) {
   const { status: sessionStatus } = useSession();
   const [apps, setApps] = useState<DbApplication[]>(initial);
+  const stages = initialStages;
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(() =>
-    STATUS_ORDER.filter(
-      (s) => s !== "STARTED" || initial.some((a) => a.status === "STARTED"),
-    ),
+  const [view, setView] = useState<ViewMode>(readView);
+  const [sort, setSort] = useState<KanbanSort>(readSort);
+  const [visibleStages, setVisibleStages] = useState<string[]>(() =>
+    stages
+      .filter(
+        (s) =>
+          s.name !== "STARTED" || initial.some((a) => a.status === "STARTED"),
+      )
+      .map((s) => s.name),
   );
-  const [hoveredRow, setHoveredRow] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [customTitle, setCustomTitle] = useState("");
   const [customCompany, setCustomCompany] = useState("");
+  const defaultCustomStatus = useMemo(
+    () =>
+      stages.find((s) => s.name === "APPLIED")?.name ?? stages[0]?.name ?? "",
+    [stages],
+  );
   const [customStatus, setCustomStatus] =
-    useState<ApplicationStatus>("APPLIED");
+    useState<ApplicationStatus>(defaultCustomStatus);
   const [customDate, setCustomDate] = useState(() =>
     new Date().toISOString().slice(0, 10),
   );
   const [customLoading, setCustomLoading] = useState(false);
+  const [notesAppId, setNotesAppId] = useState<string | null>(null);
+
+  const stageRoleByName = useMemo(() => {
+    const m = new Map<string, StageColorRole>();
+    stages.forEach((s) => m.set(s.name, s.colorRole));
+    return (name: string) => m.get(name) ?? "neutral";
+  }, [stages]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(VIEW_STORAGE_KEY, view);
+    } catch {
+      // ignore
+    }
+  }, [view]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(SORT_STORAGE_KEY, sort);
+    } catch {
+      // ignore
+    }
+  }, [sort]);
 
   useEffect(() => {
     if (sessionStatus !== "authenticated") return;
@@ -162,29 +164,18 @@ export default function MyApplicationsClient({
     })();
   }, [sessionStatus]);
 
-  // Auto-untick STARTED when it becomes empty; re-tick when it gets apps again
   useEffect(() => {
     const startedCount = apps.filter((a) => a.status === "STARTED").length;
-    setSelectedStatuses((prev) => {
+    setVisibleStages((prev) => {
       const has = prev.includes("STARTED");
       if (startedCount === 0 && has) return prev.filter((s) => s !== "STARTED");
       if (startedCount > 0 && !has)
-        return STATUS_ORDER.filter((s) => prev.includes(s) || s === "STARTED");
+        return stages
+          .filter((s) => prev.includes(s.name) || s.name === "STARTED")
+          .map((s) => s.name);
       return prev;
     });
-  }, [apps]);
-
-  const grouped = useMemo(() => {
-    const map = new Map<ApplicationStatus, DbApplication[]>();
-    for (const s of STATUS_ORDER) map.set(s, []);
-    for (const a of apps) {
-      const group = map.get(a.status);
-      if (group) group.push(a);
-    }
-    return map;
-  }, [apps]);
-
-  const total = apps.length;
+  }, [apps, stages]);
 
   async function handleStatusChange(
     appId: string,
@@ -192,6 +183,7 @@ export default function MyApplicationsClient({
     oldStatus: ApplicationStatus,
     next: ApplicationStatus,
   ) {
+    if (oldStatus === next) return;
     setApps((prev) =>
       prev.map((p) => (p._id === appId ? { ...p, status: next } : p)),
     );
@@ -228,12 +220,36 @@ export default function MyApplicationsClient({
       setAddOpen(false);
       setCustomTitle("");
       setCustomCompany("");
-      setCustomStatus("APPLIED");
+      setCustomStatus(defaultCustomStatus);
       setCustomDate(new Date().toISOString().slice(0, 10));
     } finally {
       setCustomLoading(false);
     }
   }
+
+  async function handleSaveNotes(jobId: string, notes: string) {
+    const trimmed = notes.trim();
+    const previous = apps.find((a) => a.jobId === jobId);
+    setApps((prev) =>
+      prev.map((p) =>
+        p.jobId === jobId ? { ...p, notes: trimmed || undefined } : p,
+      ),
+    );
+    try {
+      await updateApplicationNotes(jobId, trimmed);
+    } catch {
+      if (previous)
+        setApps((prev) =>
+          prev.map((p) =>
+            p.jobId === jobId ? { ...p, notes: previous.notes } : p,
+          ),
+        );
+    }
+  }
+
+  const notesApp = notesAppId
+    ? (apps.find((a) => a._id === notesAppId) ?? null)
+    : null;
 
   if (sessionStatus === "unauthenticated") {
     return (
@@ -268,45 +284,73 @@ export default function MyApplicationsClient({
 
       {/* Page header */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-        <div className="flex items-start justify-between gap-3 sm:block">
-          <div>
-            <Title
-              order={2}
-              className="font-bold mb-2"
-              style={{ letterSpacing: "-0.02em" }}
-            >
-              Applications
-            </Title>
-            {/* Desktop: inline chip row */}
-            <div className="hidden sm:flex flex-wrap gap-2 items-center">
-              <Text size="xs" c="dimmed" className="mr-1">
-                {total} total
-              </Text>
-              {STATUS_ORDER.map((s) => (
-                <StatusChip
-                  key={s}
-                  status={s}
-                  count={grouped.get(s)?.length ?? 0}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Mobile: 3+2 grid aligned right */}
-          <div className="sm:hidden grid grid-flow-col grid-rows-3 gap-1 shrink-0">
-            {STATUS_ORDER.map((s) => (
-              <StatusChip
-                key={s}
-                status={s}
-                count={grouped.get(s)?.length ?? 0}
-                small
-              />
-            ))}
-          </div>
+        <div>
+          <h1
+            className="font-extrabold text-white"
+            style={{
+              fontSize: "clamp(28px, 4vw, 36px)",
+              letterSpacing: "-0.02em",
+              margin: 0,
+              lineHeight: 1,
+            }}
+          >
+            Applications
+          </h1>
+          <p
+            style={{
+              fontSize: 13.5,
+              color: "rgba(255,255,255,0.5)",
+              margin: "4px 0 0",
+            }}
+          >
+            {apps.length} tracked across {stages.length} stages
+          </p>
         </div>
 
-        {/* Header actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <SegmentedControl
+            value={view}
+            onChange={(v) => setView(v as ViewMode)}
+            data={[
+              {
+                value: "kanban",
+                label: (
+                  <Group gap={6} wrap="nowrap">
+                    <IconLayoutKanban size={14} />
+                    <span className="hidden sm:inline">Kanban</span>
+                  </Group>
+                ),
+              },
+              {
+                value: "timeline",
+                label: (
+                  <Group gap={6} wrap="nowrap">
+                    <IconTimeline size={14} />
+                    <span className="hidden sm:inline">Timeline</span>
+                  </Group>
+                ),
+              },
+            ]}
+            styles={{
+              root: {
+                backgroundColor: "transparent",
+                border: "2px solid #3a3a3a",
+                borderRadius: "0.75rem",
+                padding: 2,
+              },
+              indicator: {
+                backgroundColor: "#3a3a3a",
+                borderRadius: "0.5rem",
+              },
+              label: {
+                color: "rgba(255,255,255,0.65)",
+                padding: "4px 10px",
+                fontWeight: 600,
+                fontSize: 12.5,
+              },
+            }}
+          />
+
           <button
             className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-medium cursor-pointer"
             style={{
@@ -322,54 +366,86 @@ export default function MyApplicationsClient({
             <span className="sm:hidden">Add</span>
           </button>
 
-          {/* Filter popover */}
-          <Popover position="bottom-end" shadow="md" withinPortal>
-            <Popover.Target>
-              <button
-                className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-medium cursor-pointer"
-                style={{
-                  background: "transparent",
-                  border: "2px solid #3a3a3a",
-                  color: "rgba(255,255,255,0.65)",
-                  fontFamily: "inherit",
+          {view === "kanban" && (
+            <>
+              <Select
+                value={sort}
+                onChange={(v) => v && setSort(v as KanbanSort)}
+                data={[
+                  { value: "newest", label: "Newest first" },
+                  { value: "oldest", label: "Oldest first" },
+                ]}
+                allowDeselect={false}
+                styles={{
+                  input: {
+                    backgroundColor: "transparent",
+                    border: "2px solid #3a3a3a",
+                    borderRadius: "0.75rem",
+                    color: "rgba(255,255,255,0.65)",
+                    fontWeight: 500,
+                    fontSize: 13,
+                    minHeight: 36,
+                    height: 36,
+                    paddingTop: 0,
+                    paddingBottom: 0,
+                    minWidth: 140,
+                  },
+                  dropdown: {
+                    backgroundColor: "#2e2e2e",
+                    border: "2px solid #3a3a3a",
+                    borderRadius: "0.75rem",
+                  },
                 }}
-              >
-                Show sections
-                <IconChevronDown size={14} />
-              </button>
-            </Popover.Target>
-            <Popover.Dropdown
-              style={{
-                backgroundColor: "#2e2e2e",
-                border: "2px solid #3a3a3a",
-                borderRadius: "0.75rem",
-              }}
-            >
-              <Checkbox.Group
-                value={selectedStatuses}
-                onChange={setSelectedStatuses}
-              >
-                <Stack gap="xs">
-                  {STATUS_ORDER.map((s) => (
-                    <Checkbox
-                      key={s}
-                      value={s}
-                      color="accent"
-                      iconColor="#1f1f1f"
-                      label={
-                        <Group gap="xs" align="center">
-                          <StatusDot status={s} />
-                          <Text size="sm">{capitalize(s)}</Text>
-                        </Group>
-                      }
-                    />
-                  ))}
-                </Stack>
-              </Checkbox.Group>
-            </Popover.Dropdown>
-          </Popover>
+              />
+
+              <Popover position="bottom-end" shadow="md" withinPortal>
+                <Popover.Target>
+                  <button
+                    className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-medium cursor-pointer"
+                    style={{
+                      background: "transparent",
+                      border: "2px solid #3a3a3a",
+                      color: "rgba(255,255,255,0.65)",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    Columns
+                    <IconChevronDown size={14} />
+                  </button>
+                </Popover.Target>
+                <Popover.Dropdown
+                  style={{
+                    backgroundColor: "#2e2e2e",
+                    border: "2px solid #3a3a3a",
+                    borderRadius: "0.75rem",
+                  }}
+                >
+                  <Checkbox.Group
+                    value={visibleStages}
+                    onChange={setVisibleStages}
+                  >
+                    <Stack gap="xs">
+                      {stages.map((s) => (
+                        <Checkbox
+                          key={s.id}
+                          value={s.name}
+                          color="accent"
+                          iconColor="#1f1f1f"
+                          label={
+                            <Group gap="xs" align="center">
+                              <StatusDot role={s.colorRole} />
+                              <Text size="sm">{s.displayName}</Text>
+                            </Group>
+                          }
+                        />
+                      ))}
+                    </Stack>
+                  </Checkbox.Group>
+                </Popover.Dropdown>
+              </Popover>
+            </>
+          )}
         </div>
-        {/* end header actions */}
       </div>
 
       {/* Add custom application modal */}
@@ -430,16 +506,16 @@ export default function MyApplicationsClient({
           />
           <Select
             label="Status"
-            data={APPLICATION_STATUSES.map((s) => ({
-              value: s,
-              label: capitalize(s),
+            data={stages.map((s) => ({
+              value: s.name,
+              label: s.displayName,
             }))}
             value={customStatus}
             onChange={(v) => v && setCustomStatus(v as ApplicationStatus)}
-            leftSection={<StatusDot status={customStatus} />}
+            leftSection={<StatusDot role={stageRoleByName(customStatus)} />}
             renderOption={({ option }) => (
               <Group gap="xs" align="center">
-                <StatusDot status={option.value as ApplicationStatus} />
+                <StatusDot role={stageRoleByName(option.value)} />
                 <Text size="sm">{option.label}</Text>
               </Group>
             )}
@@ -497,375 +573,34 @@ export default function MyApplicationsClient({
         </Stack>
       </Modal>
 
-      {/* Per-status sections */}
-      {STATUS_ORDER.filter((s) => selectedStatuses.includes(s)).map(
-        (status) => {
-          const statusApps = grouped.get(status) ?? [];
+      <NotesModal
+        opened={notesApp !== null}
+        onClose={() => setNotesAppId(null)}
+        initialNotes={notesApp?.notes}
+        appTitle={notesApp?.jobSnapshot.title ?? ""}
+        appCompany={notesApp?.jobSnapshot.companyName ?? ""}
+        onSave={async (notes) => {
+          if (notesApp) await handleSaveNotes(notesApp.jobId, notes);
+        }}
+      />
 
-          return (
-            <div key={status}>
-              <div className="flex items-center gap-2 mb-3 pl-1">
-                <Title
-                  order={5}
-                  className="font-bold"
-                  style={{ letterSpacing: "-0.01em" }}
-                >
-                  {capitalize(status)}
-                </Title>
-                <StatusChip status={status} count={statusApps.length} />
-              </div>
-
-              {/* Desktop: single Box table — hidden on mobile */}
-              <Box
-                bg="secondary"
-                bd="2px solid selected"
-                className="hidden sm:block rounded-xl overflow-hidden"
-              >
-                {statusApps.length === 0 ? (
-                  <div className="py-8 text-center">
-                    <Text size="sm" c="dimmed">
-                      No {capitalize(status).toLowerCase()} applications
-                    </Text>
-                  </div>
-                ) : (
-                  <Table style={{ tableLayout: "fixed", width: "100%" }}>
-                    <colgroup>
-                      <col style={{ width: "auto" }} />
-                      <col style={{ width: "200px" }} />
-                      <col style={{ width: "165px" }} />
-                      <col style={{ width: "100px" }} />
-                      <col style={{ width: "130px" }} />
-                    </colgroup>
-                    <Table.Thead>
-                      <Table.Tr style={{ borderBottom: "2px solid #3a3a3a" }}>
-                        <Table.Th
-                          className="text-xs font-semibold uppercase tracking-widest"
-                          style={{
-                            color: "rgba(255,255,255,0.35)",
-                            padding: "0.75rem 1rem",
-                            background: "transparent",
-                          }}
-                        >
-                          Role
-                        </Table.Th>
-                        <Table.Th
-                          className="text-xs font-semibold uppercase tracking-widest"
-                          style={{
-                            color: "rgba(255,255,255,0.35)",
-                            padding: "0.75rem 1rem",
-                            background: "transparent",
-                          }}
-                        >
-                          Company
-                        </Table.Th>
-                        <Table.Th
-                          className="text-xs font-semibold uppercase tracking-widest"
-                          style={{
-                            color: "rgba(255,255,255,0.35)",
-                            padding: "0.75rem 1rem",
-                            background: "transparent",
-                            textAlign: "left",
-                          }}
-                        >
-                          Status
-                        </Table.Th>
-                        <Table.Th
-                          className="text-xs font-semibold uppercase tracking-widest"
-                          style={{
-                            color: "rgba(255,255,255,0.35)",
-                            padding: "0.75rem 1rem",
-                            background: "transparent",
-                            textAlign: "right",
-                          }}
-                        >
-                          Updated
-                        </Table.Th>
-                        <Table.Th
-                          style={{
-                            padding: "0.75rem 1rem",
-                            background: "transparent",
-                          }}
-                        />
-                      </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                      {statusApps.map((a, i) => {
-                        const url = a.jobSnapshot.applicationUrl;
-                        const isHovered = hoveredRow === a._id;
-                        return (
-                          <Table.Tr
-                            key={a._id}
-                            style={{
-                              cursor: url ? "pointer" : "default",
-                              backgroundColor: isHovered
-                                ? "#3a3a3a"
-                                : "transparent",
-                              transition: "background-color 0.12s ease",
-                              borderBottom:
-                                i < statusApps.length - 1
-                                  ? "1px solid #3a3a3a"
-                                  : "none",
-                            }}
-                            onMouseEnter={() => setHoveredRow(a._id)}
-                            onMouseLeave={() => setHoveredRow(null)}
-                            onClick={() =>
-                              url && window.open(url, "_blank", "noreferrer")
-                            }
-                          >
-                            <Table.Td style={{ padding: "0.875rem 1rem" }}>
-                              <span className="text-sm font-bold line-clamp-2 leading-tight">
-                                {a.jobSnapshot.title}
-                              </span>
-                            </Table.Td>
-                            <Table.Td style={{ padding: "0.875rem 1rem" }}>
-                              <div className="flex items-center gap-2 min-w-0">
-                                <CompanyLogo
-                                  name={a.jobSnapshot.companyName}
-                                  logo={a.jobSnapshot.logo}
-                                  applicationUrl={a.jobSnapshot.applicationUrl}
-                                  className="h-7 w-7 flex-shrink-0"
-                                />
-                                <span className="text-xs line-clamp-1">
-                                  {a.jobSnapshot.companyName}
-                                </span>
-                              </div>
-                            </Table.Td>
-                            <Table.Td
-                              style={{
-                                padding: "0.875rem 1rem",
-                                textAlign: "left",
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Select
-                                data={APPLICATION_STATUSES.map((s) => ({
-                                  value: s,
-                                  label: capitalize(s),
-                                }))}
-                                value={a.status}
-                                leftSection={<StatusDot status={a.status} />}
-                                renderOption={({ option }) => (
-                                  <Group gap="xs" align="center">
-                                    <StatusDot
-                                      status={option.value as ApplicationStatus}
-                                    />
-                                    <Text size="sm">{option.label}</Text>
-                                  </Group>
-                                )}
-                                onChange={async (value) => {
-                                  if (!value) return;
-                                  await handleStatusChange(
-                                    a._id,
-                                    a.jobId,
-                                    a.status,
-                                    value as ApplicationStatus,
-                                  );
-                                }}
-                                styles={{
-                                  input: {
-                                    backgroundColor: "#3a3a3a",
-                                    border: "none",
-                                    borderRadius: "0.5rem",
-                                    minWidth: "9rem",
-                                  },
-                                  dropdown: {
-                                    backgroundColor: "#2e2e2e",
-                                    border: "2px solid #3a3a3a",
-                                    borderRadius: "0.75rem",
-                                    minWidth: "9rem",
-                                  },
-                                }}
-                              />
-                            </Table.Td>
-                            <Table.Td
-                              style={{
-                                padding: "0.875rem 1rem",
-                                textAlign: "right",
-                              }}
-                            >
-                              <Text size="xs" c="dimmed">
-                                {formatISODate(a.updatedAt)}
-                              </Text>
-                            </Table.Td>
-                            <Table.Td
-                              style={{ padding: "0.875rem 1rem" }}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Group gap="xs" justify="flex-end" wrap="nowrap">
-                                {status === "STARTED" && (
-                                  <button
-                                    className="inline-flex items-center gap-1 text-xs font-bold rounded-xl px-3 py-1.5 cursor-pointer whitespace-nowrap"
-                                    style={{
-                                      backgroundColor: "#ffe22f",
-                                      color: "black",
-                                      border: "none",
-                                      fontFamily: "inherit",
-                                    }}
-                                    onClick={() =>
-                                      handleStatusChange(
-                                        a._id,
-                                        a.jobId,
-                                        "STARTED",
-                                        "APPLIED",
-                                      )
-                                    }
-                                  >
-                                    Applied <IconCheck size={11} />
-                                  </button>
-                                )}
-                                <ActionIcon
-                                  size="sm"
-                                  variant="subtle"
-                                  color="red"
-                                  onClick={() => handleDelete(a._id, a.jobId)}
-                                >
-                                  <IconTrash size={14} />
-                                </ActionIcon>
-                              </Group>
-                            </Table.Td>
-                          </Table.Tr>
-                        );
-                      })}
-                    </Table.Tbody>
-                  </Table>
-                )}
-              </Box>
-
-              {/* Mobile: separate cards — hidden on sm+ */}
-              <div className="sm:hidden flex flex-col gap-2">
-                {statusApps.length === 0 ? (
-                  <Box
-                    bg="secondary"
-                    bd="2px solid selected"
-                    className="rounded-xl py-8 text-center"
-                  >
-                    <Text size="sm" c="dimmed">
-                      No {capitalize(status).toLowerCase()} applications
-                    </Text>
-                  </Box>
-                ) : (
-                  statusApps.map((a) => {
-                    const url = a.jobSnapshot.applicationUrl;
-                    return (
-                      <Box
-                        key={a._id}
-                        bg="secondary"
-                        bd="2px solid selected"
-                        className="rounded-xl p-3"
-                        style={{ cursor: url ? "pointer" : "default" }}
-                        onClick={() =>
-                          url && window.open(url, "_blank", "noreferrer")
-                        }
-                      >
-                        {/* Row 1: company + date */}
-                        <div className="flex items-center justify-between mb-1.5">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <CompanyLogo
-                              name={a.jobSnapshot.companyName}
-                              logo={a.jobSnapshot.logo}
-                              applicationUrl={a.jobSnapshot.applicationUrl}
-                              className="h-6 w-6 flex-shrink-0"
-                            />
-                            <span className="text-xs line-clamp-1 text-white/70">
-                              {a.jobSnapshot.companyName}
-                            </span>
-                          </div>
-                          <Text
-                            size="xs"
-                            c="dimmed"
-                            className="flex-shrink-0 ml-2"
-                          >
-                            {formatISODate(a.updatedAt)}
-                          </Text>
-                        </div>
-
-                        {/* Row 2: role title */}
-                        <div className="text-sm font-bold leading-tight mb-3">
-                          {a.jobSnapshot.title}
-                        </div>
-
-                        {/* Row 3: status select + actions */}
-                        <div
-                          className="flex items-center justify-between gap-2"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Select
-                            data={APPLICATION_STATUSES.map((s) => ({
-                              value: s,
-                              label: capitalize(s),
-                            }))}
-                            value={a.status}
-                            leftSection={<StatusDot status={a.status} />}
-                            renderOption={({ option }) => (
-                              <Group gap="xs" align="center">
-                                <StatusDot
-                                  status={option.value as ApplicationStatus}
-                                />
-                                <Text size="sm">{option.label}</Text>
-                              </Group>
-                            )}
-                            onChange={async (value) => {
-                              if (!value) return;
-                              await handleStatusChange(
-                                a._id,
-                                a.jobId,
-                                a.status,
-                                value as ApplicationStatus,
-                              );
-                            }}
-                            styles={{
-                              input: {
-                                backgroundColor: "#3a3a3a",
-                                border: "none",
-                                borderRadius: "0.5rem",
-                              },
-                              dropdown: {
-                                backgroundColor: "#2e2e2e",
-                                border: "2px solid #3a3a3a",
-                                borderRadius: "0.75rem",
-                              },
-                            }}
-                          />
-                          <Group gap="xs" wrap="nowrap">
-                            {status === "STARTED" && (
-                              <button
-                                className="inline-flex items-center gap-1 text-xs font-bold rounded-xl px-3 py-1.5 cursor-pointer whitespace-nowrap"
-                                style={{
-                                  backgroundColor: "#ffe22f",
-                                  color: "black",
-                                  border: "none",
-                                  fontFamily: "inherit",
-                                }}
-                                onClick={() =>
-                                  handleStatusChange(
-                                    a._id,
-                                    a.jobId,
-                                    "STARTED",
-                                    "APPLIED",
-                                  )
-                                }
-                              >
-                                Applied <IconCheck size={11} />
-                              </button>
-                            )}
-                            <ActionIcon
-                              size="sm"
-                              variant="subtle"
-                              color="red"
-                              onClick={() => handleDelete(a._id, a.jobId)}
-                            >
-                              <IconTrash size={14} />
-                            </ActionIcon>
-                          </Group>
-                        </div>
-                      </Box>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          );
-        },
+      {view === "kanban" ? (
+        <ApplicationsKanban
+          apps={apps}
+          stages={stages}
+          visibleStageNames={visibleStages}
+          sort={sort}
+          onStatusChange={handleStatusChange}
+          onDelete={handleDelete}
+          onOpenNotes={(id) => setNotesAppId(id)}
+        />
+      ) : (
+        <ApplicationsTimeline
+          apps={apps}
+          stages={stages}
+          onStatusChange={handleStatusChange}
+          onOpenNotes={(id) => setNotesAppId(id)}
+        />
       )}
     </div>
   );

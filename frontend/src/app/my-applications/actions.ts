@@ -67,7 +67,6 @@ export async function listApplications(): Promise<DbApplication[]> {
 
   if (!docs.length) return [];
 
-  // Bulk-fetch logos from active_jobs for snapshots that don't have one
   const jobIds = docs
     .map((d) => {
       try {
@@ -102,12 +101,13 @@ export async function listApplications(): Promise<DbApplication[]> {
       ...d.jobSnapshot,
       logo: d.jobSnapshot.logo ?? logoMap.get(d.jobId),
     },
+    notes: d.notes ?? undefined,
   })) as DbApplication[];
 }
 
 export async function addApplication(
   jobId: string,
-  jobSnapshot: import("@/types/application").ApplicationJobSnapshot,
+  jobSnapshot: ApplicationJobSnapshot,
 ) {
   const session = await getServerSession(getAuthOptions());
   const userId = requireUserId(session);
@@ -147,7 +147,7 @@ export async function createCustomApplication(
   title: string,
   companyName: string,
   status: ApplicationStatus,
-  date: string, // "YYYY-MM-DD"
+  date: string,
 ): Promise<DbApplication> {
   const session = await getServerSession(getAuthOptions());
   const userId = requireUserId(session);
@@ -198,4 +198,23 @@ export async function updateApplicationStatus(
   );
 
   return { ok: true };
+}
+
+export async function updateApplicationNotes(jobId: string, notes: string) {
+  const session = await getServerSession(getAuthOptions());
+  const userId = requireUserId(session);
+
+  const client = await getMongoClientPromise();
+  const db = client.db(process.env.MONGODB_DATABASE || "default");
+
+  const trimmed = notes.trim();
+  const update = trimmed
+    ? { $set: { notes: trimmed, updatedAt: new Date() } }
+    : { $unset: { notes: "" }, $set: { updatedAt: new Date() } };
+
+  await db
+    .collection("applications")
+    .updateOne({ userId: new ObjectId(userId), jobId }, update);
+
+  return { ok: true, notes: trimmed || undefined };
 }

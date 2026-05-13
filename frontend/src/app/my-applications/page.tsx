@@ -1,5 +1,6 @@
 import MyApplicationsClient from "@/components/applications/my-applications-client";
 import { listApplications } from "./actions";
+import { STAGES } from "@/lib/stages";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +10,7 @@ export default async function MyApplicationsPage() {
   return (
     <div className="h-[calc(100svh-140px)] lg:h-[calc(100svh-180px)] overflow-y-auto">
       <div className="max-w-7xl mx-auto py-6 px-6">
-        <MyApplicationsClient initial={apps} />
+        <MyApplicationsClient initial={apps} initialStages={STAGES} />
       </div>
     </div>
   );
