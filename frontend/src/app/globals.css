@@ -114,6 +114,9 @@ body {
   background: rgba(255, 226, 47, 0.08);
   color: #ffe22f;
 }
+.apps-icon-btn.is-starred {
+  color: #ffe22f;
+}
 .apps-quick-applied {
   display: inline-flex;
   align-items: center;
@@ -184,13 +187,12 @@ body {
    ========================================================================== */
 .apps-stat-strip {
   display: grid;
-  grid-template-columns: repeat(5, 1fr) 1.4fr;
+  grid-template-columns: repeat(4, 1fr) 1.4fr;
   gap: 1px;
   background: var(--border);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   overflow: hidden;
-  margin-bottom: 22px;
 }
 .apps-stat-cell {
   background: var(--secondary);
@@ -227,17 +229,18 @@ body {
 .apps-mini-bars {
   display: flex;
   align-items: flex-end;
-  gap: 10px;
-  height: 40px;
+  gap: 6px;
   padding-top: 4px;
+  min-width: 0;
 }
 .apps-mini-bar {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   cursor: pointer;
+  min-width: 0;
 }
 .apps-mini-bar-fill {
   width: 100%;
@@ -253,6 +256,19 @@ body {
   line-height: 1;
   color: var(--muted-2);
   font-variant-numeric: tabular-nums;
+}
+.apps-mini-bar-label {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--muted-3);
+  width: 100%;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 2px;
 }
 
 .apps-kanban-board {
@@ -287,11 +303,10 @@ body {
   gap: 8px;
 }
 .apps-kc-col-name {
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: 700;
+  font-size: 15px;
   line-height: 1;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
+  letter-spacing: -0.01em;
   color: white;
 }
 .apps-kc-col-body {

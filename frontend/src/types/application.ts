@@ -37,6 +37,7 @@ export type LocalApplication = {
   updatedAt: string;
   jobSnapshot: ApplicationJobSnapshot;
   notes?: string;
+  starred?: boolean;
 };
 
 export type DbApplication = LocalApplication & {

@@ -157,6 +157,9 @@ export default function JobDetails() {
             {isCopied ? "Copied!" : "Copy Link"}
           </Button>
         </div>
+        <Text size="xs" c="dimmed" mt="xs" ta="center">
+          Clicking Apply adds this job to your applications.
+        </Text>
       </Card>
     </>
   );

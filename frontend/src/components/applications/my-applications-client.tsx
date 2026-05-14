@@ -4,10 +4,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
   Box,
-  Button,
   Checkbox,
   Group,
-  Modal,
   Popover,
   SegmentedControl,
   Select,
@@ -17,8 +15,11 @@ import {
 } from "@mantine/core";
 import {
   IconChevronDown,
+  IconEye,
+  IconFilter,
+  IconInfoCircle,
   IconLayoutKanban,
-  IconPlus,
+  IconSearch,
   IconTimeline,
 } from "@tabler/icons-react";
 import Link from "next/link";
@@ -36,11 +37,13 @@ import {
   createCustomApplication,
   deleteApplication,
   syncLocalApplications,
+  toggleApplicationStar,
   updateApplicationNotes,
   updateApplicationStatus,
 } from "@/app/my-applications/actions";
 import NotesModal from "@/components/applications/notes-modal";
 import ApplicationsKanban, {
+  ApplicationsStatStrip,
   KanbanSort,
 } from "@/components/applications/applications-kanban";
 import ApplicationsTimeline from "@/components/applications/applications-timeline";
@@ -100,35 +103,11 @@ export default function MyApplicationsClient({
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [view, setView] = useState<ViewMode>(readView);
   const [sort, setSort] = useState<KanbanSort>(readSort);
+  const [searchQuery, setSearchQuery] = useState("");
   const [visibleStages, setVisibleStages] = useState<string[]>(() =>
-    stages
-      .filter(
-        (s) =>
-          s.name !== "STARTED" || initial.some((a) => a.status === "STARTED"),
-      )
-      .map((s) => s.name),
+    stages.map((s) => s.name),
   );
-  const [addOpen, setAddOpen] = useState(false);
-  const [customTitle, setCustomTitle] = useState("");
-  const [customCompany, setCustomCompany] = useState("");
-  const defaultCustomStatus = useMemo(
-    () =>
-      stages.find((s) => s.name === "APPLIED")?.name ?? stages[0]?.name ?? "",
-    [stages],
-  );
-  const [customStatus, setCustomStatus] =
-    useState<ApplicationStatus>(defaultCustomStatus);
-  const [customDate, setCustomDate] = useState(() =>
-    new Date().toISOString().slice(0, 10),
-  );
-  const [customLoading, setCustomLoading] = useState(false);
   const [notesAppId, setNotesAppId] = useState<string | null>(null);
-
-  const stageRoleByName = useMemo(() => {
-    const m = new Map<string, StageColorRole>();
-    stages.forEach((s) => m.set(s.name, s.colorRole));
-    return (name: string) => m.get(name) ?? "neutral";
-  }, [stages]);
 
   useEffect(() => {
     try {
@@ -164,18 +143,15 @@ export default function MyApplicationsClient({
     })();
   }, [sessionStatus]);
 
-  useEffect(() => {
-    const startedCount = apps.filter((a) => a.status === "STARTED").length;
-    setVisibleStages((prev) => {
-      const has = prev.includes("STARTED");
-      if (startedCount === 0 && has) return prev.filter((s) => s !== "STARTED");
-      if (startedCount > 0 && !has)
-        return stages
-          .filter((s) => prev.includes(s.name) || s.name === "STARTED")
-          .map((s) => s.name);
-      return prev;
-    });
-  }, [apps, stages]);
+  const filteredApps = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return apps;
+    return apps.filter(
+      (a) =>
+        a.jobSnapshot.companyName.toLowerCase().includes(q) ||
+        a.jobSnapshot.title.toLowerCase().includes(q),
+    );
+  }, [apps, searchQuery]);
 
   async function handleStatusChange(
     appId: string,
@@ -206,25 +182,32 @@ export default function MyApplicationsClient({
     }
   }
 
-  async function handleCreateCustom() {
-    if (!customTitle.trim() || !customCompany.trim()) return;
-    setCustomLoading(true);
+  async function handleToggleStar(
+    appId: string,
+    jobId: string,
+    next: boolean,
+  ) {
+    const previous = apps.find((a) => a._id === appId)?.starred ?? false;
+    setApps((prev) =>
+      prev.map((p) => (p._id === appId ? { ...p, starred: next } : p)),
+    );
     try {
-      const newApp = await createCustomApplication(
-        customTitle.trim(),
-        customCompany.trim(),
-        customStatus,
-        customDate,
+      await toggleApplicationStar(jobId, next);
+    } catch {
+      setApps((prev) =>
+        prev.map((p) => (p._id === appId ? { ...p, starred: previous } : p)),
       );
-      setApps((prev) => [newApp, ...prev]);
-      setAddOpen(false);
-      setCustomTitle("");
-      setCustomCompany("");
-      setCustomStatus(defaultCustomStatus);
-      setCustomDate(new Date().toISOString().slice(0, 10));
-    } finally {
-      setCustomLoading(false);
     }
+  }
+
+  async function handleCreateInStage(
+    title: string,
+    company: string,
+    stageName: string,
+    date: string,
+  ) {
+    const newApp = await createCustomApplication(title, company, stageName, date);
+    setApps((prev) => [newApp, ...prev]);
   }
 
   async function handleSaveNotes(jobId: string, notes: string) {
@@ -270,6 +253,58 @@ export default function MyApplicationsClient({
     );
   }
 
+  const segmentedStyles = {
+    root: {
+      backgroundColor: "transparent",
+      border: "2px solid #3a3a3a",
+      borderRadius: "0.65rem",
+      padding: 2,
+    },
+    indicator: {
+      backgroundColor: "#3a3a3a",
+      borderRadius: "0.45rem",
+    },
+    label: {
+      color: "rgba(255,255,255,0.65)",
+      padding: "3px 9px",
+      fontWeight: 600,
+      fontSize: 12.5,
+    },
+  } as const;
+
+  const compactSelectStyles = {
+    input: {
+      backgroundColor: "transparent",
+      border: "2px solid #3a3a3a",
+      borderRadius: "0.65rem",
+      color: "rgba(255,255,255,0.75)",
+      fontWeight: 500,
+      fontSize: 12.5,
+      minHeight: 32,
+      height: 32,
+      paddingTop: 0,
+      paddingBottom: 0,
+      paddingLeft: 32,
+      minWidth: 140,
+    },
+    section: { width: 30 },
+    dropdown: {
+      backgroundColor: "#2e2e2e",
+      border: "2px solid #3a3a3a",
+      borderRadius: "0.65rem",
+    },
+  } as const;
+
+  const compactBtn =
+    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[0.65rem] text-xs font-medium cursor-pointer";
+  const compactBtnStyle: React.CSSProperties = {
+    background: "transparent",
+    border: "2px solid #3a3a3a",
+    color: "rgba(255,255,255,0.75)",
+    fontFamily: "inherit",
+    height: 32,
+  };
+
   return (
     <div className="flex flex-col gap-6">
       {syncMessage && (
@@ -306,8 +341,50 @@ export default function MyApplicationsClient({
             {apps.length} tracked across {stages.length} stages
           </p>
         </div>
+        <div
+          className="flex items-center gap-1.5"
+          style={{
+            color: "rgba(255,255,255,0.5)",
+            fontSize: 12,
+            maxWidth: 320,
+          }}
+        >
+          <IconInfoCircle size={14} style={{ flexShrink: 0 }} />
+          <span>
+            Jobs you click <strong style={{ color: "rgba(255,255,255,0.7)" }}>Apply</strong> on are auto-added here.
+          </span>
+        </div>
+      </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+      {view === "kanban" && (
+        <ApplicationsStatStrip apps={apps} stages={stages} />
+      )}
+
+      {/* Toolbar */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <TextInput
+          placeholder="Search company or role…"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.currentTarget.value)}
+          leftSection={<IconSearch size={14} />}
+          styles={{
+            input: {
+              backgroundColor: "transparent",
+              border: "2px solid #3a3a3a",
+              borderRadius: "0.65rem",
+              color: "white",
+              fontSize: 12.5,
+              minHeight: 32,
+              height: 32,
+              paddingTop: 0,
+              paddingBottom: 0,
+            },
+            section: { width: 30 },
+          }}
+          style={{ flex: "1 1 220px", minWidth: 180, maxWidth: 320 }}
+        />
+
+        <div className="flex items-center gap-2 flex-wrap ml-auto">
           <SegmentedControl
             value={view}
             onChange={(v) => setView(v as ViewMode)}
@@ -331,40 +408,8 @@ export default function MyApplicationsClient({
                 ),
               },
             ]}
-            styles={{
-              root: {
-                backgroundColor: "transparent",
-                border: "2px solid #3a3a3a",
-                borderRadius: "0.75rem",
-                padding: 2,
-              },
-              indicator: {
-                backgroundColor: "#3a3a3a",
-                borderRadius: "0.5rem",
-              },
-              label: {
-                color: "rgba(255,255,255,0.65)",
-                padding: "4px 10px",
-                fontWeight: 600,
-                fontSize: 12.5,
-              },
-            }}
+            styles={segmentedStyles}
           />
-
-          <button
-            className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-medium cursor-pointer"
-            style={{
-              background: "#ffe22f",
-              border: "none",
-              color: "#1f1f1f",
-              fontFamily: "inherit",
-            }}
-            onClick={() => setAddOpen(true)}
-          >
-            <IconPlus size={13} />
-            <span className="hidden sm:inline">Add application</span>
-            <span className="sm:hidden">Add</span>
-          </button>
 
           {view === "kanban" && (
             <>
@@ -376,48 +421,23 @@ export default function MyApplicationsClient({
                   { value: "oldest", label: "Oldest first" },
                 ]}
                 allowDeselect={false}
-                styles={{
-                  input: {
-                    backgroundColor: "transparent",
-                    border: "2px solid #3a3a3a",
-                    borderRadius: "0.75rem",
-                    color: "rgba(255,255,255,0.65)",
-                    fontWeight: 500,
-                    fontSize: 13,
-                    minHeight: 36,
-                    height: 36,
-                    paddingTop: 0,
-                    paddingBottom: 0,
-                    minWidth: 140,
-                  },
-                  dropdown: {
-                    backgroundColor: "#2e2e2e",
-                    border: "2px solid #3a3a3a",
-                    borderRadius: "0.75rem",
-                  },
-                }}
+                leftSection={<IconFilter size={14} />}
+                styles={compactSelectStyles}
               />
 
               <Popover position="bottom-end" shadow="md" withinPortal>
                 <Popover.Target>
-                  <button
-                    className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-medium cursor-pointer"
-                    style={{
-                      background: "transparent",
-                      border: "2px solid #3a3a3a",
-                      color: "rgba(255,255,255,0.65)",
-                      fontFamily: "inherit",
-                    }}
-                  >
-                    Columns
-                    <IconChevronDown size={14} />
+                  <button className={compactBtn} style={compactBtnStyle}>
+                    <IconEye size={14} />
+                    <span>Columns</span>
+                    <IconChevronDown size={12} />
                   </button>
                 </Popover.Target>
                 <Popover.Dropdown
                   style={{
                     backgroundColor: "#2e2e2e",
                     border: "2px solid #3a3a3a",
-                    borderRadius: "0.75rem",
+                    borderRadius: "0.65rem",
                   }}
                 >
                   <Checkbox.Group
@@ -448,131 +468,6 @@ export default function MyApplicationsClient({
         </div>
       </div>
 
-      {/* Add custom application modal */}
-      <Modal
-        opened={addOpen}
-        onClose={() => setAddOpen(false)}
-        title={
-          <Text fw={700} size="sm">
-            Add application
-          </Text>
-        }
-        styles={{
-          content: {
-            backgroundColor: "#2e2e2e",
-            border: "2px solid #3a3a3a",
-            borderRadius: "1rem",
-          },
-          header: { backgroundColor: "#2e2e2e" },
-          overlay: { backdropFilter: "blur(2px)" },
-        }}
-      >
-        <Stack gap="sm">
-          <TextInput
-            label="Role"
-            placeholder="e.g. Software Engineer"
-            value={customTitle}
-            onChange={(e) => setCustomTitle(e.currentTarget.value)}
-            styles={{
-              input: {
-                backgroundColor: "#3a3a3a",
-                border: "none",
-                borderRadius: "0.5rem",
-                color: "white",
-              },
-              label: {
-                color: "rgba(255,255,255,0.65)",
-                marginBottom: "0.25rem",
-              },
-            }}
-          />
-          <TextInput
-            label="Company"
-            placeholder="e.g. Acme Corp"
-            value={customCompany}
-            onChange={(e) => setCustomCompany(e.currentTarget.value)}
-            styles={{
-              input: {
-                backgroundColor: "#3a3a3a",
-                border: "none",
-                borderRadius: "0.5rem",
-                color: "white",
-              },
-              label: {
-                color: "rgba(255,255,255,0.65)",
-                marginBottom: "0.25rem",
-              },
-            }}
-          />
-          <Select
-            label="Status"
-            data={stages.map((s) => ({
-              value: s.name,
-              label: s.displayName,
-            }))}
-            value={customStatus}
-            onChange={(v) => v && setCustomStatus(v as ApplicationStatus)}
-            leftSection={<StatusDot role={stageRoleByName(customStatus)} />}
-            renderOption={({ option }) => (
-              <Group gap="xs" align="center">
-                <StatusDot role={stageRoleByName(option.value)} />
-                <Text size="sm">{option.label}</Text>
-              </Group>
-            )}
-            styles={{
-              input: {
-                backgroundColor: "#3a3a3a",
-                border: "none",
-                borderRadius: "0.5rem",
-              },
-              dropdown: {
-                backgroundColor: "#2e2e2e",
-                border: "2px solid #3a3a3a",
-                borderRadius: "0.75rem",
-              },
-              label: {
-                color: "rgba(255,255,255,0.65)",
-                marginBottom: "0.25rem",
-              },
-            }}
-          />
-          <TextInput
-            type="date"
-            label="Updated"
-            value={customDate}
-            onChange={(e) => setCustomDate(e.currentTarget.value)}
-            styles={{
-              input: {
-                backgroundColor: "#3a3a3a",
-                border: "none",
-                borderRadius: "0.5rem",
-                color: "white",
-                colorScheme: "dark",
-              } as React.CSSProperties,
-              label: {
-                color: "rgba(255,255,255,0.65)",
-                marginBottom: "0.25rem",
-              },
-            }}
-          />
-          <Button
-            fullWidth
-            loading={customLoading}
-            disabled={!customTitle.trim() || !customCompany.trim()}
-            onClick={handleCreateCustom}
-            style={{
-              backgroundColor: "#ffe22f",
-              color: "#1f1f1f",
-              borderRadius: "0.75rem",
-              fontWeight: 700,
-              marginTop: "0.25rem",
-            }}
-          >
-            Add application
-          </Button>
-        </Stack>
-      </Modal>
-
       <NotesModal
         opened={notesApp !== null}
         onClose={() => setNotesAppId(null)}
@@ -586,17 +481,19 @@ export default function MyApplicationsClient({
 
       {view === "kanban" ? (
         <ApplicationsKanban
-          apps={apps}
+          apps={filteredApps}
           stages={stages}
           visibleStageNames={visibleStages}
           sort={sort}
           onStatusChange={handleStatusChange}
           onDelete={handleDelete}
-          onOpenNotes={(id) => setNotesAppId(id)}
+          onSaveNotes={handleSaveNotes}
+          onCreateInStage={handleCreateInStage}
+          onToggleStar={handleToggleStar}
         />
       ) : (
         <ApplicationsTimeline
-          apps={apps}
+          apps={filteredApps}
           stages={stages}
           onStatusChange={handleStatusChange}
           onOpenNotes={(id) => setNotesAppId(id)}

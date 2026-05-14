@@ -41,6 +41,7 @@ export async function syncLocalApplications(apps: LocalApplication[]) {
           updatedAt: new Date(app.updatedAt),
           status: app.status,
           jobSnapshot: app.jobSnapshot,
+          ...(app.starred !== undefined ? { starred: app.starred } : {}),
         },
       },
       { upsert: true },
@@ -102,6 +103,7 @@ export async function listApplications(): Promise<DbApplication[]> {
       logo: d.jobSnapshot.logo ?? logoMap.get(d.jobId),
     },
     notes: d.notes ?? undefined,
+    starred: d.starred ?? false,
   })) as DbApplication[];
 }
 
@@ -198,6 +200,23 @@ export async function updateApplicationStatus(
   );
 
   return { ok: true };
+}
+
+export async function toggleApplicationStar(jobId: string, starred: boolean) {
+  const session = await getServerSession(getAuthOptions());
+  const userId = requireUserId(session);
+
+  const client = await getMongoClientPromise();
+  const db = client.db(process.env.MONGODB_DATABASE || "default");
+
+  await db
+    .collection("applications")
+    .updateOne(
+      { userId: new ObjectId(userId), jobId },
+      { $set: { starred } },
+    );
+
+  return { ok: true, starred };
 }
 
 export async function updateApplicationNotes(jobId: string, notes: string) {

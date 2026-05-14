@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties, useMemo, useState } from "react";
+import { CSSProperties, useEffect, useMemo, useState } from "react";
 import {
   CollisionDetection,
   DndContext,
@@ -16,7 +16,21 @@ import {
 } from "@dnd-kit/core";
 import { snapCenterToCursor } from "@dnd-kit/modifiers";
 import { useDraggable } from "@dnd-kit/core";
-import { IconCheck, IconNotes, IconTrash } from "@tabler/icons-react";
+import {
+  Button,
+  Popover,
+  Stack,
+  TextInput,
+  Textarea,
+} from "@mantine/core";
+import {
+  IconCheck,
+  IconNotes,
+  IconPlus,
+  IconStar,
+  IconStarFilled,
+  IconTrash,
+} from "@tabler/icons-react";
 import CompanyLogo from "@/components/jobs/company-logo";
 import { rolePalette } from "@/lib/role-palette";
 import { relativeDate } from "@/lib/utils";
@@ -46,7 +60,14 @@ type Props = {
     next: ApplicationStatus,
   ) => Promise<void>;
   onDelete: (appId: string, jobId: string) => void;
-  onOpenNotes: (appId: string) => void;
+  onSaveNotes: (jobId: string, notes: string) => Promise<void>;
+  onCreateInStage: (
+    title: string,
+    company: string,
+    stageName: string,
+    date: string,
+  ) => Promise<void>;
+  onToggleStar: (appId: string, jobId: string, next: boolean) => void;
 };
 
 export default function ApplicationsKanban({
@@ -56,7 +77,9 @@ export default function ApplicationsKanban({
   sort,
   onStatusChange,
   onDelete,
-  onOpenNotes,
+  onSaveNotes,
+  onCreateInStage,
+  onToggleStar,
 }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -73,54 +96,15 @@ export default function ApplicationsKanban({
     }
     for (const arr of map.values()) {
       arr.sort((a, b) => {
+        const aS = a.starred ? 1 : 0;
+        const bS = b.starred ? 1 : 0;
+        if (aS !== bS) return bS - aS;
         const cmp = b.updatedAt.localeCompare(a.updatedAt);
         return sort === "newest" ? cmp : -cmp;
       });
     }
     return map;
   }, [apps, stages, sort]);
-
-  const totalCount = apps.length;
-  const wins = apps.filter(
-    (a) => stages.find((s) => s.name === a.status)?.colorRole === "win",
-  ).length;
-  const losses = apps.filter(
-    (a) => stages.find((s) => s.name === a.status)?.colorRole === "loss",
-  ).length;
-  const active = apps.filter((a) => {
-    const s = stages.find((st) => st.name === a.status);
-    return s?.colorRole === "active";
-  }).length;
-  const started = apps.filter((a) => a.status === "STARTED").length;
-  const winRate = totalCount > 0 ? Math.round((wins / totalCount) * 100) : 0;
-
-  const statCells = [
-    { label: "Total", value: totalCount, sub: "tracked" },
-    {
-      label: "Active",
-      value: active,
-      sub: "in flight",
-      role: "active" as const,
-    },
-    {
-      label: "Wins",
-      value: wins,
-      sub: `${winRate}% rate`,
-      role: "win" as const,
-    },
-    {
-      label: "Losses",
-      value: losses,
-      sub: "rejected",
-      role: "loss" as const,
-    },
-    {
-      label: "Drafted",
-      value: started,
-      sub: "not yet sent",
-      role: "neutral" as const,
-    },
-  ];
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -170,80 +154,105 @@ export default function ApplicationsKanban({
   );
 
   return (
-    <div>
-      <StatStrip
-        cells={statCells}
-        stages={stages}
-        countsByStage={Object.fromEntries(
-          stages.map((s) => [s.name, (grouped.get(s.name) ?? []).length]),
-        )}
-      />
-      <DndContext
-        sensors={sensors}
-        collisionDetection={cursorCollisionDetection}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        onDragCancel={() => setActiveId(null)}
+    <DndContext
+      sensors={sensors}
+      collisionDetection={cursorCollisionDetection}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragCancel={() => setActiveId(null)}
+    >
+      <div className="apps-kanban-board">
+        {visibleStages.map((stage) => {
+          const stageApps = grouped.get(stage.name) ?? [];
+          return (
+            <KanbanColumn
+              key={stage.id}
+              stage={stage}
+              apps={stageApps}
+              onStatusChange={onStatusChange}
+              onDelete={onDelete}
+              onSaveNotes={onSaveNotes}
+              onCreateInStage={onCreateInStage}
+              onToggleStar={onToggleStar}
+            />
+          );
+        })}
+      </div>
+      <DragOverlay
+        modifiers={[snapCenterToCursor]}
+        dropAnimation={{ duration: 180, easing: "ease" }}
       >
-        <div className="apps-kanban-board">
-          {visibleStages.map((stage) => {
-            const stageApps = grouped.get(stage.name) ?? [];
-            return (
-              <KanbanColumn
-                key={stage.id}
-                stage={stage}
-                apps={stageApps}
-                onStatusChange={onStatusChange}
-                onDelete={onDelete}
-                onOpenNotes={onOpenNotes}
-              />
-            );
-          })}
-        </div>
-        <DragOverlay
-          modifiers={[snapCenterToCursor]}
-          dropAnimation={{ duration: 180, easing: "ease" }}
-        >
-          {activeApp ? <DragPreview app={activeApp} /> : null}
-        </DragOverlay>
-      </DndContext>
-    </div>
+        {activeApp ? <DragPreview app={activeApp} /> : null}
+      </DragOverlay>
+    </DndContext>
   );
 }
 
-function StatStrip({
-  cells,
+export function ApplicationsStatStrip({
+  apps,
   stages,
-  countsByStage,
 }: {
-  cells: Array<{
-    label: string;
-    value: number;
-    sub: string;
-    role?: "neutral" | "active" | "win" | "loss";
-  }>;
+  apps: DbApplication[];
   stages: UserStage[];
-  countsByStage: Record<string, number>;
 }) {
+  const wins = apps.filter(
+    (a) => stages.find((s) => s.name === a.status)?.colorRole === "win",
+  ).length;
+  const losses = apps.filter(
+    (a) => stages.find((s) => s.name === a.status)?.colorRole === "loss",
+  ).length;
+  const active = apps.filter((a) => {
+    const s = stages.find((st) => st.name === a.status);
+    return s?.colorRole === "active";
+  }).length;
+  const started = apps.filter((a) => a.status === "STARTED").length;
+  const totalCount = apps.length;
+  const winRate = totalCount > 0 ? Math.round((wins / totalCount) * 100) : 0;
+
+  const cells = [
+    { label: "Saved", value: started, sub: "saved", role: "neutral" as const },
+    {
+      label: "In Progress",
+      value: active,
+      sub: "pending",
+      role: "active" as const,
+    },
+    {
+      label: "Accepted",
+      value: wins,
+      sub: `${winRate}%`,
+      role: "win" as const,
+    },
+    {
+      label: "Rejected",
+      value: losses,
+      sub: "closed",
+      role: "loss" as const,
+    },
+  ];
+
+  const countsByStage: Record<string, number> = {};
+  for (const s of stages) {
+    countsByStage[s.name] = apps.filter((a) => a.status === s.name).length;
+  }
   const max = Math.max(1, ...stages.map((s) => countsByStage[s.name] ?? 0));
+
   return (
     <div className="apps-stat-strip">
       {cells.map((c) => {
-        const palette = c.role ? rolePalette(c.role) : null;
+        const palette = rolePalette(c.role);
         return (
           <div key={c.label} className="apps-stat-cell">
             <div className="apps-stat-label">
-              {palette && (
-                <span
-                  className="apps-status-dot"
-                  style={{ background: palette.dot }}
-                />
-              )}
+              <span
+                className="apps-status-dot"
+                style={{ background: palette.dot }}
+              />
               {c.label}
             </div>
             <div
               className="apps-stat-value"
-              style={palette ? { color: palette.solid } : undefined}
+              style={{ color: palette.solid }}
             >
               {c.value}
             </div>
@@ -264,11 +273,12 @@ function StatStrip({
                 className="apps-mini-bar"
                 title={`${s.displayName}: ${count}`}
               >
+                <span className="apps-mini-bar-count">{count}</span>
                 <div
                   className="apps-mini-bar-fill"
                   style={{ height: h, background: palette.dot }}
                 />
-                <span className="apps-mini-bar-count">{count}</span>
+                <span className="apps-mini-bar-label">{s.displayName}</span>
               </div>
             );
           })}
@@ -283,13 +293,17 @@ function KanbanColumn({
   apps,
   onStatusChange,
   onDelete,
-  onOpenNotes,
+  onSaveNotes,
+  onCreateInStage,
+  onToggleStar,
 }: {
   stage: UserStage;
   apps: DbApplication[];
   onStatusChange: Props["onStatusChange"];
   onDelete: Props["onDelete"];
-  onOpenNotes: Props["onOpenNotes"];
+  onSaveNotes: Props["onSaveNotes"];
+  onCreateInStage: Props["onCreateInStage"];
+  onToggleStar: Props["onToggleStar"];
 }) {
   const palette = rolePalette(stage.colorRole);
   const { setNodeRef, isOver } = useDroppable({
@@ -297,10 +311,35 @@ function KanbanColumn({
     data: { stageName: stage.name },
   });
 
+  const [addOpen, setAddOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [company, setCompany] = useState("");
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [creating, setCreating] = useState(false);
+
+  function reset() {
+    setTitle("");
+    setCompany("");
+    setDate(new Date().toISOString().slice(0, 10));
+  }
+
+  async function submit() {
+    if (!title.trim() || !company.trim()) return;
+    setCreating(true);
+    try {
+      await onCreateInStage(title.trim(), company.trim(), stage.name, date);
+      reset();
+      setAddOpen(false);
+    } finally {
+      setCreating(false);
+    }
+  }
+
   return (
     <div
       ref={setNodeRef}
       className={"apps-kanban-col" + (isOver ? " is-drop-target" : "")}
+      style={{ borderTop: `3px solid ${palette.dot}` }}
     >
       <header className="apps-kc-col-head">
         <div className="apps-kc-col-head-left">
@@ -316,6 +355,96 @@ function KanbanColumn({
             {apps.length}
           </span>
         </div>
+        <Popover
+          opened={addOpen}
+          onChange={setAddOpen}
+          position="bottom-end"
+          shadow="md"
+          withinPortal
+          trapFocus
+        >
+          <Popover.Target>
+            <button
+              type="button"
+              className="apps-icon-btn"
+              aria-label={`Add to ${stage.displayName}`}
+              title={`Add to ${stage.displayName}`}
+              onClick={() => setAddOpen((o) => !o)}
+            >
+              <IconPlus size={14} />
+            </button>
+          </Popover.Target>
+          <Popover.Dropdown
+            style={{
+              backgroundColor: "#2e2e2e",
+              border: "2px solid #3a3a3a",
+              borderRadius: "0.65rem",
+              padding: 12,
+              width: 260,
+            }}
+          >
+            <Stack gap="xs">
+              <TextInput
+                size="xs"
+                placeholder="Role"
+                value={title}
+                onChange={(e) => setTitle(e.currentTarget.value)}
+                styles={{
+                  input: {
+                    backgroundColor: "#3a3a3a",
+                    border: "none",
+                    borderRadius: "0.4rem",
+                    color: "white",
+                  },
+                }}
+              />
+              <TextInput
+                size="xs"
+                placeholder="Company"
+                value={company}
+                onChange={(e) => setCompany(e.currentTarget.value)}
+                styles={{
+                  input: {
+                    backgroundColor: "#3a3a3a",
+                    border: "none",
+                    borderRadius: "0.4rem",
+                    color: "white",
+                  },
+                }}
+              />
+              <TextInput
+                size="xs"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.currentTarget.value)}
+                styles={{
+                  input: {
+                    backgroundColor: "#3a3a3a",
+                    border: "none",
+                    borderRadius: "0.4rem",
+                    color: "white",
+                    colorScheme: "dark",
+                  } as React.CSSProperties,
+                }}
+              />
+              <Button
+                size="xs"
+                fullWidth
+                loading={creating}
+                disabled={!title.trim() || !company.trim()}
+                onClick={submit}
+                style={{
+                  backgroundColor: "#ffe22f",
+                  color: "#1f1f1f",
+                  borderRadius: "0.5rem",
+                  fontWeight: 700,
+                }}
+              >
+                Add to {stage.displayName}
+              </Button>
+            </Stack>
+          </Popover.Dropdown>
+        </Popover>
       </header>
       <div className="apps-kc-col-body">
         {apps.length === 0 ? (
@@ -329,7 +458,8 @@ function KanbanColumn({
               app={a}
               onStatusChange={onStatusChange}
               onDelete={onDelete}
-              onOpenNotes={onOpenNotes}
+              onSaveNotes={onSaveNotes}
+              onToggleStar={onToggleStar}
             />
           ))
         )}
@@ -342,14 +472,15 @@ function KanbanCard({
   app,
   onStatusChange,
   onDelete,
-  onOpenNotes,
+  onSaveNotes,
+  onToggleStar,
 }: {
   app: DbApplication;
   onStatusChange: Props["onStatusChange"];
   onDelete: Props["onDelete"];
-  onOpenNotes: Props["onOpenNotes"];
+  onSaveNotes: Props["onSaveNotes"];
+  onToggleStar: Props["onToggleStar"];
 }) {
-  const [hover, setHover] = useState(false);
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: app._id, data: { status: app.status } });
 
@@ -359,13 +490,29 @@ function KanbanCard({
 
   const url = app.jobSnapshot.applicationUrl;
 
+  const [notesOpen, setNotesOpen] = useState(false);
+  const [draft, setDraft] = useState(app.notes ?? "");
+  const [savingNotes, setSavingNotes] = useState(false);
+
+  useEffect(() => {
+    if (!notesOpen) setDraft(app.notes ?? "");
+  }, [app.notes, notesOpen]);
+
+  async function saveNotes() {
+    setSavingNotes(true);
+    try {
+      await onSaveNotes(app.jobId, draft);
+      setNotesOpen(false);
+    } finally {
+      setSavingNotes(false);
+    }
+  }
+
   return (
     <article
       ref={setNodeRef}
       className={"apps-kanban-card" + (isDragging ? " is-dragging" : "")}
       style={style}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
       onClick={() => url && window.open(url, "_blank", "noreferrer")}
       {...attributes}
       {...listeners}
@@ -379,45 +526,109 @@ function KanbanCard({
         />
         <div className="apps-kc-head-text">
           <div className="apps-kc-company">{app.jobSnapshot.companyName}</div>
-          <div className="apps-kc-date">{relativeDate(app.updatedAt)}</div>
         </div>
       </header>
       <h3 className="apps-kc-role">{app.jobSnapshot.title}</h3>
       <footer className="apps-kc-foot">
-        {app.status === "STARTED" ? (
-          <button
-            type="button"
-            className="apps-quick-applied"
-            onClick={(e) => {
-              e.stopPropagation();
-              onStatusChange(app._id, app.jobId, "STARTED", "APPLIED");
-            }}
-          >
-            Mark Applied <IconCheck size={12} />
-          </button>
-        ) : (
-          <span className="apps-kc-foot-meta">
-            {relativeDate(app.updatedAt)}
-          </span>
-        )}
+        <span className="apps-kc-foot-meta">{relativeDate(app.updatedAt)}</span>
         <div className="apps-kc-foot-icons">
           <button
             type="button"
-            className={"apps-icon-btn" + (app.notes ? " has-notes" : "")}
-            aria-label={app.notes ? "Edit notes" : "Add notes"}
+            className={"apps-icon-btn" + (app.starred ? " is-starred" : "")}
+            aria-label={app.starred ? "Unstar" : "Star"}
+            title={app.starred ? "Unstar" : "Star"}
             onClick={(e) => {
               e.stopPropagation();
-              onOpenNotes(app._id);
+              onToggleStar(app._id, app.jobId, !app.starred);
             }}
           >
-            <IconNotes size={14} />
-            {app.notes && hover && (
-              <div className="apps-notes-pop">
-                <div className="apps-notes-pop-label">NOTES</div>
-                <div className="apps-notes-pop-body">{app.notes}</div>
-              </div>
+            {app.starred ? (
+              <IconStarFilled size={14} />
+            ) : (
+              <IconStar size={14} />
             )}
           </button>
+          {app.status === "STARTED" && (
+            <button
+              type="button"
+              className="apps-icon-btn"
+              aria-label="Mark applied"
+              title="Mark applied"
+              onClick={(e) => {
+                e.stopPropagation();
+                onStatusChange(app._id, app.jobId, "STARTED", "APPLIED");
+              }}
+            >
+              <IconCheck size={14} />
+            </button>
+          )}
+          <Popover
+            opened={notesOpen}
+            onChange={setNotesOpen}
+            position="bottom-end"
+            shadow="md"
+            withinPortal
+            trapFocus
+          >
+            <Popover.Target>
+              <button
+                type="button"
+                className={"apps-icon-btn" + (app.notes ? " has-notes" : "")}
+                aria-label={app.notes ? "Edit notes" : "Add notes"}
+                title={app.notes ? "Edit notes" : "Add notes"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setNotesOpen((o) => !o);
+                }}
+              >
+                <IconNotes size={14} />
+              </button>
+            </Popover.Target>
+            <Popover.Dropdown
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                backgroundColor: "#2e2e2e",
+                border: "2px solid #3a3a3a",
+                borderRadius: "0.65rem",
+                padding: 10,
+                width: 280,
+              }}
+            >
+              <Stack gap="xs">
+                <Textarea
+                  autosize
+                  minRows={4}
+                  maxRows={10}
+                  placeholder="Interview prep, recruiter, salary…"
+                  value={draft}
+                  onChange={(e) => setDraft(e.currentTarget.value)}
+                  styles={{
+                    input: {
+                      backgroundColor: "#3a3a3a",
+                      border: "none",
+                      borderRadius: "0.4rem",
+                      color: "white",
+                      fontSize: 13,
+                    },
+                  }}
+                />
+                <Button
+                  size="xs"
+                  fullWidth
+                  loading={savingNotes}
+                  onClick={saveNotes}
+                  style={{
+                    backgroundColor: "#ffe22f",
+                    color: "#1f1f1f",
+                    borderRadius: "0.5rem",
+                    fontWeight: 700,
+                  }}
+                >
+                  Save
+                </Button>
+              </Stack>
+            </Popover.Dropdown>
+          </Popover>
           <button
             type="button"
             className="apps-icon-btn"
@@ -447,7 +658,6 @@ function DragPreview({ app }: { app: DbApplication }) {
         />
         <div className="apps-kc-head-text">
           <div className="apps-kc-company">{app.jobSnapshot.companyName}</div>
-          <div className="apps-kc-date">{relativeDate(app.updatedAt)}</div>
         </div>
       </div>
       <h3 className="apps-kc-role">{app.jobSnapshot.title}</h3>
