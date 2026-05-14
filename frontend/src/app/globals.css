@@ -68,7 +68,7 @@ body {
 }
 
 /* ==========================================================================
-   Applications redesign — shared atoms + Kanban + Timeline
+   Applications redesign - shared atoms + Kanban
    ========================================================================== */
 
 .apps-status-dot {
@@ -327,6 +327,31 @@ body {
   font-size: 12.5px;
   color: var(--muted-3);
 }
+.apps-kc-show-more {
+  min-height: 36px;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--muted-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: lowercase;
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease;
+}
+.apps-kc-show-more:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: white;
+}
 
 .apps-kanban-card {
   background: var(--secondary);
@@ -450,238 +475,6 @@ body {
 }
 
 /* ==========================================================================
-   Timeline
-   ========================================================================== */
-.apps-tl-layout {
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 24px;
-  align-items: flex-start;
-}
-.apps-tl-main {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-}
-.apps-tl-group-head {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-bottom: 14px;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 10px;
-}
-.apps-tl-group-head h2 {
-  font-weight: 700;
-  font-size: 17px;
-  line-height: 1;
-  letter-spacing: -0.01em;
-  margin: 0;
-  color: white;
-}
-.apps-tl-group-count {
-  font-size: 12px;
-  color: var(--muted-3);
-}
-.apps-tl-list {
-  display: flex;
-  flex-direction: column;
-}
-.apps-tl-item {
-  display: grid;
-  grid-template-columns: 32px 1fr;
-  gap: 4px;
-  min-height: 110px;
-  position: relative;
-}
-.apps-tl-spine {
-  position: relative;
-  display: flex;
-  justify-content: center;
-}
-.apps-tl-spine::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: -10px;
-  width: 1px;
-  background: var(--border);
-  transform: translateX(-0.5px);
-}
-.apps-tl-item:last-child .apps-tl-spine::before {
-  bottom: 50%;
-}
-.apps-tl-dot {
-  position: relative;
-  z-index: 1;
-  width: 12px;
-  height: 12px;
-  border-radius: 9999px;
-  margin-top: 22px;
-  border: 2px solid var(--background);
-}
-.apps-tl-card {
-  background: var(--secondary);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: 0.75rem;
-  padding: 14px 16px;
-  margin-bottom: 10px;
-  position: relative;
-  transition: border-color 0.12s ease;
-}
-.apps-tl-card:hover {
-  border-color: var(--border);
-}
-.apps-tl-card-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12.5px;
-  color: var(--muted-2);
-  margin-bottom: 6px;
-}
-.apps-tl-verb {
-  color: var(--muted-1);
-  font-weight: 500;
-}
-.apps-tl-company {
-  font-weight: 600;
-  color: white;
-}
-.apps-tl-date {
-  margin-left: auto;
-  font-size: 12px;
-  color: var(--muted-3);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.apps-tl-role {
-  font-weight: 700;
-  font-size: 17px;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-  margin: 0 0 10px;
-  color: white;
-}
-.apps-tl-card-foot {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.apps-tl-status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 4px 8px;
-  border: 0;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  font-size: 11.5px;
-  line-height: 1;
-  cursor: pointer;
-  white-space: nowrap;
-  font-family: inherit;
-}
-.apps-tl-notes {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 9px;
-  background: rgba(255, 226, 47, 0.08);
-  border: 0;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  color: var(--muted-1);
-  font-weight: 500;
-  font-size: 12px;
-  line-height: 1;
-  position: relative;
-  font-family: inherit;
-}
-.apps-tl-notes:hover {
-  background: rgba(255, 226, 47, 0.14);
-  color: white;
-}
-.apps-tl-spacer {
-  flex: 1;
-}
-.apps-notes-pop-tl {
-  bottom: calc(100% + 10px);
-  left: -4px;
-  right: auto;
-}
-.apps-notes-pop-tl::after {
-  right: auto;
-  left: 16px;
-}
-
-/* Right rail */
-.apps-tl-rail {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  position: sticky;
-  top: 12px;
-}
-.apps-tl-rail-card {
-  background: var(--secondary);
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  padding: 18px;
-}
-.apps-tl-rail-head {
-  font-weight: 600;
-  font-size: 11px;
-  line-height: 1;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-  color: var(--muted-1);
-  margin-bottom: 12px;
-}
-.apps-vsankey-svg {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-.apps-tl-rail-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.apps-tl-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.apps-tl-stat-label {
-  font-weight: 600;
-  font-size: 10.5px;
-  line-height: 1;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  color: var(--muted-2);
-}
-.apps-tl-stat-value {
-  font-weight: 800;
-  font-size: 28px;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  color: white;
-}
-.apps-tl-stat-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-}
-.apps-tl-stat-row .apps-tl-stat-value {
-  font-size: 20px;
-}
-
-/* ==========================================================================
    Responsive collapses
    ========================================================================== */
 @media (max-width: 1024px) {
@@ -690,12 +483,6 @@ body {
   }
   .apps-stat-strip {
     grid-template-columns: repeat(3, 1fr);
-  }
-  .apps-tl-layout {
-    grid-template-columns: 1fr;
-  }
-  .apps-tl-rail {
-    position: static;
   }
 }
 @media (max-width: 640px) {

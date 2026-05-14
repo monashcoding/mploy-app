@@ -25,6 +25,7 @@ import {
 } from "@mantine/core";
 import {
   IconCheck,
+  IconChevronsDown,
   IconNotes,
   IconPlus,
   IconStar,
@@ -42,6 +43,8 @@ import {
 
 export type KanbanSort = "newest" | "oldest";
 export type KanbanDensity = "compact" | "detailed";
+
+const VISIBLE_CARDS_PER_COLUMN = 4;
 
 const cursorCollisionDetection: CollisionDetection = (args) => {
   const pointer = pointerWithin(args);
@@ -329,6 +332,13 @@ function KanbanColumn({
   const [creating, setCreating] = useState(false);
   const [clearOpen, setClearOpen] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  const hasHiddenApps = apps.length > VISIBLE_CARDS_PER_COLUMN;
+  const visibleApps = expanded
+    ? apps
+    : apps.slice(0, VISIBLE_CARDS_PER_COLUMN);
+  const hiddenCount = apps.length - visibleApps.length;
 
   async function confirmClear() {
     setClearing(true);
@@ -537,7 +547,7 @@ function KanbanColumn({
             No {stage.displayName.toLowerCase()}
           </div>
         ) : (
-          apps.map((a) => (
+          visibleApps.map((a) => (
             <KanbanCard
               key={a._id}
               app={a}
@@ -548,6 +558,17 @@ function KanbanColumn({
               density={density}
             />
           ))
+        )}
+        {hasHiddenApps && !expanded && (
+          <button
+            type="button"
+            className="apps-kc-show-more"
+            aria-label={`Show ${hiddenCount} more application${hiddenCount === 1 ? "" : "s"} in ${stage.displayName}`}
+            onClick={() => setExpanded(true)}
+          >
+            <span>Show More</span>
+            <IconChevronsDown size={16} aria-hidden />
+          </button>
         )}
       </div>
     </div>

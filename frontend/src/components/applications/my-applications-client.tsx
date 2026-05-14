@@ -18,11 +18,9 @@ import {
   IconEye,
   IconFilter,
   IconInfoCircle,
-  IconLayoutKanban,
   IconLayoutList,
   IconLayoutCards,
   IconSearch,
-  IconTimeline,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import {
@@ -43,30 +41,15 @@ import {
   updateApplicationNotes,
   updateApplicationStatus,
 } from "@/app/my-applications/actions";
-import NotesModal from "@/components/applications/notes-modal";
 import ApplicationsKanban, {
   ApplicationsStatStrip,
   KanbanDensity,
   KanbanSort,
 } from "@/components/applications/applications-kanban";
-import ApplicationsTimeline from "@/components/applications/applications-timeline";
 import { rolePalette } from "@/lib/role-palette";
 
-type ViewMode = "kanban" | "timeline";
-const VIEW_STORAGE_KEY = "mp:apps:view:v1";
 const SORT_STORAGE_KEY = "mp:apps:kanban-sort:v1";
 const DENSITY_STORAGE_KEY = "mp:apps:kanban-density:v1";
-
-function readView(): ViewMode {
-  if (typeof window === "undefined") return "kanban";
-  try {
-    const raw = window.localStorage.getItem(VIEW_STORAGE_KEY);
-    if (raw === "kanban" || raw === "timeline") return raw;
-  } catch {
-    // ignore
-  }
-  return "kanban";
-}
 
 function readSort(): KanbanSort {
   if (typeof window === "undefined") return "newest";
@@ -116,22 +99,12 @@ export default function MyApplicationsClient({
   const [apps, setApps] = useState<DbApplication[]>(initial);
   const stages = initialStages;
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
-  const [view, setView] = useState<ViewMode>(readView);
   const [sort, setSort] = useState<KanbanSort>(readSort);
   const [density, setDensity] = useState<KanbanDensity>(readDensity);
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleStages, setVisibleStages] = useState<string[]>(() =>
     stages.map((s) => s.name),
   );
-  const [notesAppId, setNotesAppId] = useState<string | null>(null);
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(VIEW_STORAGE_KEY, view);
-    } catch {
-      // ignore
-    }
-  }, [view]);
 
   useEffect(() => {
     try {
@@ -268,10 +241,6 @@ export default function MyApplicationsClient({
     }
   }
 
-  const notesApp = notesAppId
-    ? (apps.find((a) => a._id === notesAppId) ?? null)
-    : null;
-
   if (sessionStatus === "unauthenticated") {
     return (
       <Box
@@ -395,9 +364,7 @@ export default function MyApplicationsClient({
         </div>
       </div>
 
-      {view === "kanban" && (
-        <ApplicationsStatStrip apps={apps} stages={stages} />
-      )}
+      <ApplicationsStatStrip apps={apps} stages={stages} />
 
       {/* Toolbar */}
       <div className="flex items-center gap-2 flex-wrap">
@@ -425,24 +392,24 @@ export default function MyApplicationsClient({
 
         <div className="flex items-center gap-2 flex-wrap ml-auto">
           <SegmentedControl
-            value={view}
-            onChange={(v) => setView(v as ViewMode)}
+            value={density}
+            onChange={(v) => setDensity(v as KanbanDensity)}
             data={[
               {
-                value: "kanban",
+                value: "compact",
                 label: (
                   <Group gap={6} wrap="nowrap">
-                    <IconLayoutKanban size={14} />
-                    <span className="hidden sm:inline">Kanban</span>
+                    <IconLayoutList size={14} />
+                    <span className="hidden sm:inline">Compact</span>
                   </Group>
                 ),
               },
               {
-                value: "timeline",
+                value: "detailed",
                 label: (
                   <Group gap={6} wrap="nowrap">
-                    <IconTimeline size={14} />
-                    <span className="hidden sm:inline">Timeline</span>
+                    <IconLayoutCards size={14} />
+                    <span className="hidden sm:inline">Detailed</span>
                   </Group>
                 ),
               },
@@ -450,122 +417,69 @@ export default function MyApplicationsClient({
             styles={segmentedStyles}
           />
 
-          {view === "kanban" && (
-            <>
-              <SegmentedControl
-                value={density}
-                onChange={(v) => setDensity(v as KanbanDensity)}
-                data={[
-                  {
-                    value: "compact",
-                    label: (
-                      <Group gap={6} wrap="nowrap">
-                        <IconLayoutList size={14} />
-                        <span className="hidden sm:inline">Compact</span>
-                      </Group>
-                    ),
-                  },
-                  {
-                    value: "detailed",
-                    label: (
-                      <Group gap={6} wrap="nowrap">
-                        <IconLayoutCards size={14} />
-                        <span className="hidden sm:inline">Detailed</span>
-                      </Group>
-                    ),
-                  },
-                ]}
-                styles={segmentedStyles}
-              />
+          <Select
+            value={sort}
+            onChange={(v) => v && setSort(v as KanbanSort)}
+            data={[
+              { value: "newest", label: "Newest first" },
+              { value: "oldest", label: "Oldest first" },
+            ]}
+            allowDeselect={false}
+            leftSection={<IconFilter size={14} />}
+            styles={compactSelectStyles}
+          />
 
-              <Select
-                value={sort}
-                onChange={(v) => v && setSort(v as KanbanSort)}
-                data={[
-                  { value: "newest", label: "Newest first" },
-                  { value: "oldest", label: "Oldest first" },
-                ]}
-                allowDeselect={false}
-                leftSection={<IconFilter size={14} />}
-                styles={compactSelectStyles}
-              />
-
-              <Popover position="bottom-end" shadow="md" withinPortal>
-                <Popover.Target>
-                  <button className={compactBtn} style={compactBtnStyle}>
-                    <IconEye size={14} />
-                    <span>Columns</span>
-                    <IconChevronDown size={12} />
-                  </button>
-                </Popover.Target>
-                <Popover.Dropdown
-                  style={{
-                    backgroundColor: "#2e2e2e",
-                    border: "2px solid #3a3a3a",
-                    borderRadius: "0.65rem",
-                  }}
-                >
-                  <Checkbox.Group
-                    value={visibleStages}
-                    onChange={setVisibleStages}
-                  >
-                    <Stack gap="xs">
-                      {stages.map((s) => (
-                        <Checkbox
-                          key={s.id}
-                          value={s.name}
-                          color="accent"
-                          iconColor="#1f1f1f"
-                          label={
-                            <Group gap="xs" align="center">
-                              <StatusDot role={s.colorRole} />
-                              <Text size="sm">{s.displayName}</Text>
-                            </Group>
-                          }
-                        />
-                      ))}
-                    </Stack>
-                  </Checkbox.Group>
-                </Popover.Dropdown>
-              </Popover>
-            </>
-          )}
+          <Popover position="bottom-end" shadow="md" withinPortal>
+            <Popover.Target>
+              <button className={compactBtn} style={compactBtnStyle}>
+                <IconEye size={14} />
+                <span>Columns</span>
+                <IconChevronDown size={12} />
+              </button>
+            </Popover.Target>
+            <Popover.Dropdown
+              style={{
+                backgroundColor: "#2e2e2e",
+                border: "2px solid #3a3a3a",
+                borderRadius: "0.65rem",
+              }}
+            >
+              <Checkbox.Group value={visibleStages} onChange={setVisibleStages}>
+                <Stack gap="xs">
+                  {stages.map((s) => (
+                    <Checkbox
+                      key={s.id}
+                      value={s.name}
+                      color="accent"
+                      iconColor="#1f1f1f"
+                      label={
+                        <Group gap="xs" align="center">
+                          <StatusDot role={s.colorRole} />
+                          <Text size="sm">{s.displayName}</Text>
+                        </Group>
+                      }
+                    />
+                  ))}
+                </Stack>
+              </Checkbox.Group>
+            </Popover.Dropdown>
+          </Popover>
         </div>
       </div>
 
-      <NotesModal
-        opened={notesApp !== null}
-        onClose={() => setNotesAppId(null)}
-        initialNotes={notesApp?.notes}
-        appTitle={notesApp?.jobSnapshot.title ?? ""}
-        appCompany={notesApp?.jobSnapshot.companyName ?? ""}
-        onSave={async (notes) => {
-          if (notesApp) await handleSaveNotes(notesApp.jobId, notes);
-        }}
+      <ApplicationsKanban
+        apps={filteredApps}
+        stages={stages}
+        visibleStageNames={visibleStages}
+        sort={sort}
+        onStatusChange={handleStatusChange}
+        onDelete={handleDelete}
+        onSaveNotes={handleSaveNotes}
+        onCreateInStage={handleCreateInStage}
+        onToggleStar={handleToggleStar}
+        onClearStage={handleClearStage}
+        density={density}
       />
-
-      {view === "kanban" ? (
-        <ApplicationsKanban
-          apps={filteredApps}
-          stages={stages}
-          visibleStageNames={visibleStages}
-          sort={sort}
-          onStatusChange={handleStatusChange}
-          onDelete={handleDelete}
-          onSaveNotes={handleSaveNotes}
-          onCreateInStage={handleCreateInStage}
-          onToggleStar={handleToggleStar}
-          onClearStage={handleClearStage}
-          density={density}
-        />
-      ) : (
-        <ApplicationsTimeline
-          apps={filteredApps}
-          stages={stages}
-          onStatusChange={handleStatusChange}
-          onOpenNotes={(id) => setNotesAppId(id)}
-        />
-      )}
     </div>
   );
 }
