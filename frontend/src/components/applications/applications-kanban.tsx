@@ -40,11 +40,20 @@ import {
   DbApplication,
   UserStage,
 } from "@/types/application";
+import macSquareLogo from "@/assets/mac-square.png";
 
 export type KanbanSort = "newest" | "oldest";
 export type KanbanDensity = "compact" | "detailed";
 
 const VISIBLE_CARDS_PER_COLUMN = 4;
+
+function applicationLogo(app: DbApplication) {
+  const isCustomApplication =
+    app.jobId.startsWith("custom_") ||
+    app.jobSnapshot.jobId.startsWith("custom_");
+
+  return isCustomApplication ? macSquareLogo.src : app.jobSnapshot.logo;
+}
 
 const cursorCollisionDetection: CollisionDetection = (args) => {
   const pointer = pointerWithin(args);
@@ -633,7 +642,7 @@ function KanbanCard({
       <header className="apps-kc-head">
         <CompanyLogo
           name={app.jobSnapshot.companyName}
-          logo={app.jobSnapshot.logo}
+          logo={applicationLogo(app)}
           applicationUrl={app.jobSnapshot.applicationUrl}
           className="h-7 w-7 flex-shrink-0"
         />
@@ -765,7 +774,7 @@ function DragPreview({ app }: { app: DbApplication }) {
       <div className="apps-kc-head" style={{ marginBottom: 8 }}>
         <CompanyLogo
           name={app.jobSnapshot.companyName}
-          logo={app.jobSnapshot.logo}
+          logo={applicationLogo(app)}
           applicationUrl={app.jobSnapshot.applicationUrl}
           className="h-7 w-7 flex-shrink-0"
         />
