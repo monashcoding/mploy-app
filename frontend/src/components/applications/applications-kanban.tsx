@@ -68,6 +68,7 @@ type Props = {
     date: string,
   ) => Promise<void>;
   onToggleStar: (appId: string, jobId: string, next: boolean) => void;
+  onClearStage: (stageName: string) => Promise<void>;
 };
 
 export default function ApplicationsKanban({
@@ -80,6 +81,7 @@ export default function ApplicationsKanban({
   onSaveNotes,
   onCreateInStage,
   onToggleStar,
+  onClearStage,
 }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -174,6 +176,7 @@ export default function ApplicationsKanban({
               onSaveNotes={onSaveNotes}
               onCreateInStage={onCreateInStage}
               onToggleStar={onToggleStar}
+              onClearStage={onClearStage}
             />
           );
         })}
@@ -296,6 +299,7 @@ function KanbanColumn({
   onSaveNotes,
   onCreateInStage,
   onToggleStar,
+  onClearStage,
 }: {
   stage: UserStage;
   apps: DbApplication[];
@@ -304,6 +308,7 @@ function KanbanColumn({
   onSaveNotes: Props["onSaveNotes"];
   onCreateInStage: Props["onCreateInStage"];
   onToggleStar: Props["onToggleStar"];
+  onClearStage: Props["onClearStage"];
 }) {
   const palette = rolePalette(stage.colorRole);
   const { setNodeRef, isOver } = useDroppable({
@@ -316,6 +321,18 @@ function KanbanColumn({
   const [company, setCompany] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [creating, setCreating] = useState(false);
+  const [clearOpen, setClearOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
+
+  async function confirmClear() {
+    setClearing(true);
+    try {
+      await onClearStage(stage.name);
+      setClearOpen(false);
+    } finally {
+      setClearing(false);
+    }
+  }
 
   function reset() {
     setTitle("");
@@ -343,10 +360,6 @@ function KanbanColumn({
     >
       <header className="apps-kc-col-head">
         <div className="apps-kc-col-head-left">
-          <span
-            className="apps-status-dot"
-            style={{ background: palette.dot, width: 9, height: 9 }}
-          />
           <span className="apps-kc-col-name">{stage.displayName}</span>
           <span
             className="apps-count-pill"
@@ -355,6 +368,71 @@ function KanbanColumn({
             {apps.length}
           </span>
         </div>
+        <div className="apps-kc-col-head-actions">
+        {apps.length > 0 && (
+          <Popover
+            opened={clearOpen}
+            onChange={setClearOpen}
+            position="bottom-end"
+            shadow="md"
+            withinPortal
+            trapFocus
+          >
+            <Popover.Target>
+              <button
+                type="button"
+                className="apps-icon-btn"
+                aria-label={`Clear ${stage.displayName}`}
+                title={`Clear ${stage.displayName}`}
+                onClick={() => setClearOpen((o) => !o)}
+              >
+                <IconTrash size={14} />
+              </button>
+            </Popover.Target>
+            <Popover.Dropdown
+              style={{
+                backgroundColor: "#2e2e2e",
+                border: "2px solid #3a3a3a",
+                borderRadius: "0.65rem",
+                padding: 12,
+                width: 240,
+              }}
+            >
+              <Stack gap="xs">
+                <div style={{ color: "white", fontSize: 13 }}>
+                  Clear {apps.length} application{apps.length === 1 ? "" : "s"} in {stage.displayName}?
+                </div>
+                <Button
+                  size="xs"
+                  fullWidth
+                  loading={clearing}
+                  onClick={confirmClear}
+                  style={{
+                    backgroundColor: "#e03131",
+                    color: "white",
+                    borderRadius: "0.5rem",
+                    fontWeight: 700,
+                  }}
+                >
+                  Clear
+                </Button>
+                <Button
+                  size="xs"
+                  fullWidth
+                  variant="subtle"
+                  onClick={() => setClearOpen(false)}
+                  style={{
+                    color: "rgba(255,255,255,0.7)",
+                    borderRadius: "0.5rem",
+                    fontWeight: 600,
+                  }}
+                >
+                  Cancel
+                </Button>
+              </Stack>
+            </Popover.Dropdown>
+          </Popover>
+        )}
         <Popover
           opened={addOpen}
           onChange={setAddOpen}
@@ -445,6 +523,7 @@ function KanbanColumn({
             </Stack>
           </Popover.Dropdown>
         </Popover>
+        </div>
       </header>
       <div className="apps-kc-col-body">
         {apps.length === 0 ? (

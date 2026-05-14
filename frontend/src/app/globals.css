@@ -187,7 +187,7 @@ body {
    ========================================================================== */
 .apps-stat-strip {
   display: grid;
-  grid-template-columns: repeat(4, 1fr) 1.4fr;
+  grid-template-columns: repeat(4, 0.75fr) 2.6fr;
   gap: 1px;
   background: var(--border);
   border: 1px solid var(--border);
@@ -196,31 +196,31 @@ body {
 }
 .apps-stat-cell {
   background: var(--secondary);
-  padding: 16px 20px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 .apps-stat-label {
   font-weight: 600;
-  font-size: 11px;
+  font-size: 10.5px;
   line-height: 1;
-  letter-spacing: 1.2px;
+  letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--muted-2);
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
 }
 .apps-stat-value {
   font-weight: 800;
-  font-size: 32px;
+  font-size: 24px;
   line-height: 1;
   letter-spacing: -0.02em;
   color: white;
 }
 .apps-stat-sub {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--muted-3);
 }
 .apps-stat-spark {
@@ -302,6 +302,11 @@ body {
   align-items: center;
   gap: 8px;
 }
+.apps-kc-col-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
 .apps-kc-col-name {
   font-weight: 700;
   font-size: 15px;
@@ -313,6 +318,24 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-height: calc(100svh - 360px);
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+.apps-kc-col-body::-webkit-scrollbar {
+  width: 6px;
+}
+.apps-kc-col-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.apps-kc-col-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+.apps-kc-col-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 .apps-kc-col-empty {
   padding: 24px 12px;
@@ -339,7 +362,7 @@ body {
   border-color: var(--border);
 }
 .apps-kanban-card.is-dragging {
-  opacity: 0.3;
+  visibility: hidden;
 }
 .apps-kc-head {
   display: flex;

@@ -8,10 +8,8 @@ export default async function MyApplicationsPage() {
   const apps = await listApplications().catch(() => []);
 
   return (
-    <div className="h-[calc(100svh-140px)] lg:h-[calc(100svh-180px)] overflow-y-auto">
-      <div className="max-w-7xl mx-auto py-6 px-6">
-        <MyApplicationsClient initial={apps} initialStages={STAGES} />
-      </div>
+    <div className="max-w-7xl mx-auto py-6 px-6">
+      <MyApplicationsClient initial={apps} initialStages={STAGES} />
     </div>
   );
 }

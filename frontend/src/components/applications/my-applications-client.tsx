@@ -182,6 +182,20 @@ export default function MyApplicationsClient({
     }
   }
 
+  async function handleClearStage(stageName: string) {
+    const toRemove = apps.filter((a) => a.status === stageName);
+    if (toRemove.length === 0) return;
+    const removedIds = new Set(toRemove.map((a) => a._id));
+    setApps((prev) => prev.filter((a) => !removedIds.has(a._id)));
+    const results = await Promise.allSettled(
+      toRemove.map((a) => deleteApplication(a.jobId)),
+    );
+    const restored = toRemove.filter((_, i) => results[i].status === "rejected");
+    if (restored.length > 0) {
+      setApps((prev) => [...restored, ...prev]);
+    }
+  }
+
   async function handleToggleStar(
     appId: string,
     jobId: string,
@@ -273,6 +287,7 @@ export default function MyApplicationsClient({
   } as const;
 
   const compactSelectStyles = {
+    root: { width: 165 },
     input: {
       backgroundColor: "transparent",
       border: "2px solid #3a3a3a",
@@ -285,7 +300,7 @@ export default function MyApplicationsClient({
       paddingTop: 0,
       paddingBottom: 0,
       paddingLeft: 32,
-      minWidth: 140,
+      width: 165,
     },
     section: { width: 30 },
     dropdown: {
@@ -490,6 +505,7 @@ export default function MyApplicationsClient({
           onSaveNotes={handleSaveNotes}
           onCreateInStage={handleCreateInStage}
           onToggleStar={handleToggleStar}
+          onClearStage={handleClearStage}
         />
       ) : (
         <ApplicationsTimeline
