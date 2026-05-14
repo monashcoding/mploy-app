@@ -317,25 +317,7 @@ body {
 .apps-kc-col-body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-height: calc(100svh - 360px);
-  overflow-y: auto;
-  padding-right: 4px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
-}
-.apps-kc-col-body::-webkit-scrollbar {
-  width: 6px;
-}
-.apps-kc-col-body::-webkit-scrollbar-track {
-  background: transparent;
-}
-.apps-kc-col-body::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
-}
-.apps-kc-col-body::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  gap: 6px;
 }
 .apps-kc-col-empty {
   padding: 24px 12px;
@@ -414,6 +396,43 @@ body {
 .apps-kc-foot-icons {
   display: flex;
   gap: 2px;
+}
+
+/* Compact density */
+.apps-kanban-card--compact {
+  padding: 6px 8px;
+  gap: 2px;
+  border-radius: 0.5rem;
+}
+.apps-kanban-card--compact .apps-kc-head {
+  gap: 6px;
+}
+.apps-kanban-card--compact .apps-kc-head > :first-child {
+  width: 18px !important;
+  height: 18px !important;
+}
+.apps-kanban-card--compact .apps-kc-company {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted-2);
+}
+.apps-kanban-card--compact .apps-kc-role {
+  font-size: 12.5px;
+  line-height: 1.25;
+  -webkit-line-clamp: 1;
+}
+.apps-kanban-card--compact .apps-kc-foot {
+  display: none;
+  padding-top: 2px;
+}
+.apps-kanban-card--compact:hover .apps-kc-foot,
+.apps-kanban-card--compact:focus-within .apps-kc-foot {
+  display: flex;
+}
+@media (hover: none) {
+  .apps-kanban-card--compact .apps-kc-foot {
+    display: flex;
+  }
 }
 
 /* Kanban drag preview floating card */

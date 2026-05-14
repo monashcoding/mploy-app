@@ -41,6 +41,7 @@ import {
 } from "@/types/application";
 
 export type KanbanSort = "newest" | "oldest";
+export type KanbanDensity = "compact" | "detailed";
 
 const cursorCollisionDetection: CollisionDetection = (args) => {
   const pointer = pointerWithin(args);
@@ -69,6 +70,7 @@ type Props = {
   ) => Promise<void>;
   onToggleStar: (appId: string, jobId: string, next: boolean) => void;
   onClearStage: (stageName: string) => Promise<void>;
+  density: KanbanDensity;
 };
 
 export default function ApplicationsKanban({
@@ -82,6 +84,7 @@ export default function ApplicationsKanban({
   onCreateInStage,
   onToggleStar,
   onClearStage,
+  density,
 }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -177,6 +180,7 @@ export default function ApplicationsKanban({
               onCreateInStage={onCreateInStage}
               onToggleStar={onToggleStar}
               onClearStage={onClearStage}
+              density={density}
             />
           );
         })}
@@ -300,6 +304,7 @@ function KanbanColumn({
   onCreateInStage,
   onToggleStar,
   onClearStage,
+  density,
 }: {
   stage: UserStage;
   apps: DbApplication[];
@@ -309,6 +314,7 @@ function KanbanColumn({
   onCreateInStage: Props["onCreateInStage"];
   onToggleStar: Props["onToggleStar"];
   onClearStage: Props["onClearStage"];
+  density: KanbanDensity;
 }) {
   const palette = rolePalette(stage.colorRole);
   const { setNodeRef, isOver } = useDroppable({
@@ -539,6 +545,7 @@ function KanbanColumn({
               onDelete={onDelete}
               onSaveNotes={onSaveNotes}
               onToggleStar={onToggleStar}
+              density={density}
             />
           ))
         )}
@@ -553,12 +560,14 @@ function KanbanCard({
   onDelete,
   onSaveNotes,
   onToggleStar,
+  density,
 }: {
   app: DbApplication;
   onStatusChange: Props["onStatusChange"];
   onDelete: Props["onDelete"];
   onSaveNotes: Props["onSaveNotes"];
   onToggleStar: Props["onToggleStar"];
+  density: KanbanDensity;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: app._id, data: { status: app.status } });
@@ -590,7 +599,11 @@ function KanbanCard({
   return (
     <article
       ref={setNodeRef}
-      className={"apps-kanban-card" + (isDragging ? " is-dragging" : "")}
+      className={
+        "apps-kanban-card" +
+        (density === "compact" ? " apps-kanban-card--compact" : "") +
+        (isDragging ? " is-dragging" : "")
+      }
       style={style}
       onClick={() => url && window.open(url, "_blank", "noreferrer")}
       {...attributes}

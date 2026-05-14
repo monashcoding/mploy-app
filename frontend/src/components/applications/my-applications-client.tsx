@@ -19,6 +19,8 @@ import {
   IconFilter,
   IconInfoCircle,
   IconLayoutKanban,
+  IconLayoutList,
+  IconLayoutCards,
   IconSearch,
   IconTimeline,
 } from "@tabler/icons-react";
@@ -44,6 +46,7 @@ import {
 import NotesModal from "@/components/applications/notes-modal";
 import ApplicationsKanban, {
   ApplicationsStatStrip,
+  KanbanDensity,
   KanbanSort,
 } from "@/components/applications/applications-kanban";
 import ApplicationsTimeline from "@/components/applications/applications-timeline";
@@ -52,6 +55,7 @@ import { rolePalette } from "@/lib/role-palette";
 type ViewMode = "kanban" | "timeline";
 const VIEW_STORAGE_KEY = "mp:apps:view:v1";
 const SORT_STORAGE_KEY = "mp:apps:kanban-sort:v1";
+const DENSITY_STORAGE_KEY = "mp:apps:kanban-density:v1";
 
 function readView(): ViewMode {
   if (typeof window === "undefined") return "kanban";
@@ -73,6 +77,17 @@ function readSort(): KanbanSort {
     // ignore
   }
   return "newest";
+}
+
+function readDensity(): KanbanDensity {
+  if (typeof window === "undefined") return "detailed";
+  try {
+    const raw = window.localStorage.getItem(DENSITY_STORAGE_KEY);
+    if (raw === "compact" || raw === "detailed") return raw;
+  } catch {
+    // ignore
+  }
+  return "detailed";
 }
 
 function StatusDot({ role }: { role: StageColorRole }) {
@@ -103,6 +118,7 @@ export default function MyApplicationsClient({
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [view, setView] = useState<ViewMode>(readView);
   const [sort, setSort] = useState<KanbanSort>(readSort);
+  const [density, setDensity] = useState<KanbanDensity>(readDensity);
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleStages, setVisibleStages] = useState<string[]>(() =>
     stages.map((s) => s.name),
@@ -124,6 +140,14 @@ export default function MyApplicationsClient({
       // ignore
     }
   }, [sort]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(DENSITY_STORAGE_KEY, density);
+    } catch {
+      // ignore
+    }
+  }, [density]);
 
   useEffect(() => {
     if (sessionStatus !== "authenticated") return;
@@ -428,6 +452,32 @@ export default function MyApplicationsClient({
 
           {view === "kanban" && (
             <>
+              <SegmentedControl
+                value={density}
+                onChange={(v) => setDensity(v as KanbanDensity)}
+                data={[
+                  {
+                    value: "compact",
+                    label: (
+                      <Group gap={6} wrap="nowrap">
+                        <IconLayoutList size={14} />
+                        <span className="hidden sm:inline">Compact</span>
+                      </Group>
+                    ),
+                  },
+                  {
+                    value: "detailed",
+                    label: (
+                      <Group gap={6} wrap="nowrap">
+                        <IconLayoutCards size={14} />
+                        <span className="hidden sm:inline">Detailed</span>
+                      </Group>
+                    ),
+                  },
+                ]}
+                styles={segmentedStyles}
+              />
+
               <Select
                 value={sort}
                 onChange={(v) => v && setSort(v as KanbanSort)}
@@ -506,6 +556,7 @@ export default function MyApplicationsClient({
           onCreateInStage={handleCreateInStage}
           onToggleStar={handleToggleStar}
           onClearStage={handleClearStage}
+          density={density}
         />
       ) : (
         <ApplicationsTimeline
