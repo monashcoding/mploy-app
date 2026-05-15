@@ -30,7 +30,9 @@ function requireUserId(session: any) {
   return id;
 }
 
-function serializeCycle(doc: Partial<RecruitmentCycleRecord>): RecruitmentCycle {
+function serializeCycle(
+  doc: Partial<RecruitmentCycleRecord>,
+): RecruitmentCycle {
   const now = new Date().toISOString();
 
   return {
@@ -42,10 +44,7 @@ function serializeCycle(doc: Partial<RecruitmentCycleRecord>): RecruitmentCycle 
   };
 }
 
-async function ensureDefaultCycle(
-  db: Db,
-  userObjectId: ObjectId,
-) {
+async function ensureDefaultCycle(db: Db, userObjectId: ObjectId) {
   const now = new Date();
 
   await db.collection<RecruitmentCycleRecord>("application_cycles").updateOne(
@@ -106,9 +105,9 @@ export async function createRecruitmentCycle(
   };
 
   await ensureDefaultCycle(db, userObjectId);
-  await db.collection<RecruitmentCycleRecord>("application_cycles").insertOne(
-    doc,
-  );
+  await db
+    .collection<RecruitmentCycleRecord>("application_cycles")
+    .insertOne(doc);
 
   return serializeCycle(doc);
 }
@@ -128,10 +127,12 @@ export async function renameRecruitmentCycle(
   const now = new Date();
 
   await ensureDefaultCycle(db, userObjectId);
-  await db.collection<RecruitmentCycleRecord>("application_cycles").updateOne(
-    { userId: userObjectId, cycleId },
-    { $set: { name: trimmed, updatedAt: now } },
-  );
+  await db
+    .collection<RecruitmentCycleRecord>("application_cycles")
+    .updateOne(
+      { userId: userObjectId, cycleId },
+      { $set: { name: trimmed, updatedAt: now } },
+    );
 
   const doc = await db
     .collection<RecruitmentCycleRecord>("application_cycles")
@@ -158,7 +159,9 @@ export async function deleteRecruitmentCycle(cycleId: string) {
     .deleteOne({ userId: userObjectId, cycleId });
   const moved = await db.collection("applications").updateMany(
     { userId: userObjectId, cycleId },
-    { $set: { cycleId: DEFAULT_RECRUITMENT_CYCLE_ID, updatedAt: new Date() } },
+    {
+      $set: { cycleId: DEFAULT_RECRUITMENT_CYCLE_ID, updatedAt: new Date() },
+    },
   );
 
   return { ok: true, moved: moved.modifiedCount };
@@ -369,10 +372,7 @@ export async function toggleApplicationStar(jobId: string, starred: boolean) {
 
   await db
     .collection("applications")
-    .updateOne(
-      { userId: new ObjectId(userId), jobId },
-      { $set: { starred } },
-    );
+    .updateOne({ userId: new ObjectId(userId), jobId }, { $set: { starred } });
 
   return { ok: true, starred };
 }

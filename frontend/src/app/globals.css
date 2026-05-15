@@ -108,7 +108,9 @@ body {
   cursor: pointer;
   position: relative;
   color: rgba(255, 255, 255, 0.5);
-  transition: background-color 0.12s ease, color 0.12s ease;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
 }
 .apps-icon-btn:hover {
   background: rgba(255, 255, 255, 0.06);
@@ -395,8 +397,7 @@ body {
   border: 1px solid rgba(255, 226, 47, 0.16);
   border-radius: 0.45rem;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent),
-    #191919;
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent), #191919;
   color: white;
   display: inline-flex;
   align-items: center;
@@ -620,7 +621,9 @@ body {
   border-radius: 0.75rem;
   padding: 8px 4px 8px;
   min-height: 420px;
-  transition: outline 0.12s ease, opacity 0.12s ease;
+  transition:
+    outline 0.12s ease,
+    opacity 0.12s ease;
 }
 .apps-kanban-col.is-drop-target {
   outline: 2px dashed var(--accent);
@@ -731,7 +734,9 @@ body {
   gap: 10px;
   cursor: grab;
   position: relative;
-  transition: border-color 0.12s ease, transform 0.12s ease;
+  transition:
+    border-color 0.12s ease,
+    transform 0.12s ease;
 }
 .apps-kanban-card.has-started-action {
   padding-right: 30px;

@@ -107,7 +107,10 @@ function readStageOrder(stages: UserStage[]) {
   try {
     const raw = window.localStorage.getItem(STAGE_ORDER_STORAGE_KEY);
     const order = raw ? JSON.parse(raw) : null;
-    if (Array.isArray(order) && order.every((name) => typeof name === "string")) {
+    if (
+      Array.isArray(order) &&
+      order.every((name) => typeof name === "string")
+    ) {
       return orderStages(stages, order);
     }
   } catch {
@@ -116,7 +119,11 @@ function readStageOrder(stages: UserStage[]) {
   return stages;
 }
 
-function moveStage(stages: UserStage[], activeName: string, targetName: string) {
+function moveStage(
+  stages: UserStage[],
+  activeName: string,
+  targetName: string,
+) {
   const from = stages.findIndex((stage) => stage.name === activeName);
   const to = stages.findIndex((stage) => stage.name === targetName);
   if (from < 0 || to < 0 || from === to) return stages;
@@ -305,17 +312,15 @@ export default function MyApplicationsClient({
     const results = await Promise.allSettled(
       toRemove.map((a) => deleteApplication(a.jobId)),
     );
-    const restored = toRemove.filter((_, i) => results[i].status === "rejected");
+    const restored = toRemove.filter(
+      (_, i) => results[i].status === "rejected",
+    );
     if (restored.length > 0) {
       setApps((prev) => [...restored, ...prev]);
     }
   }
 
-  async function handleToggleStar(
-    appId: string,
-    jobId: string,
-    next: boolean,
-  ) {
+  async function handleToggleStar(appId: string, jobId: string, next: boolean) {
     const previous = apps.find((a) => a._id === appId)?.starred ?? false;
     setApps((prev) =>
       prev.map((p) => (p._id === appId ? { ...p, starred: next } : p)),
@@ -389,7 +394,10 @@ export default function MyApplicationsClient({
     }
   }
 
-  function handleStageReorder(activeStageName: string, targetStageName: string) {
+  function handleStageReorder(
+    activeStageName: string,
+    targetStageName: string,
+  ) {
     setStages((prev) => moveStage(prev, activeStageName, targetStageName));
   }
 
@@ -616,7 +624,9 @@ export default function MyApplicationsClient({
         >
           <IconInfoCircle size={14} style={{ flexShrink: 0 }} />
           <span>
-            Jobs you click <strong style={{ color: "rgba(255,255,255,0.7)" }}>Apply</strong> on are auto-added
+            Jobs you click{" "}
+            <strong style={{ color: "rgba(255,255,255,0.7)" }}>Apply</strong> on
+            are auto-added
           </span>
         </div>
       </div>
@@ -954,9 +964,7 @@ export default function MyApplicationsClient({
                   fullWidth
                   loading={customCreating}
                   disabled={
-                    !customTitle.trim() ||
-                    !customCompany.trim() ||
-                    !customStage
+                    !customTitle.trim() || !customCompany.trim() || !customStage
                   }
                   onClick={submitCustomAdd}
                   style={{

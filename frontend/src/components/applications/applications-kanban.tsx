@@ -24,13 +24,7 @@ import {
 } from "@dnd-kit/core";
 import { snapCenterToCursor } from "@dnd-kit/modifiers";
 import { useDraggable } from "@dnd-kit/core";
-import {
-  Button,
-  Popover,
-  Stack,
-  TextInput,
-  Textarea,
-} from "@mantine/core";
+import { Button, Popover, Stack, TextInput, Textarea } from "@mantine/core";
 import {
   IconArrowRight,
   IconChevronsDown,
@@ -198,7 +192,7 @@ export default function ApplicationsKanban({
   }
 
   const activeApp = activeId
-    ? apps.find((a) => a._id === activeId) ?? null
+    ? (apps.find((a) => a._id === activeId) ?? null)
     : null;
 
   const visibleStages = stages.filter((s) =>
@@ -262,8 +256,7 @@ export function ApplicationsStatStrip({
   const started = apps.filter((a) => a.status === "STARTED").length;
   const totalCount = apps.length;
   const winRate = totalCount > 0 ? Math.round((wins / totalCount) * 100) : 0;
-  const lossRate =
-    totalCount > 0 ? Math.round((losses / totalCount) * 100) : 0;
+  const lossRate = totalCount > 0 ? Math.round((losses / totalCount) * 100) : 0;
 
   const cells = [
     { label: "Saved", value: started, sub: "saved", role: "neutral" as const },
@@ -306,10 +299,7 @@ export function ApplicationsStatStrip({
               />
               {c.label}
             </div>
-            <div
-              className="apps-stat-value"
-              style={{ color: palette.solid }}
-            >
+            <div className="apps-stat-value" style={{ color: palette.solid }}>
               {c.value}
             </div>
             <div className="apps-stat-sub">{c.sub}</div>
@@ -474,10 +464,74 @@ function KanbanColumn({
           </span>
         </div>
         <div className="apps-kc-col-head-actions">
-        {apps.length > 0 && (
+          {apps.length > 0 && (
+            <Popover
+              opened={clearOpen}
+              onChange={setClearOpen}
+              position="bottom-end"
+              shadow="md"
+              withinPortal
+              trapFocus
+            >
+              <Popover.Target>
+                <button
+                  type="button"
+                  className="apps-icon-btn"
+                  aria-label={`Clear ${stage.displayName}`}
+                  title={`Clear ${stage.displayName}`}
+                  onClick={() => setClearOpen((o) => !o)}
+                >
+                  <IconRefresh size={14} />
+                </button>
+              </Popover.Target>
+              <Popover.Dropdown
+                style={{
+                  backgroundColor: "#2e2e2e",
+                  border: "2px solid #3a3a3a",
+                  borderRadius: "0.65rem",
+                  padding: 12,
+                  width: 240,
+                }}
+              >
+                <Stack gap="xs">
+                  <div style={{ color: "white", fontSize: 13 }}>
+                    Clear {apps.length} application
+                    {apps.length === 1 ? "" : "s"} in {stage.displayName}?
+                  </div>
+                  <Button
+                    size="xs"
+                    fullWidth
+                    loading={clearing}
+                    onClick={confirmClear}
+                    style={{
+                      backgroundColor: "#e03131",
+                      color: "white",
+                      borderRadius: "0.5rem",
+                      fontWeight: 700,
+                    }}
+                  >
+                    Clear
+                  </Button>
+                  <Button
+                    size="xs"
+                    fullWidth
+                    variant="subtle"
+                    onClick={() => setClearOpen(false)}
+                    style={{
+                      color: "rgba(255,255,255,0.7)",
+                      borderRadius: "0.5rem",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </Stack>
+              </Popover.Dropdown>
+            </Popover>
+          )}
           <Popover
-            opened={clearOpen}
-            onChange={setClearOpen}
+            opened={addOpen}
+            onChange={setAddOpen}
             position="bottom-end"
             shadow="md"
             withinPortal
@@ -487,11 +541,11 @@ function KanbanColumn({
               <button
                 type="button"
                 className="apps-icon-btn"
-                aria-label={`Clear ${stage.displayName}`}
-                title={`Clear ${stage.displayName}`}
-                onClick={() => setClearOpen((o) => !o)}
+                aria-label={`Add to ${stage.displayName}`}
+                title={`Add to ${stage.displayName}`}
+                onClick={() => setAddOpen((o) => !o)}
               >
-                <IconRefresh size={14} />
+                <IconPlus size={14} />
               </button>
             </Popover.Target>
             <Popover.Dropdown
@@ -500,124 +554,61 @@ function KanbanColumn({
                 border: "2px solid #3a3a3a",
                 borderRadius: "0.65rem",
                 padding: 12,
-                width: 240,
+                width: 260,
               }}
             >
               <Stack gap="xs">
-                <div style={{ color: "white", fontSize: 13 }}>
-                  Clear {apps.length} application{apps.length === 1 ? "" : "s"} in {stage.displayName}?
-                </div>
+                <TextInput
+                  size="xs"
+                  placeholder="Company"
+                  value={company}
+                  onChange={(e) => setCompany(e.currentTarget.value)}
+                  styles={{
+                    input: {
+                      backgroundColor: "#3a3a3a",
+                      border: "none",
+                      borderRadius: "0.4rem",
+                      color: "white",
+                    },
+                  }}
+                />
+                <TextInput
+                  size="xs"
+                  placeholder="Role"
+                  value={title}
+                  onChange={(e) => setTitle(e.currentTarget.value)}
+                  styles={{
+                    input: {
+                      backgroundColor: "#3a3a3a",
+                      border: "none",
+                      borderRadius: "0.4rem",
+                      color: "white",
+                    },
+                  }}
+                />
+                <ApplicationDatePicker
+                  value={date}
+                  onChange={setDate}
+                  ariaLabel={`Application date for ${stage.displayName}`}
+                />
                 <Button
                   size="xs"
                   fullWidth
-                  loading={clearing}
-                  onClick={confirmClear}
+                  loading={creating}
+                  disabled={!title.trim() || !company.trim()}
+                  onClick={submit}
                   style={{
-                    backgroundColor: "#e03131",
-                    color: "white",
+                    backgroundColor: "#ffe22f",
+                    color: "#1f1f1f",
                     borderRadius: "0.5rem",
                     fontWeight: 700,
                   }}
                 >
-                  Clear
-                </Button>
-                <Button
-                  size="xs"
-                  fullWidth
-                  variant="subtle"
-                  onClick={() => setClearOpen(false)}
-                  style={{
-                    color: "rgba(255,255,255,0.7)",
-                    borderRadius: "0.5rem",
-                    fontWeight: 600,
-                  }}
-                >
-                  Cancel
+                  Add to {stage.displayName}
                 </Button>
               </Stack>
             </Popover.Dropdown>
           </Popover>
-        )}
-        <Popover
-          opened={addOpen}
-          onChange={setAddOpen}
-          position="bottom-end"
-          shadow="md"
-          withinPortal
-          trapFocus
-        >
-          <Popover.Target>
-            <button
-              type="button"
-              className="apps-icon-btn"
-              aria-label={`Add to ${stage.displayName}`}
-              title={`Add to ${stage.displayName}`}
-              onClick={() => setAddOpen((o) => !o)}
-            >
-              <IconPlus size={14} />
-            </button>
-          </Popover.Target>
-          <Popover.Dropdown
-            style={{
-              backgroundColor: "#2e2e2e",
-              border: "2px solid #3a3a3a",
-              borderRadius: "0.65rem",
-              padding: 12,
-              width: 260,
-            }}
-          >
-            <Stack gap="xs">
-              <TextInput
-                size="xs"
-                placeholder="Company"
-                value={company}
-                onChange={(e) => setCompany(e.currentTarget.value)}
-                styles={{
-                  input: {
-                    backgroundColor: "#3a3a3a",
-                    border: "none",
-                    borderRadius: "0.4rem",
-                    color: "white",
-                  },
-                }}
-              />
-              <TextInput
-                size="xs"
-                placeholder="Role"
-                value={title}
-                onChange={(e) => setTitle(e.currentTarget.value)}
-                styles={{
-                  input: {
-                    backgroundColor: "#3a3a3a",
-                    border: "none",
-                    borderRadius: "0.4rem",
-                    color: "white",
-                  },
-                }}
-              />
-              <ApplicationDatePicker
-                value={date}
-                onChange={setDate}
-                ariaLabel={`Application date for ${stage.displayName}`}
-              />
-              <Button
-                size="xs"
-                fullWidth
-                loading={creating}
-                disabled={!title.trim() || !company.trim()}
-                onClick={submit}
-                style={{
-                  backgroundColor: "#ffe22f",
-                  color: "#1f1f1f",
-                  borderRadius: "0.5rem",
-                  fontWeight: 700,
-                }}
-              >
-                Add to {stage.displayName}
-              </Button>
-            </Stack>
-          </Popover.Dropdown>
-        </Popover>
         </div>
       </header>
       <div className="apps-kc-col-body">
@@ -830,10 +821,7 @@ function KanbanCard({
 
     const closeOnOutsideInteraction = (event: Event) => {
       const target = event.target;
-      if (
-        target instanceof Node &&
-        notesEditorRef.current?.contains(target)
-      ) {
+      if (target instanceof Node && notesEditorRef.current?.contains(target)) {
         return;
       }
 

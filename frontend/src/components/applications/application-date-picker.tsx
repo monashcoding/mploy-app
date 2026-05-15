@@ -44,11 +44,7 @@ function isSameDate(a: Date, b: Date) {
 }
 
 function buildMonthDays(viewDate: Date) {
-  const firstOfMonth = new Date(
-    viewDate.getFullYear(),
-    viewDate.getMonth(),
-    1,
-  );
+  const firstOfMonth = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
   const mondayOffset = (firstOfMonth.getDay() + 6) % 7;
   const start = new Date(
     viewDate.getFullYear(),
@@ -83,7 +79,8 @@ export default function ApplicationDatePicker({
 
   function shiftMonth(delta: number) {
     setViewDate(
-      (current) => new Date(current.getFullYear(), current.getMonth() + delta, 1),
+      (current) =>
+        new Date(current.getFullYear(), current.getMonth() + delta, 1),
     );
   }
 
