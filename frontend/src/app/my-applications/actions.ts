@@ -3,19 +3,165 @@
 import { getMongoClientPromise } from "@/lib/mongodb";
 import { getAuthOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
+import type { Db } from "mongodb";
 import { ObjectId } from "mongodb";
 import {
   ApplicationJobSnapshot,
   ApplicationStatus,
   DbApplication,
+  DEFAULT_RECRUITMENT_CYCLE_ID,
   LocalApplication,
+  RecruitmentCycle,
 } from "@/types/application";
+
+type RecruitmentCycleRecord = {
+  userId: ObjectId;
+  cycleId: string;
+  name: string;
+  isDefault: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function requireUserId(session: any) {
   const id = (session?.user as { id?: string } | undefined)?.id;
   if (!id) throw new Error("Not authenticated");
   return id;
+}
+
+function serializeCycle(doc: Partial<RecruitmentCycleRecord>): RecruitmentCycle {
+  const now = new Date().toISOString();
+
+  return {
+    id: doc.cycleId ?? DEFAULT_RECRUITMENT_CYCLE_ID,
+    name: doc.name ?? "Current cycle",
+    isDefault: doc.isDefault ?? false,
+    createdAt: doc.createdAt ? new Date(doc.createdAt).toISOString() : now,
+    updatedAt: doc.updatedAt ? new Date(doc.updatedAt).toISOString() : now,
+  };
+}
+
+async function ensureDefaultCycle(
+  db: Db,
+  userObjectId: ObjectId,
+) {
+  const now = new Date();
+
+  await db.collection<RecruitmentCycleRecord>("application_cycles").updateOne(
+    { userId: userObjectId, cycleId: DEFAULT_RECRUITMENT_CYCLE_ID },
+    {
+      $setOnInsert: {
+        userId: userObjectId,
+        cycleId: DEFAULT_RECRUITMENT_CYCLE_ID,
+        name: "Current cycle",
+        isDefault: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+    },
+    { upsert: true },
+  );
+}
+
+export async function listRecruitmentCycles(): Promise<RecruitmentCycle[]> {
+  const session = await getServerSession(getAuthOptions());
+  const userId = requireUserId(session);
+  const userObjectId = new ObjectId(userId);
+
+  const client = await getMongoClientPromise();
+  const db = client.db(process.env.MONGODB_DATABASE || "default");
+
+  await ensureDefaultCycle(db, userObjectId);
+
+  const docs = await db
+    .collection<RecruitmentCycleRecord>("application_cycles")
+    .find({ userId: userObjectId })
+    .sort({ isDefault: -1, createdAt: 1 })
+    .toArray();
+
+  return docs.map(serializeCycle);
+}
+
+export async function createRecruitmentCycle(
+  name: string,
+): Promise<RecruitmentCycle> {
+  const session = await getServerSession(getAuthOptions());
+  const userId = requireUserId(session);
+  const userObjectId = new ObjectId(userId);
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error("Cycle name is required");
+
+  const client = await getMongoClientPromise();
+  const db = client.db(process.env.MONGODB_DATABASE || "default");
+  const now = new Date();
+  const cycleId = new ObjectId().toString();
+  const doc = {
+    userId: userObjectId,
+    cycleId,
+    name: trimmed,
+    isDefault: false,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  await ensureDefaultCycle(db, userObjectId);
+  await db.collection<RecruitmentCycleRecord>("application_cycles").insertOne(
+    doc,
+  );
+
+  return serializeCycle(doc);
+}
+
+export async function renameRecruitmentCycle(
+  cycleId: string,
+  name: string,
+): Promise<RecruitmentCycle> {
+  const session = await getServerSession(getAuthOptions());
+  const userId = requireUserId(session);
+  const userObjectId = new ObjectId(userId);
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error("Cycle name is required");
+
+  const client = await getMongoClientPromise();
+  const db = client.db(process.env.MONGODB_DATABASE || "default");
+  const now = new Date();
+
+  await ensureDefaultCycle(db, userObjectId);
+  await db.collection<RecruitmentCycleRecord>("application_cycles").updateOne(
+    { userId: userObjectId, cycleId },
+    { $set: { name: trimmed, updatedAt: now } },
+  );
+
+  const doc = await db
+    .collection<RecruitmentCycleRecord>("application_cycles")
+    .findOne({ userId: userObjectId, cycleId });
+
+  if (!doc) throw new Error("Cycle not found");
+  return serializeCycle(doc);
+}
+
+export async function deleteRecruitmentCycle(cycleId: string) {
+  const session = await getServerSession(getAuthOptions());
+  const userId = requireUserId(session);
+  const userObjectId = new ObjectId(userId);
+  if (cycleId === DEFAULT_RECRUITMENT_CYCLE_ID) {
+    throw new Error("The default cycle cannot be deleted");
+  }
+
+  const client = await getMongoClientPromise();
+  const db = client.db(process.env.MONGODB_DATABASE || "default");
+
+  await ensureDefaultCycle(db, userObjectId);
+  await db
+    .collection<RecruitmentCycleRecord>("application_cycles")
+    .deleteOne({ userId: userObjectId, cycleId });
+  const moved = await db.collection("applications").updateMany(
+    { userId: userObjectId, cycleId },
+    { $set: { cycleId: DEFAULT_RECRUITMENT_CYCLE_ID, updatedAt: new Date() } },
+  );
+
+  return { ok: true, moved: moved.modifiedCount };
 }
 
 export async function syncLocalApplications(apps: LocalApplication[]) {
@@ -41,6 +187,7 @@ export async function syncLocalApplications(apps: LocalApplication[]) {
           updatedAt: new Date(app.updatedAt),
           status: app.status,
           jobSnapshot: app.jobSnapshot,
+          cycleId: app.cycleId ?? DEFAULT_RECRUITMENT_CYCLE_ID,
           ...(app.starred !== undefined ? { starred: app.starred } : {}),
         },
       },
@@ -102,6 +249,7 @@ export async function listApplications(): Promise<DbApplication[]> {
       ...d.jobSnapshot,
       logo: d.jobSnapshot.logo ?? logoMap.get(d.jobId),
     },
+    cycleId: d.cycleId ?? DEFAULT_RECRUITMENT_CYCLE_ID,
     notes: d.notes ?? undefined,
     starred: d.starred ?? false,
   })) as DbApplication[];
@@ -122,7 +270,11 @@ export async function addApplication(
     { userId: new ObjectId(userId), jobId },
     {
       $set: { updatedAt: now, jobSnapshot },
-      $setOnInsert: { startedAt: now, status: "STARTED" },
+      $setOnInsert: {
+        startedAt: now,
+        status: "STARTED",
+        cycleId: DEFAULT_RECRUITMENT_CYCLE_ID,
+      },
     },
     { upsert: true },
   );
@@ -150,6 +302,7 @@ export async function createCustomApplication(
   companyName: string,
   status: ApplicationStatus,
   date: string,
+  cycleId = DEFAULT_RECRUITMENT_CYCLE_ID,
 ): Promise<DbApplication> {
   const session = await getServerSession(getAuthOptions());
   const userId = requireUserId(session);
@@ -165,6 +318,7 @@ export async function createCustomApplication(
     userId: new ObjectId(userId),
     jobId,
     status,
+    cycleId,
     startedAt: parsedDate,
     updatedAt: parsedDate,
     jobSnapshot,
@@ -174,6 +328,7 @@ export async function createCustomApplication(
     _id: result.insertedId.toString(),
     jobId,
     status,
+    cycleId,
     startedAt: parsedDate.toISOString(),
     updatedAt: parsedDate.toISOString(),
     jobSnapshot,
@@ -194,7 +349,10 @@ export async function updateApplicationStatus(
     { userId: new ObjectId(userId), jobId },
     {
       $set: { status, updatedAt: new Date() },
-      $setOnInsert: { startedAt: new Date() },
+      $setOnInsert: {
+        startedAt: new Date(),
+        cycleId: DEFAULT_RECRUITMENT_CYCLE_ID,
+      },
     },
     { upsert: true },
   );

@@ -317,7 +317,7 @@ export function ApplicationsStatStrip({
         );
       })}
       <div className="apps-stat-cell apps-stat-spark">
-        <div className="apps-stat-label">Pipeline</div>
+        <div className="apps-stat-label">Stats</div>
         <div className="apps-mini-bars">
           {stages.map((s) => {
             const count = countsByStage[s.name] ?? 0;

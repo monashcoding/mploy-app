@@ -22,6 +22,16 @@ export type UserStage = {
   isDefault: boolean;
 };
 
+export const DEFAULT_RECRUITMENT_CYCLE_ID = "current";
+
+export type RecruitmentCycle = {
+  id: string;
+  name: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type ApplicationJobSnapshot = {
   jobId: string;
   title: string;
@@ -36,6 +46,7 @@ export type LocalApplication = {
   startedAt: string;
   updatedAt: string;
   jobSnapshot: ApplicationJobSnapshot;
+  cycleId?: string;
   notes?: string;
   starred?: boolean;
 };

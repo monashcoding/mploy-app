@@ -7,6 +7,7 @@ import {
   Button,
   Checkbox,
   Group,
+  Modal,
   Popover,
   SegmentedControl,
   Select,
@@ -17,6 +18,7 @@ import {
 import {
   IconCheck,
   IconChevronDown,
+  IconEdit,
   IconEye,
   IconFilter,
   IconInfoCircle,
@@ -24,11 +26,14 @@ import {
   IconLayoutCards,
   IconPlus,
   IconSearch,
+  IconTrash,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import {
   ApplicationStatus,
   DbApplication,
+  DEFAULT_RECRUITMENT_CYCLE_ID,
+  RecruitmentCycle,
   StageColorRole,
   UserStage,
 } from "@/types/application";
@@ -37,8 +42,11 @@ import {
   getLocalApplications,
 } from "@/lib/local-applications";
 import {
+  createRecruitmentCycle,
   createCustomApplication,
+  deleteRecruitmentCycle,
   deleteApplication,
+  renameRecruitmentCycle,
   syncLocalApplications,
   toggleApplicationStar,
   updateApplicationNotes,
@@ -137,14 +145,20 @@ function StatusDot({ role }: { role: StageColorRole }) {
 export default function MyApplicationsClient({
   initial,
   initialStages,
+  initialCycles,
 }: {
   initial: DbApplication[];
   initialStages: UserStage[];
+  initialCycles: RecruitmentCycle[];
 }) {
   const { status: sessionStatus } = useSession();
   const [apps, setApps] = useState<DbApplication[]>(initial);
   const [stages, setStages] = useState<UserStage[]>(() =>
     readStageOrder(initialStages),
+  );
+  const [cycles, setCycles] = useState<RecruitmentCycle[]>(initialCycles);
+  const [selectedCycleId, setSelectedCycleId] = useState(
+    initialCycles[0]?.id ?? DEFAULT_RECRUITMENT_CYCLE_ID,
   );
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [sort, setSort] = useState<KanbanSort>(readSort);
@@ -159,6 +173,14 @@ export default function MyApplicationsClient({
   const [customStage, setCustomStage] = useState(stages[0]?.name ?? "");
   const [customDate, setCustomDate] = useState(formatApplicationDateValue);
   const [customCreating, setCustomCreating] = useState(false);
+  const [cycleMenuOpen, setCycleMenuOpen] = useState(false);
+  const [newCycleName, setNewCycleName] = useState("");
+  const [creatingCycle, setCreatingCycle] = useState(false);
+  const [renamingCycleId, setRenamingCycleId] = useState<string | null>(null);
+  const [renameCycleName, setRenameCycleName] = useState("");
+  const [cycleDeleteTarget, setCycleDeleteTarget] =
+    useState<RecruitmentCycle | null>(null);
+  const [deletingCycle, setDeletingCycle] = useState(false);
 
   useEffect(() => {
     try {
@@ -205,20 +227,46 @@ export default function MyApplicationsClient({
     })();
   }, [sessionStatus]);
 
+  useEffect(() => {
+    if (cycles.some((cycle) => cycle.id === selectedCycleId)) return;
+    setSelectedCycleId(cycles[0]?.id ?? DEFAULT_RECRUITMENT_CYCLE_ID);
+  }, [cycles, selectedCycleId]);
+
+  const selectedCycle = useMemo(
+    () =>
+      cycles.find((cycle) => cycle.id === selectedCycleId) ??
+      cycles[0] ?? {
+        id: DEFAULT_RECRUITMENT_CYCLE_ID,
+        name: "Current cycle",
+        isDefault: true,
+        createdAt: "",
+        updatedAt: "",
+      },
+    [cycles, selectedCycleId],
+  );
+
+  const currentCycle =
+    cycles.find((cycle) => cycle.id === DEFAULT_RECRUITMENT_CYCLE_ID) ??
+    cycles[0];
+
+  const cycleApps = useMemo(
+    () =>
+      apps.filter(
+        (app) =>
+          (app.cycleId ?? DEFAULT_RECRUITMENT_CYCLE_ID) === selectedCycle.id,
+      ),
+    [apps, selectedCycle.id],
+  );
+
   const filteredApps = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return apps;
-    return apps.filter(
+    if (!q) return cycleApps;
+    return cycleApps.filter(
       (a) =>
         a.jobSnapshot.companyName.toLowerCase().includes(q) ||
         a.jobSnapshot.title.toLowerCase().includes(q),
     );
-  }, [apps, searchQuery]);
-
-  const stageOptions = stages.map((s) => ({
-    value: s.name,
-    label: s.displayName,
-  }));
+  }, [cycleApps, searchQuery]);
 
   async function handleStatusChange(
     appId: string,
@@ -287,7 +335,13 @@ export default function MyApplicationsClient({
     stageName: string,
     date: string,
   ) {
-    const newApp = await createCustomApplication(title, company, stageName, date);
+    const newApp = await createCustomApplication(
+      title,
+      company,
+      stageName,
+      date,
+      selectedCycle.id,
+    );
     setApps((prev) => [newApp, ...prev]);
   }
 
@@ -339,6 +393,77 @@ export default function MyApplicationsClient({
     setStages((prev) => moveStage(prev, activeStageName, targetStageName));
   }
 
+  async function submitNewCycle() {
+    const trimmed = newCycleName.trim();
+    if (!trimmed) return;
+
+    setCreatingCycle(true);
+    try {
+      const cycle = await createRecruitmentCycle(trimmed);
+      setCycles((prev) => [...prev, cycle]);
+      setSelectedCycleId(cycle.id);
+      setNewCycleName("");
+    } finally {
+      setCreatingCycle(false);
+    }
+  }
+
+  function startRenameCycle(cycle: RecruitmentCycle) {
+    setRenamingCycleId(cycle.id);
+    setRenameCycleName(cycle.name);
+  }
+
+  async function submitRenameCycle(cycleId: string) {
+    const trimmed = renameCycleName.trim();
+    if (!trimmed) return;
+
+    const previous = cycles;
+    setCycles((prev) =>
+      prev.map((cycle) =>
+        cycle.id === cycleId ? { ...cycle, name: trimmed } : cycle,
+      ),
+    );
+    setRenamingCycleId(null);
+    try {
+      const renamed = await renameRecruitmentCycle(cycleId, trimmed);
+      setCycles((prev) =>
+        prev.map((cycle) => (cycle.id === cycleId ? renamed : cycle)),
+      );
+    } catch {
+      setCycles(previous);
+    }
+  }
+
+  async function confirmDeleteCycle() {
+    if (!cycleDeleteTarget) return;
+    const target = cycleDeleteTarget;
+    const fallbackCycleId = currentCycle?.id ?? DEFAULT_RECRUITMENT_CYCLE_ID;
+    const previousCycles = cycles;
+    const previousApps = apps;
+
+    setDeletingCycle(true);
+    setCycleDeleteTarget(null);
+    setCycles((prev) => prev.filter((cycle) => cycle.id !== target.id));
+    setSelectedCycleId(fallbackCycleId);
+    setApps((prev) =>
+      prev.map((app) =>
+        (app.cycleId ?? DEFAULT_RECRUITMENT_CYCLE_ID) === target.id
+          ? { ...app, cycleId: fallbackCycleId }
+          : app,
+      ),
+    );
+
+    try {
+      await deleteRecruitmentCycle(target.id);
+    } catch {
+      setCycles(previousCycles);
+      setApps(previousApps);
+      setSelectedCycleId(target.id);
+    } finally {
+      setDeletingCycle(false);
+    }
+  }
+
   if (sessionStatus === "unauthenticated") {
     return (
       <Box
@@ -378,7 +503,7 @@ export default function MyApplicationsClient({
   } as const;
 
   const compactSelectStyles = {
-    root: { width: 165 },
+    root: { width: 145 },
     input: {
       backgroundColor: "transparent",
       border: "2px solid #3a3a3a",
@@ -391,7 +516,7 @@ export default function MyApplicationsClient({
       paddingTop: 0,
       paddingBottom: 0,
       paddingLeft: 32,
-      width: 165,
+      width: 145,
     },
     section: { width: 30 },
     dropdown: {
@@ -413,6 +538,40 @@ export default function MyApplicationsClient({
 
   return (
     <div className="flex flex-col gap-6">
+      <Modal
+        opened={Boolean(cycleDeleteTarget)}
+        onClose={() => setCycleDeleteTarget(null)}
+        title="Delete recruitment cycle?"
+        centered
+      >
+        <Text size="sm" c="dimmed">
+          Applications in{" "}
+          <strong style={{ color: "white" }}>{cycleDeleteTarget?.name}</strong>{" "}
+          will move to{" "}
+          <strong style={{ color: "white" }}>
+            {currentCycle?.name ?? "Current cycle"}
+          </strong>
+          .
+        </Text>
+        <Group justify="flex-end" gap="xs" mt="lg">
+          <Button
+            variant="default"
+            size="xs"
+            onClick={() => setCycleDeleteTarget(null)}
+          >
+            Cancel
+          </Button>
+          <Button
+            size="xs"
+            color="red"
+            loading={deletingCycle}
+            onClick={confirmDeleteCycle}
+          >
+            Delete
+          </Button>
+        </Group>
+      </Modal>
+
       {syncMessage && (
         <Box
           bg="secondary"
@@ -444,7 +603,7 @@ export default function MyApplicationsClient({
               margin: "4px 0 0",
             }}
           >
-            {apps.length} tracked across {stages.length} stages
+            {cycleApps.length} tracked in {selectedCycle.name}
           </p>
         </div>
         <div
@@ -462,12 +621,12 @@ export default function MyApplicationsClient({
         </div>
       </div>
 
-      <ApplicationsStatStrip apps={apps} stages={stages} />
+      <ApplicationsStatStrip apps={cycleApps} stages={stages} />
 
       {/* Toolbar */}
       <div className="flex items-center gap-2 flex-wrap">
         <TextInput
-          placeholder="Search company or role…"
+          placeholder="Search"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.currentTarget.value)}
           leftSection={<IconSearch size={14} />}
@@ -485,171 +644,195 @@ export default function MyApplicationsClient({
             },
             section: { width: 30 },
           }}
-          style={{ flex: "1 1 220px", minWidth: 180, maxWidth: 320 }}
+          style={{ flex: "0 1 180px", minWidth: 155, maxWidth: 205 }}
         />
 
         <Popover
-          opened={customAddOpen}
-          onChange={setCustomAddOpen}
+          opened={cycleMenuOpen}
+          onChange={setCycleMenuOpen}
           position="bottom-start"
           shadow="md"
           withinPortal
-          trapFocus
         >
           <Popover.Target>
             <button
               type="button"
-              className="apps-custom-add-btn"
-              onClick={() => setCustomAddOpen((o) => !o)}
+              className="apps-cycle-trigger"
+              onClick={() => setCycleMenuOpen((open) => !open)}
             >
-              <IconPlus size={14} />
-              <span>Add Custom</span>
+              <span>{selectedCycle.name}</span>
+              <IconChevronDown size={13} />
             </button>
           </Popover.Target>
-          <Popover.Dropdown
-            style={{
-              backgroundColor: "#2e2e2e",
-              border: "2px solid #3a3a3a",
-              borderRadius: "0.65rem",
-              padding: 12,
-              width: 280,
-            }}
-          >
-            <Stack gap="xs">
+          <Popover.Dropdown className="apps-cycle-menu">
+            <div className="apps-cycle-list">
+              {cycles.map((cycle) => (
+                <div key={cycle.id} className="apps-cycle-row">
+                  {renamingCycleId === cycle.id ? (
+                    <div className="apps-cycle-edit">
+                      <TextInput
+                        size="xs"
+                        value={renameCycleName}
+                        autoFocus
+                        onChange={(e) =>
+                          setRenameCycleName(e.currentTarget.value)
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            void submitRenameCycle(cycle.id);
+                          }
+                          if (e.key === "Escape") {
+                            setRenamingCycleId(null);
+                          }
+                        }}
+                        styles={{
+                          input: {
+                            backgroundColor: "#3a3a3a",
+                            border: "none",
+                            borderRadius: "0.4rem",
+                            color: "white",
+                          },
+                        }}
+                      />
+                      <Button
+                        size="xs"
+                        disabled={!renameCycleName.trim()}
+                        onClick={() => void submitRenameCycle(cycle.id)}
+                        style={{
+                          backgroundColor: MAC_YELLOW,
+                          color: "#1f1f1f",
+                          fontWeight: 800,
+                        }}
+                      >
+                        Save
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        className={
+                          "apps-cycle-select" +
+                          (cycle.id === selectedCycle.id ? " is-selected" : "")
+                        }
+                        onClick={() => {
+                          setSelectedCycleId(cycle.id);
+                          setCycleMenuOpen(false);
+                        }}
+                      >
+                        <span>{cycle.name}</span>
+                        {cycle.id === selectedCycle.id && (
+                          <IconCheck size={14} />
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        className="apps-cycle-action"
+                        aria-label={`Rename ${cycle.name}`}
+                        title={`Rename ${cycle.name}`}
+                        onClick={() => startRenameCycle(cycle)}
+                      >
+                        <IconEdit size={13} />
+                      </button>
+                      <button
+                        type="button"
+                        className="apps-cycle-action"
+                        aria-label={`Delete ${cycle.name}`}
+                        title={
+                          cycle.id === DEFAULT_RECRUITMENT_CYCLE_ID
+                            ? "Current cycle cannot be deleted"
+                            : `Delete ${cycle.name}`
+                        }
+                        disabled={cycle.id === DEFAULT_RECRUITMENT_CYCLE_ID}
+                        onClick={() => {
+                          setCycleMenuOpen(false);
+                          setCycleDeleteTarget(cycle);
+                        }}
+                      >
+                        <IconTrash size={13} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="apps-cycle-add">
               <TextInput
                 size="xs"
-                placeholder="Company"
-                value={customCompany}
-                onChange={(e) => setCustomCompany(e.currentTarget.value)}
-                styles={{
-                  input: {
-                    backgroundColor: "#3a3a3a",
-                    border: "none",
-                    borderRadius: "0.4rem",
-                    color: "white",
-                  },
+                placeholder="Add new recruitment cycle"
+                value={newCycleName}
+                onChange={(e) => setNewCycleName(e.currentTarget.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") void submitNewCycle();
                 }}
-              />
-              <TextInput
-                size="xs"
-                placeholder="Role"
-                value={customTitle}
-                onChange={(e) => setCustomTitle(e.currentTarget.value)}
                 styles={{
                   input: {
                     backgroundColor: "#3a3a3a",
                     border: "none",
                     borderRadius: "0.4rem",
                     color: "white",
-                  },
-                }}
-              />
-              <ApplicationDatePicker
-                value={customDate}
-                onChange={setCustomDate}
-                ariaLabel="Application date for custom application"
-              />
-              <Select
-                size="xs"
-                value={customStage}
-                onChange={(value) => value && setCustomStage(value)}
-                data={stageOptions}
-                allowDeselect={false}
-                styles={{
-                  input: {
-                    backgroundColor: "#3a3a3a",
-                    border: "none",
-                    borderRadius: "0.4rem",
-                    color: "white",
-                  },
-                  dropdown: {
-                    backgroundColor: "#2e2e2e",
-                    border: "2px solid #3a3a3a",
-                    borderRadius: "0.65rem",
                   },
                 }}
               />
               <Button
                 size="xs"
-                fullWidth
-                loading={customCreating}
-                disabled={
-                  !customTitle.trim() || !customCompany.trim() || !customStage
-                }
-                onClick={submitCustomAdd}
+                loading={creatingCycle}
+                disabled={!newCycleName.trim()}
+                onClick={() => void submitNewCycle()}
                 style={{
                   backgroundColor: MAC_YELLOW,
                   color: "#1f1f1f",
-                  borderRadius: "0.5rem",
-                  fontWeight: 700,
+                  borderRadius: "0.45rem",
+                  fontWeight: 800,
                 }}
               >
-                Add Custom
+                Add
               </Button>
-            </Stack>
+            </div>
           </Popover.Dropdown>
         </Popover>
 
+        <SegmentedControl
+          value={density}
+          onChange={(v) => setDensity(v as KanbanDensity)}
+          data={[
+            {
+              value: "compact",
+              label: (
+                <Group
+                  gap={6}
+                  wrap="nowrap"
+                  style={{
+                    color:
+                      density === "compact" ? MAC_YELLOW : "currentColor",
+                  }}
+                >
+                  <IconLayoutList size={14} />
+                  <span className="hidden sm:inline">Compact</span>
+                </Group>
+              ),
+            },
+            {
+              value: "detailed",
+              label: (
+                <Group
+                  gap={6}
+                  wrap="nowrap"
+                  style={{
+                    color:
+                      density === "detailed" ? MAC_YELLOW : "currentColor",
+                  }}
+                >
+                  <IconLayoutCards size={14} />
+                  <span className="hidden sm:inline">Detailed</span>
+                </Group>
+              ),
+            },
+          ]}
+          styles={segmentedStyles}
+        />
+
         <div className="flex items-center gap-2 flex-wrap ml-auto">
-          <SegmentedControl
-            value={density}
-            onChange={(v) => setDensity(v as KanbanDensity)}
-            data={[
-              {
-                value: "compact",
-                label: (
-                  <Group
-                    gap={6}
-                    wrap="nowrap"
-                    style={{
-                      color:
-                        density === "compact" ? MAC_YELLOW : "currentColor",
-                    }}
-                  >
-                    <IconLayoutList size={14} />
-                    <span className="hidden sm:inline">Compact</span>
-                  </Group>
-                ),
-              },
-              {
-                value: "detailed",
-                label: (
-                  <Group
-                    gap={6}
-                    wrap="nowrap"
-                    style={{
-                      color:
-                        density === "detailed" ? MAC_YELLOW : "currentColor",
-                    }}
-                  >
-                    <IconLayoutCards size={14} />
-                    <span className="hidden sm:inline">Detailed</span>
-                  </Group>
-                ),
-              },
-            ]}
-            styles={segmentedStyles}
-          />
-
-          <Select
-            value={sort}
-            onChange={(v) => v && setSort(v as KanbanSort)}
-            data={[
-              { value: "newest", label: "Newest first" },
-              { value: "oldest", label: "Oldest first" },
-            ]}
-            allowDeselect={false}
-            withCheckIcon={false}
-            renderOption={({ option, checked }) => (
-              <Group justify="space-between" wrap="nowrap" w="100%">
-                <span>{option.label}</span>
-                {checked && <IconCheck size={14} color={MAC_YELLOW} />}
-              </Group>
-            )}
-            leftSection={<IconFilter size={14} />}
-            styles={compactSelectStyles}
-          />
-
           <Popover position="bottom-end" shadow="md" withinPortal>
             <Popover.Target>
               <button className={compactBtn} style={compactBtnStyle}>
@@ -683,6 +866,109 @@ export default function MyApplicationsClient({
                   ))}
                 </Stack>
               </Checkbox.Group>
+            </Popover.Dropdown>
+          </Popover>
+
+          <Select
+            value={sort}
+            onChange={(v) => v && setSort(v as KanbanSort)}
+            data={[
+              { value: "newest", label: "Newest first" },
+              { value: "oldest", label: "Oldest first" },
+            ]}
+            allowDeselect={false}
+            withCheckIcon={false}
+            renderOption={({ option, checked }) => (
+              <Group justify="space-between" wrap="nowrap" w="100%">
+                <span>{option.label}</span>
+                {checked && <IconCheck size={14} color={MAC_YELLOW} />}
+              </Group>
+            )}
+            leftSection={<IconFilter size={14} />}
+            styles={compactSelectStyles}
+          />
+
+          <Popover
+            opened={customAddOpen}
+            onChange={setCustomAddOpen}
+            position="bottom-end"
+            shadow="md"
+            withinPortal
+            trapFocus
+          >
+            <Popover.Target>
+              <button
+                type="button"
+                className="apps-custom-add-btn"
+                onClick={() => setCustomAddOpen((o) => !o)}
+              >
+                <IconPlus size={14} />
+                <span>Add Custom</span>
+              </button>
+            </Popover.Target>
+            <Popover.Dropdown
+              style={{
+                backgroundColor: "#2e2e2e",
+                border: "2px solid #3a3a3a",
+                borderRadius: "0.65rem",
+                padding: 12,
+                width: 280,
+              }}
+            >
+              <Stack gap="xs">
+                <TextInput
+                  size="xs"
+                  placeholder="Company"
+                  value={customCompany}
+                  onChange={(e) => setCustomCompany(e.currentTarget.value)}
+                  styles={{
+                    input: {
+                      backgroundColor: "#3a3a3a",
+                      border: "none",
+                      borderRadius: "0.4rem",
+                      color: "white",
+                    },
+                  }}
+                />
+                <TextInput
+                  size="xs"
+                  placeholder="Role"
+                  value={customTitle}
+                  onChange={(e) => setCustomTitle(e.currentTarget.value)}
+                  styles={{
+                    input: {
+                      backgroundColor: "#3a3a3a",
+                      border: "none",
+                      borderRadius: "0.4rem",
+                      color: "white",
+                    },
+                  }}
+                />
+                <ApplicationDatePicker
+                  value={customDate}
+                  onChange={setCustomDate}
+                  ariaLabel="Application date for custom application"
+                />
+                <Button
+                  size="xs"
+                  fullWidth
+                  loading={customCreating}
+                  disabled={
+                    !customTitle.trim() ||
+                    !customCompany.trim() ||
+                    !customStage
+                  }
+                  onClick={submitCustomAdd}
+                  style={{
+                    backgroundColor: MAC_YELLOW,
+                    color: "#1f1f1f",
+                    borderRadius: "0.5rem",
+                    fontWeight: 700,
+                  }}
+                >
+                  Add Custom
+                </Button>
+              </Stack>
             </Popover.Dropdown>
           </Popover>
         </div>
