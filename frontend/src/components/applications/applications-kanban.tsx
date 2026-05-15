@@ -24,7 +24,7 @@ import {
   Textarea,
 } from "@mantine/core";
 import {
-  IconCheck,
+  IconArrowRight,
   IconChevronsDown,
   IconNotes,
   IconPlus,
@@ -631,6 +631,7 @@ function KanbanCard({
       ref={setNodeRef}
       className={
         "apps-kanban-card" +
+        (app.status === "STARTED" ? " has-started-action" : "") +
         (density === "compact" ? " apps-kanban-card--compact" : "") +
         (isDragging ? " is-dragging" : "")
       }
@@ -670,20 +671,6 @@ function KanbanCard({
               <IconStar size={14} />
             )}
           </button>
-          {app.status === "STARTED" && (
-            <button
-              type="button"
-              className="apps-icon-btn"
-              aria-label="Mark applied"
-              title="Mark applied"
-              onClick={(e) => {
-                e.stopPropagation();
-                onStatusChange(app._id, app.jobId, "STARTED", "APPLIED");
-              }}
-            >
-              <IconCheck size={14} />
-            </button>
-          )}
           <Popover
             opened={notesOpen}
             onChange={setNotesOpen}
@@ -764,6 +751,21 @@ function KanbanCard({
           </button>
         </div>
       </footer>
+      {app.status === "STARTED" && (
+        <button
+          type="button"
+          className="apps-started-action"
+          aria-label="Mark as applied"
+          title="Mark as applied"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            onStatusChange(app._id, app.jobId, "STARTED", "APPLIED");
+          }}
+        >
+          <IconArrowRight size={15} />
+        </button>
+      )}
     </article>
   );
 }

@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
   Box,
+  Button,
   Checkbox,
   Group,
   Popover,
@@ -20,6 +21,7 @@ import {
   IconInfoCircle,
   IconLayoutList,
   IconLayoutCards,
+  IconPlus,
   IconSearch,
 } from "@tabler/icons-react";
 import Link from "next/link";
@@ -50,6 +52,7 @@ import { rolePalette } from "@/lib/role-palette";
 
 const SORT_STORAGE_KEY = "mp:apps:kanban-sort:v1";
 const DENSITY_STORAGE_KEY = "mp:apps:kanban-density:v1";
+const MAC_YELLOW = "#ffe22f";
 
 function readSort(): KanbanSort {
   if (typeof window === "undefined") return "newest";
@@ -105,6 +108,14 @@ export default function MyApplicationsClient({
   const [visibleStages, setVisibleStages] = useState<string[]>(() =>
     stages.map((s) => s.name),
   );
+  const [customAddOpen, setCustomAddOpen] = useState(false);
+  const [customTitle, setCustomTitle] = useState("");
+  const [customCompany, setCustomCompany] = useState("");
+  const [customStage, setCustomStage] = useState(stages[0]?.name ?? "");
+  const [customDate, setCustomDate] = useState(() =>
+    new Date().toISOString().slice(0, 10),
+  );
+  const [customCreating, setCustomCreating] = useState(false);
 
   useEffect(() => {
     try {
@@ -149,6 +160,11 @@ export default function MyApplicationsClient({
         a.jobSnapshot.title.toLowerCase().includes(q),
     );
   }, [apps, searchQuery]);
+
+  const stageOptions = stages.map((s) => ({
+    value: s.name,
+    label: s.displayName,
+  }));
 
   async function handleStatusChange(
     appId: string,
@@ -219,6 +235,30 @@ export default function MyApplicationsClient({
   ) {
     const newApp = await createCustomApplication(title, company, stageName, date);
     setApps((prev) => [newApp, ...prev]);
+  }
+
+  function resetCustomAdd() {
+    setCustomTitle("");
+    setCustomCompany("");
+    setCustomStage(stages[0]?.name ?? "");
+    setCustomDate(new Date().toISOString().slice(0, 10));
+  }
+
+  async function submitCustomAdd() {
+    if (!customTitle.trim() || !customCompany.trim() || !customStage) return;
+    setCustomCreating(true);
+    try {
+      await handleCreateInStage(
+        customTitle.trim(),
+        customCompany.trim(),
+        customStage,
+        customDate,
+      );
+      resetCustomAdd();
+      setCustomAddOpen(false);
+    } finally {
+      setCustomCreating(false);
+    }
   }
 
   async function handleSaveNotes(jobId: string, notes: string) {
@@ -390,6 +430,118 @@ export default function MyApplicationsClient({
           style={{ flex: "1 1 220px", minWidth: 180, maxWidth: 320 }}
         />
 
+        <Popover
+          opened={customAddOpen}
+          onChange={setCustomAddOpen}
+          position="bottom-start"
+          shadow="md"
+          withinPortal
+          trapFocus
+        >
+          <Popover.Target>
+            <button
+              type="button"
+              className="apps-custom-add-btn"
+              onClick={() => setCustomAddOpen((o) => !o)}
+            >
+              <IconPlus size={14} />
+              <span>Add Custom</span>
+            </button>
+          </Popover.Target>
+          <Popover.Dropdown
+            style={{
+              backgroundColor: "#2e2e2e",
+              border: "2px solid #3a3a3a",
+              borderRadius: "0.65rem",
+              padding: 12,
+              width: 280,
+            }}
+          >
+            <Stack gap="xs">
+              <TextInput
+                size="xs"
+                placeholder="Role"
+                value={customTitle}
+                onChange={(e) => setCustomTitle(e.currentTarget.value)}
+                styles={{
+                  input: {
+                    backgroundColor: "#3a3a3a",
+                    border: "none",
+                    borderRadius: "0.4rem",
+                    color: "white",
+                  },
+                }}
+              />
+              <TextInput
+                size="xs"
+                placeholder="Company"
+                value={customCompany}
+                onChange={(e) => setCustomCompany(e.currentTarget.value)}
+                styles={{
+                  input: {
+                    backgroundColor: "#3a3a3a",
+                    border: "none",
+                    borderRadius: "0.4rem",
+                    color: "white",
+                  },
+                }}
+              />
+              <Select
+                size="xs"
+                value={customStage}
+                onChange={(value) => value && setCustomStage(value)}
+                data={stageOptions}
+                allowDeselect={false}
+                styles={{
+                  input: {
+                    backgroundColor: "#3a3a3a",
+                    border: "none",
+                    borderRadius: "0.4rem",
+                    color: "white",
+                  },
+                  dropdown: {
+                    backgroundColor: "#2e2e2e",
+                    border: "2px solid #3a3a3a",
+                    borderRadius: "0.65rem",
+                  },
+                }}
+              />
+              <TextInput
+                size="xs"
+                type="date"
+                value={customDate}
+                onChange={(e) => setCustomDate(e.currentTarget.value)}
+                styles={{
+                  input: {
+                    backgroundColor: "#3a3a3a",
+                    border: "none",
+                    borderRadius: "0.4rem",
+                    color: "white",
+                    colorScheme: "dark",
+                  } as React.CSSProperties,
+                }}
+              />
+              <Button
+                size="xs"
+                fullWidth
+                loading={customCreating}
+                disabled={
+                  !customTitle.trim() || !customCompany.trim() || !customStage
+                }
+                onClick={submitCustomAdd}
+                style={{
+                  backgroundColor: MAC_YELLOW,
+                  color: "#1f1f1f",
+                  borderRadius: "0.5rem",
+                  fontWeight: 700,
+                }}
+              >
+                Add Custom
+              </Button>
+            </Stack>
+          </Popover.Dropdown>
+        </Popover>
+
         <div className="flex items-center gap-2 flex-wrap ml-auto">
           <SegmentedControl
             value={density}
@@ -398,7 +550,14 @@ export default function MyApplicationsClient({
               {
                 value: "compact",
                 label: (
-                  <Group gap={6} wrap="nowrap">
+                  <Group
+                    gap={6}
+                    wrap="nowrap"
+                    style={{
+                      color:
+                        density === "compact" ? MAC_YELLOW : "currentColor",
+                    }}
+                  >
                     <IconLayoutList size={14} />
                     <span className="hidden sm:inline">Compact</span>
                   </Group>
@@ -407,7 +566,14 @@ export default function MyApplicationsClient({
               {
                 value: "detailed",
                 label: (
-                  <Group gap={6} wrap="nowrap">
+                  <Group
+                    gap={6}
+                    wrap="nowrap"
+                    style={{
+                      color:
+                        density === "detailed" ? MAC_YELLOW : "currentColor",
+                    }}
+                  >
                     <IconLayoutCards size={14} />
                     <span className="hidden sm:inline">Detailed</span>
                   </Group>
@@ -450,8 +616,8 @@ export default function MyApplicationsClient({
                     <Checkbox
                       key={s.id}
                       value={s.name}
-                      color="accent"
-                      iconColor="#1f1f1f"
+                      color="#3a3a3a"
+                      iconColor={MAC_YELLOW}
                       label={
                         <Group gap="xs" align="center">
                           <StatusDot role={s.colorRole} />
