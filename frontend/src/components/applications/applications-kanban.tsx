@@ -1,6 +1,14 @@
 "use client";
 
-import { CSSProperties, useEffect, useMemo, useState } from "react";
+import {
+  CSSProperties,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   CollisionDetection,
   DndContext,
@@ -26,12 +34,18 @@ import {
 import {
   IconArrowRight,
   IconChevronsDown,
+  IconChevronsUp,
+  IconGripVertical,
   IconNotes,
   IconPlus,
+  IconRefresh,
   IconStar,
   IconStarFilled,
   IconTrash,
 } from "@tabler/icons-react";
+import ApplicationDatePicker, {
+  formatApplicationDateValue,
+} from "@/components/applications/application-date-picker";
 import CompanyLogo from "@/components/jobs/company-logo";
 import { rolePalette } from "@/lib/role-palette";
 import { relativeDate } from "@/lib/utils";
@@ -82,6 +96,7 @@ type Props = {
   ) => Promise<void>;
   onToggleStar: (appId: string, jobId: string, next: boolean) => void;
   onClearStage: (stageName: string) => Promise<void>;
+  onStageReorder: (activeStageName: string, targetStageName: string) => void;
   density: KanbanDensity;
 };
 
@@ -96,6 +111,7 @@ export default function ApplicationsKanban({
   onCreateInStage,
   onToggleStar,
   onClearStage,
+  onStageReorder,
   density,
 }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -128,7 +144,8 @@ export default function ApplicationsKanban({
   );
 
   function handleDragStart(e: DragStartEvent) {
-    setActiveId(String(e.active.id));
+    const activeType = e.active.data.current?.type;
+    setActiveId(activeType === "app" ? String(e.active.id) : null);
   }
 
   async function handleDragEnd(e: DragEndEvent) {
@@ -137,6 +154,23 @@ export default function ApplicationsKanban({
     if (!over) return;
     const activeIdStr = String(active.id);
     const overId = String(over.id);
+    const activeType = active.data.current?.type;
+
+    if (activeType === "stage") {
+      const sourceStage = active.data.current?.stageName;
+      const targetStage = overId.startsWith("col:")
+        ? overId.slice("col:".length)
+        : null;
+
+      if (
+        typeof sourceStage === "string" &&
+        targetStage &&
+        sourceStage !== targetStage
+      ) {
+        onStageReorder(sourceStage, targetStage);
+      }
+      return;
+    }
 
     const sourceApp = apps.find((a) => a._id === activeIdStr);
     if (!sourceApp) return;
@@ -329,15 +363,42 @@ function KanbanColumn({
   density: KanbanDensity;
 }) {
   const palette = rolePalette(stage.colorRole);
-  const { setNodeRef, isOver } = useDroppable({
+  const { setNodeRef: setDropNodeRef, isOver } = useDroppable({
     id: `col:${stage.name}`,
     data: { stageName: stage.name },
   });
+  const {
+    attributes: columnAttributes,
+    listeners: columnListeners,
+    setNodeRef: setDragNodeRef,
+    transform: columnTransform,
+    isDragging: isColumnDragging,
+  } = useDraggable({
+    id: `stage:${stage.name}`,
+    data: { type: "stage", stageName: stage.name },
+  });
+
+  const setColumnNodeRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      setDropNodeRef(node);
+      setDragNodeRef(node);
+    },
+    [setDragNodeRef, setDropNodeRef],
+  );
+
+  const columnStyle: CSSProperties = {
+    borderTop: `3px solid ${palette.dot}`,
+    ...(columnTransform
+      ? {
+          transform: `translate3d(${columnTransform.x}px, ${columnTransform.y}px, 0)`,
+        }
+      : {}),
+  };
 
   const [addOpen, setAddOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(formatApplicationDateValue);
   const [creating, setCreating] = useState(false);
   const [clearOpen, setClearOpen] = useState(false);
   const [clearing, setClearing] = useState(false);
@@ -362,7 +423,7 @@ function KanbanColumn({
   function reset() {
     setTitle("");
     setCompany("");
-    setDate(new Date().toISOString().slice(0, 10));
+    setDate(formatApplicationDateValue());
   }
 
   async function submit() {
@@ -379,12 +440,26 @@ function KanbanColumn({
 
   return (
     <div
-      ref={setNodeRef}
-      className={"apps-kanban-col" + (isOver ? " is-drop-target" : "")}
-      style={{ borderTop: `3px solid ${palette.dot}` }}
+      ref={setColumnNodeRef}
+      className={
+        "apps-kanban-col" +
+        (isOver ? " is-drop-target" : "") +
+        (isColumnDragging ? " is-column-dragging" : "")
+      }
+      style={columnStyle}
     >
       <header className="apps-kc-col-head">
         <div className="apps-kc-col-head-left">
+          <button
+            type="button"
+            className="apps-kc-col-drag"
+            aria-label={`Move ${stage.displayName} column`}
+            title={`Move ${stage.displayName} column`}
+            {...columnAttributes}
+            {...columnListeners}
+          >
+            <IconGripVertical size={15} />
+          </button>
           <span className="apps-kc-col-name">{stage.displayName}</span>
           <span
             className="apps-count-pill"
@@ -411,7 +486,7 @@ function KanbanColumn({
                 title={`Clear ${stage.displayName}`}
                 onClick={() => setClearOpen((o) => !o)}
               >
-                <IconTrash size={14} />
+                <IconRefresh size={14} />
               </button>
             </Popover.Target>
             <Popover.Dropdown
@@ -515,20 +590,10 @@ function KanbanColumn({
                   },
                 }}
               />
-              <TextInput
-                size="xs"
-                type="date"
+              <ApplicationDatePicker
                 value={date}
-                onChange={(e) => setDate(e.currentTarget.value)}
-                styles={{
-                  input: {
-                    backgroundColor: "#3a3a3a",
-                    border: "none",
-                    borderRadius: "0.4rem",
-                    color: "white",
-                    colorScheme: "dark",
-                  } as React.CSSProperties,
-                }}
+                onChange={setDate}
+                ariaLabel={`Application date for ${stage.displayName}`}
               />
               <Button
                 size="xs"
@@ -568,15 +633,23 @@ function KanbanColumn({
             />
           ))
         )}
-        {hasHiddenApps && !expanded && (
+        {hasHiddenApps && (
           <button
             type="button"
             className="apps-kc-show-more"
-            aria-label={`Show ${hiddenCount} more application${hiddenCount === 1 ? "" : "s"} in ${stage.displayName}`}
-            onClick={() => setExpanded(true)}
+            aria-label={
+              expanded
+                ? `Show fewer applications in ${stage.displayName}`
+                : `Show ${hiddenCount} more application${hiddenCount === 1 ? "" : "s"} in ${stage.displayName}`
+            }
+            onClick={() => setExpanded((value) => !value)}
           >
-            <span>Show More</span>
-            <IconChevronsDown size={16} aria-hidden />
+            <span>{expanded ? "Show Less" : "Show More"}</span>
+            {expanded ? (
+              <IconChevronsUp size={16} aria-hidden />
+            ) : (
+              <IconChevronsDown size={16} aria-hidden />
+            )}
           </button>
         )}
       </div>
@@ -600,7 +673,7 @@ function KanbanCard({
   density: KanbanDensity;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({ id: app._id, data: { status: app.status } });
+    useDraggable({ id: app._id, data: { type: "app", status: app.status } });
 
   const style: CSSProperties = transform
     ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
@@ -611,24 +684,202 @@ function KanbanCard({
   const [notesOpen, setNotesOpen] = useState(false);
   const [draft, setDraft] = useState(app.notes ?? "");
   const [savingNotes, setSavingNotes] = useState(false);
+  const [notesPosition, setNotesPosition] = useState<CSSProperties | null>(
+    null,
+  );
+  const cardRef = useRef<HTMLElement | null>(null);
+  const notesEditorRef = useRef<HTMLDivElement>(null);
+  const draftRef = useRef(draft);
+  const lastSavedNotesRef = useRef(app.notes ?? "");
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const setCardNodeRef = useCallback(
+    (node: HTMLElement | null) => {
+      cardRef.current = node;
+      setNodeRef(node);
+    },
+    [setNodeRef],
+  );
 
   useEffect(() => {
-    if (!notesOpen) setDraft(app.notes ?? "");
+    draftRef.current = draft;
+  }, [draft]);
+
+  useEffect(() => {
+    const nextNotes = app.notes ?? "";
+    lastSavedNotesRef.current = nextNotes;
+    if (!notesOpen) setDraft(nextNotes);
   }, [app.notes, notesOpen]);
 
-  async function saveNotes() {
-    setSavingNotes(true);
-    try {
-      await onSaveNotes(app.jobId, draft);
-      setNotesOpen(false);
-    } finally {
-      setSavingNotes(false);
+  const saveNotesNow = useCallback(
+    async (nextNotes: string) => {
+      const persistedNotes = nextNotes.trim().length > 0 ? nextNotes : "";
+      if (persistedNotes === lastSavedNotesRef.current) return;
+
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = null;
+      }
+
+      lastSavedNotesRef.current = persistedNotes;
+      setSavingNotes(true);
+      try {
+        await onSaveNotes(app.jobId, persistedNotes);
+      } catch {
+        lastSavedNotesRef.current = app.notes ?? "";
+      } finally {
+        setSavingNotes(false);
+      }
+    },
+    [app.jobId, app.notes, onSaveNotes],
+  );
+
+  const updateNotesPosition = useCallback(() => {
+    const card = cardRef.current;
+    const editor = notesEditorRef.current;
+    if (!card || !editor) return;
+
+    const gap = 10;
+    const margin = 12;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const cardRect = card.getBoundingClientRect();
+    const editorRect = editor.getBoundingClientRect();
+    const editorWidth =
+      editorRect.width || Math.min(360, viewportWidth - margin * 2);
+    const editorHeight = editorRect.height || 240;
+    const maxLeft = Math.max(margin, viewportWidth - editorWidth - margin);
+    const maxTop = Math.max(margin, viewportHeight - editorHeight - margin);
+    const clamp = (value: number, min: number, max: number) =>
+      Math.min(Math.max(value, min), max);
+
+    let top = clamp(cardRect.top, margin, maxTop);
+    let left = cardRect.right + gap;
+    const canFitRight =
+      cardRect.right + gap + editorWidth <= viewportWidth - margin;
+    const canFitLeft = cardRect.left - gap - editorWidth >= margin;
+
+    if (!canFitRight && canFitLeft) {
+      left = cardRect.left - editorWidth - gap;
+    } else if (!canFitRight) {
+      left = clamp(
+        cardRect.left + cardRect.width / 2 - editorWidth / 2,
+        margin,
+        maxLeft,
+      );
+      top = cardRect.bottom + gap;
+      if (top + editorHeight > viewportHeight - margin) {
+        top = cardRect.top - editorHeight - gap;
+      }
+      top = clamp(top, margin, maxTop);
     }
-  }
+
+    setNotesPosition({ left, top });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!notesOpen) {
+      setNotesPosition(null);
+      return;
+    }
+
+    updateNotesPosition();
+    window.addEventListener("resize", updateNotesPosition);
+    window.addEventListener("scroll", updateNotesPosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updateNotesPosition);
+      window.removeEventListener("scroll", updateNotesPosition, true);
+    };
+  }, [notesOpen, updateNotesPosition]);
+
+  useEffect(() => {
+    if (!notesOpen) return;
+    const persistedDraft = draft.trim().length > 0 ? draft : "";
+    if (persistedDraft === lastSavedNotesRef.current) return;
+
+    const timer = setTimeout(() => {
+      void saveNotesNow(draft);
+    }, 600);
+
+    saveTimerRef.current = timer;
+
+    return () => {
+      clearTimeout(timer);
+      if (saveTimerRef.current === timer) saveTimerRef.current = null;
+    };
+  }, [draft, notesOpen, saveNotesNow]);
+
+  useEffect(() => {
+    if (!notesOpen) return;
+
+    const closeNotes = () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = null;
+      }
+
+      void saveNotesNow(draftRef.current);
+      setNotesOpen(false);
+    };
+
+    const closeOnOutsideInteraction = (event: Event) => {
+      const target = event.target;
+      if (
+        target instanceof Node &&
+        notesEditorRef.current?.contains(target)
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      const nativeEvent = event as Event & {
+        stopImmediatePropagation?: () => void;
+      };
+      nativeEvent.stopImmediatePropagation?.();
+      closeNotes();
+    };
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      closeNotes();
+    };
+
+    const blockedEvents = [
+      "pointerdown",
+      "mousedown",
+      "click",
+      "dblclick",
+      "contextmenu",
+      "dragstart",
+    ];
+
+    blockedEvents.forEach((eventName) => {
+      document.addEventListener(eventName, closeOnOutsideInteraction, true);
+    });
+    document.addEventListener("keydown", closeOnEscape, true);
+
+    return () => {
+      blockedEvents.forEach((eventName) => {
+        document.removeEventListener(
+          eventName,
+          closeOnOutsideInteraction,
+          true,
+        );
+      });
+      document.removeEventListener("keydown", closeOnEscape, true);
+    };
+  }, [notesOpen, saveNotesNow]);
+
+  const dateLabel = relativeDate(app.updatedAt).toUpperCase();
 
   return (
     <article
-      ref={setNodeRef}
+      ref={setCardNodeRef}
       className={
         "apps-kanban-card" +
         (app.status === "STARTED" ? " has-started-action" : "") +
@@ -653,7 +904,7 @@ function KanbanCard({
       </header>
       <h3 className="apps-kc-role">{app.jobSnapshot.title}</h3>
       <footer className="apps-kc-foot">
-        <span className="apps-kc-foot-meta">{relativeDate(app.updatedAt)}</span>
+        <span className="apps-kc-foot-meta">{dateLabel}</span>
         <div className="apps-kc-foot-icons">
           <button
             type="button"
@@ -671,73 +922,19 @@ function KanbanCard({
               <IconStar size={14} />
             )}
           </button>
-          <Popover
-            opened={notesOpen}
-            onChange={setNotesOpen}
-            position="bottom-end"
-            shadow="md"
-            withinPortal
-            trapFocus
+          <button
+            type="button"
+            className={"apps-icon-btn" + (app.notes ? " has-notes" : "")}
+            aria-label={app.notes ? "Edit notes" : "Add notes"}
+            title={app.notes ? "Edit notes" : "Add notes"}
+            onClick={(e) => {
+              e.stopPropagation();
+              setNotesPosition(null);
+              setNotesOpen(true);
+            }}
           >
-            <Popover.Target>
-              <button
-                type="button"
-                className={"apps-icon-btn" + (app.notes ? " has-notes" : "")}
-                aria-label={app.notes ? "Edit notes" : "Add notes"}
-                title={app.notes ? "Edit notes" : "Add notes"}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setNotesOpen((o) => !o);
-                }}
-              >
-                <IconNotes size={14} />
-              </button>
-            </Popover.Target>
-            <Popover.Dropdown
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                backgroundColor: "#2e2e2e",
-                border: "2px solid #3a3a3a",
-                borderRadius: "0.65rem",
-                padding: 10,
-                width: 280,
-              }}
-            >
-              <Stack gap="xs">
-                <Textarea
-                  autosize
-                  minRows={4}
-                  maxRows={10}
-                  placeholder="Interview prep, recruiter, salary…"
-                  value={draft}
-                  onChange={(e) => setDraft(e.currentTarget.value)}
-                  styles={{
-                    input: {
-                      backgroundColor: "#3a3a3a",
-                      border: "none",
-                      borderRadius: "0.4rem",
-                      color: "white",
-                      fontSize: 13,
-                    },
-                  }}
-                />
-                <Button
-                  size="xs"
-                  fullWidth
-                  loading={savingNotes}
-                  onClick={saveNotes}
-                  style={{
-                    backgroundColor: "#ffe22f",
-                    color: "#1f1f1f",
-                    borderRadius: "0.5rem",
-                    fontWeight: 700,
-                  }}
-                >
-                  Save
-                </Button>
-              </Stack>
-            </Popover.Dropdown>
-          </Popover>
+            <IconNotes size={14} />
+          </button>
           <button
             type="button"
             className="apps-icon-btn"
@@ -765,6 +962,47 @@ function KanbanCard({
         >
           <IconArrowRight size={15} />
         </button>
+      )}
+      {notesOpen && (
+        <div
+          ref={notesEditorRef}
+          className="apps-notes-editor"
+          data-apps-note-editor={app._id}
+          style={notesPosition ?? { visibility: "hidden" }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="apps-notes-editor-head">
+            <div>
+              <span className="apps-notes-editor-label">Notes</span>
+              <div className="apps-notes-editor-title">
+                {app.jobSnapshot.title}
+              </div>
+            </div>
+            <span className="apps-notes-editor-status">
+              {savingNotes ? "Saving..." : "Auto-saved"}
+            </span>
+          </div>
+          <Stack gap="xs">
+            <Textarea
+              autosize
+              minRows={5}
+              maxRows={10}
+              placeholder="Interview prep, recruiter, salary..."
+              value={draft}
+              onChange={(e) => setDraft(e.currentTarget.value)}
+              styles={{
+                input: {
+                  backgroundColor: "#3a3a3a",
+                  border: "none",
+                  borderRadius: "0.4rem",
+                  color: "white",
+                  fontSize: 13,
+                },
+              }}
+            />
+          </Stack>
+        </div>
       )}
     </article>
   );

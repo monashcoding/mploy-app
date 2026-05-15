@@ -226,14 +226,14 @@ export async function updateApplicationNotes(jobId: string, notes: string) {
   const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
 
-  const trimmed = notes.trim();
-  const update = trimmed
-    ? { $set: { notes: trimmed, updatedAt: new Date() } }
+  const hasNotes = notes.trim().length > 0;
+  const update = hasNotes
+    ? { $set: { notes, updatedAt: new Date() } }
     : { $unset: { notes: "" }, $set: { updatedAt: new Date() } };
 
   await db
     .collection("applications")
     .updateOne({ userId: new ObjectId(userId), jobId }, update);
 
-  return { ok: true, notes: trimmed || undefined };
+  return { ok: true, notes: hasNotes ? notes : undefined };
 }

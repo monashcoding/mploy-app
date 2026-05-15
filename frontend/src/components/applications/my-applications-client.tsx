@@ -15,6 +15,7 @@ import {
   TextInput,
 } from "@mantine/core";
 import {
+  IconCheck,
   IconChevronDown,
   IconEye,
   IconFilter,
@@ -48,10 +49,14 @@ import ApplicationsKanban, {
   KanbanDensity,
   KanbanSort,
 } from "@/components/applications/applications-kanban";
+import ApplicationDatePicker, {
+  formatApplicationDateValue,
+} from "@/components/applications/application-date-picker";
 import { rolePalette } from "@/lib/role-palette";
 
 const SORT_STORAGE_KEY = "mp:apps:kanban-sort:v1";
 const DENSITY_STORAGE_KEY = "mp:apps:kanban-density:v1";
+const STAGE_ORDER_STORAGE_KEY = "mp:apps:stage-order:v1";
 const MAC_YELLOW = "#ffe22f";
 
 function readSort(): KanbanSort {
@@ -74,6 +79,44 @@ function readDensity(): KanbanDensity {
     // ignore
   }
   return "detailed";
+}
+
+function orderStages(stages: UserStage[], orderedNames: string[]) {
+  const byName = new Map(stages.map((stage) => [stage.name, stage]));
+  const ordered = orderedNames
+    .map((name) => byName.get(name))
+    .filter((stage): stage is UserStage => Boolean(stage));
+  const missing = stages.filter((stage) => !orderedNames.includes(stage.name));
+
+  return [...ordered, ...missing].map((stage, order) => ({
+    ...stage,
+    order,
+  }));
+}
+
+function readStageOrder(stages: UserStage[]) {
+  if (typeof window === "undefined") return stages;
+  try {
+    const raw = window.localStorage.getItem(STAGE_ORDER_STORAGE_KEY);
+    const order = raw ? JSON.parse(raw) : null;
+    if (Array.isArray(order) && order.every((name) => typeof name === "string")) {
+      return orderStages(stages, order);
+    }
+  } catch {
+    // ignore
+  }
+  return stages;
+}
+
+function moveStage(stages: UserStage[], activeName: string, targetName: string) {
+  const from = stages.findIndex((stage) => stage.name === activeName);
+  const to = stages.findIndex((stage) => stage.name === targetName);
+  if (from < 0 || to < 0 || from === to) return stages;
+
+  const next = [...stages];
+  const [moved] = next.splice(from, 1);
+  next.splice(to, 0, moved);
+  return next.map((stage, order) => ({ ...stage, order }));
 }
 
 function StatusDot({ role }: { role: StageColorRole }) {
@@ -100,7 +143,9 @@ export default function MyApplicationsClient({
 }) {
   const { status: sessionStatus } = useSession();
   const [apps, setApps] = useState<DbApplication[]>(initial);
-  const stages = initialStages;
+  const [stages, setStages] = useState<UserStage[]>(() =>
+    readStageOrder(initialStages),
+  );
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [sort, setSort] = useState<KanbanSort>(readSort);
   const [density, setDensity] = useState<KanbanDensity>(readDensity);
@@ -112,9 +157,7 @@ export default function MyApplicationsClient({
   const [customTitle, setCustomTitle] = useState("");
   const [customCompany, setCustomCompany] = useState("");
   const [customStage, setCustomStage] = useState(stages[0]?.name ?? "");
-  const [customDate, setCustomDate] = useState(() =>
-    new Date().toISOString().slice(0, 10),
-  );
+  const [customDate, setCustomDate] = useState(formatApplicationDateValue);
   const [customCreating, setCustomCreating] = useState(false);
 
   useEffect(() => {
@@ -132,6 +175,17 @@ export default function MyApplicationsClient({
       // ignore
     }
   }, [density]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        STAGE_ORDER_STORAGE_KEY,
+        JSON.stringify(stages.map((stage) => stage.name)),
+      );
+    } catch {
+      // ignore
+    }
+  }, [stages]);
 
   useEffect(() => {
     if (sessionStatus !== "authenticated") return;
@@ -241,7 +295,7 @@ export default function MyApplicationsClient({
     setCustomTitle("");
     setCustomCompany("");
     setCustomStage(stages[0]?.name ?? "");
-    setCustomDate(new Date().toISOString().slice(0, 10));
+    setCustomDate(formatApplicationDateValue());
   }
 
   async function submitCustomAdd() {
@@ -262,15 +316,15 @@ export default function MyApplicationsClient({
   }
 
   async function handleSaveNotes(jobId: string, notes: string) {
-    const trimmed = notes.trim();
+    const nextNotes = notes.trim().length > 0 ? notes : "";
     const previous = apps.find((a) => a.jobId === jobId);
     setApps((prev) =>
       prev.map((p) =>
-        p.jobId === jobId ? { ...p, notes: trimmed || undefined } : p,
+        p.jobId === jobId ? { ...p, notes: nextNotes || undefined } : p,
       ),
     );
     try {
-      await updateApplicationNotes(jobId, trimmed);
+      await updateApplicationNotes(jobId, nextNotes);
     } catch {
       if (previous)
         setApps((prev) =>
@@ -279,6 +333,10 @@ export default function MyApplicationsClient({
           ),
         );
     }
+  }
+
+  function handleStageReorder(activeStageName: string, targetStageName: string) {
+    setStages((prev) => moveStage(prev, activeStageName, targetStageName));
   }
 
   if (sessionStatus === "unauthenticated") {
@@ -506,20 +564,10 @@ export default function MyApplicationsClient({
                   },
                 }}
               />
-              <TextInput
-                size="xs"
-                type="date"
+              <ApplicationDatePicker
                 value={customDate}
-                onChange={(e) => setCustomDate(e.currentTarget.value)}
-                styles={{
-                  input: {
-                    backgroundColor: "#3a3a3a",
-                    border: "none",
-                    borderRadius: "0.4rem",
-                    color: "white",
-                    colorScheme: "dark",
-                  } as React.CSSProperties,
-                }}
+                onChange={setCustomDate}
+                ariaLabel="Application date for custom application"
               />
               <Button
                 size="xs"
@@ -591,6 +639,13 @@ export default function MyApplicationsClient({
               { value: "oldest", label: "Oldest first" },
             ]}
             allowDeselect={false}
+            withCheckIcon={false}
+            renderOption={({ option, checked }) => (
+              <Group justify="space-between" wrap="nowrap" w="100%">
+                <span>{option.label}</span>
+                {checked && <IconCheck size={14} color={MAC_YELLOW} />}
+              </Group>
+            )}
             leftSection={<IconFilter size={14} />}
             styles={compactSelectStyles}
           />
@@ -644,6 +699,7 @@ export default function MyApplicationsClient({
         onCreateInStage={handleCreateInStage}
         onToggleStar={handleToggleStar}
         onClearStage={handleClearStage}
+        onStageReorder={handleStageReorder}
         density={density}
       />
     </div>
