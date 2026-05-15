@@ -67,6 +67,10 @@ body {
   word-break: break-word;
 }
 
+.mploy-notifications[data-position="top-right"] {
+  top: 72px;
+}
+
 /* ==========================================================================
    Applications redesign - shared atoms + Kanban
    ========================================================================== */
