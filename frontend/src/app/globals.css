@@ -554,9 +554,7 @@ body {
   gap: 6px;
 }
 .apps-kc-col-empty {
-  padding: 24px 12px;
-  border: 1px dashed var(--border);
-  border-radius: 0.5rem;
+  padding: 8px 4px;
   text-align: center;
   font-size: 12.5px;
   color: var(--muted-3);
@@ -738,8 +736,12 @@ body {
   font-weight: 500;
   color: var(--muted-2);
 }
+.apps-kanban-card--compact .apps-kc-role-wrap {
+  position: static;
+}
 .apps-kanban-card--compact .apps-card-drag-grip {
-  left: -14px;
+  left: 1px;
+  top: 50%;
 }
 .apps-kanban-card--compact .apps-kc-role {
   font-size: 12.5px;

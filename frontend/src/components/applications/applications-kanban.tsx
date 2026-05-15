@@ -60,6 +60,7 @@ export type KanbanSort = "newest" | "oldest";
 export type KanbanDensity = "compact" | "detailed";
 
 const VISIBLE_CARDS_PER_COLUMN = 4;
+const COMPACT_VISIBLE_CARDS_PER_COLUMN = 8;
 
 function applicationLogo(app: DbApplication) {
   const isCustomApplication =
@@ -261,6 +262,8 @@ export function ApplicationsStatStrip({
   const started = apps.filter((a) => a.status === "STARTED").length;
   const totalCount = apps.length;
   const winRate = totalCount > 0 ? Math.round((wins / totalCount) * 100) : 0;
+  const lossRate =
+    totalCount > 0 ? Math.round((losses / totalCount) * 100) : 0;
 
   const cells = [
     { label: "Saved", value: started, sub: "saved", role: "neutral" as const },
@@ -279,7 +282,7 @@ export function ApplicationsStatStrip({
     {
       label: "Rejected",
       value: losses,
-      sub: "closed",
+      sub: `${lossRate}%`,
       role: "loss" as const,
     },
   ];
@@ -404,10 +407,12 @@ function KanbanColumn({
   const [clearing, setClearing] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
-  const hasHiddenApps = apps.length > VISIBLE_CARDS_PER_COLUMN;
-  const visibleApps = expanded
-    ? apps
-    : apps.slice(0, VISIBLE_CARDS_PER_COLUMN);
+  const visibleCardLimit =
+    density === "compact"
+      ? COMPACT_VISIBLE_CARDS_PER_COLUMN
+      : VISIBLE_CARDS_PER_COLUMN;
+  const hasHiddenApps = apps.length > visibleCardLimit;
+  const visibleApps = expanded ? apps : apps.slice(0, visibleCardLimit);
   const hiddenCount = apps.length - visibleApps.length;
 
   async function confirmClear() {
