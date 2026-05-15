@@ -792,47 +792,47 @@ export default function MyApplicationsClient({
           </Popover.Dropdown>
         </Popover>
 
-        <SegmentedControl
-          value={density}
-          onChange={(v) => setDensity(v as KanbanDensity)}
-          data={[
-            {
-              value: "compact",
-              label: (
-                <Group
-                  gap={6}
-                  wrap="nowrap"
-                  style={{
-                    color:
-                      density === "compact" ? MAC_YELLOW : "currentColor",
-                  }}
-                >
-                  <IconLayoutList size={14} />
-                  <span className="hidden sm:inline">Compact</span>
-                </Group>
-              ),
-            },
-            {
-              value: "detailed",
-              label: (
-                <Group
-                  gap={6}
-                  wrap="nowrap"
-                  style={{
-                    color:
-                      density === "detailed" ? MAC_YELLOW : "currentColor",
-                  }}
-                >
-                  <IconLayoutCards size={14} />
-                  <span className="hidden sm:inline">Detailed</span>
-                </Group>
-              ),
-            },
-          ]}
-          styles={segmentedStyles}
-        />
-
         <div className="flex items-center gap-2 flex-wrap ml-auto">
+          <SegmentedControl
+            value={density}
+            onChange={(v) => setDensity(v as KanbanDensity)}
+            data={[
+              {
+                value: "compact",
+                label: (
+                  <Group
+                    gap={6}
+                    wrap="nowrap"
+                    style={{
+                      color:
+                        density === "compact" ? MAC_YELLOW : "currentColor",
+                    }}
+                  >
+                    <IconLayoutList size={14} />
+                    <span className="hidden sm:inline">Compact</span>
+                  </Group>
+                ),
+              },
+              {
+                value: "detailed",
+                label: (
+                  <Group
+                    gap={6}
+                    wrap="nowrap"
+                    style={{
+                      color:
+                        density === "detailed" ? MAC_YELLOW : "currentColor",
+                    }}
+                  >
+                    <IconLayoutCards size={14} />
+                    <span className="hidden sm:inline">Detailed</span>
+                  </Group>
+                ),
+              },
+            ]}
+            styles={segmentedStyles}
+          />
+
           <Popover position="bottom-end" shadow="md" withinPortal>
             <Popover.Target>
               <button className={compactBtn} style={compactBtnStyle}>

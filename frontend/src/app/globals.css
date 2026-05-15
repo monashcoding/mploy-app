@@ -616,7 +616,9 @@ body {
   border-radius: 0.75rem;
   padding: 8px 4px 8px;
   min-height: 420px;
-  transition: outline 0.12s ease, opacity 0.12s ease;
+  transition:
+    outline 0.12s ease,
+    opacity 0.12s ease;
 }
 .apps-kanban-col.is-drop-target {
   outline: 2px dashed var(--accent);
@@ -626,6 +628,7 @@ body {
   opacity: 0.72;
   cursor: grabbing;
   z-index: 20;
+  transition: none;
 }
 .apps-kc-col-head {
   display: flex;
@@ -727,7 +730,11 @@ body {
   gap: 10px;
   cursor: grab;
   position: relative;
-  transition: border-color 0.12s ease, transform 0.12s ease;
+  user-select: none;
+  transform-origin: center;
+  transition:
+    border-color 0.12s ease,
+    box-shadow 0.12s ease;
 }
 .apps-kanban-card.has-started-action {
   padding-right: 30px;
@@ -737,6 +744,7 @@ body {
 }
 .apps-kanban-card.is-dragging {
   visibility: hidden;
+  transition: none;
 }
 .apps-started-action {
   position: absolute;
@@ -881,31 +889,55 @@ body {
   -webkit-line-clamp: 1;
 }
 .apps-kanban-card--compact .apps-kc-foot {
+  position: absolute;
+  right: 6px;
+  bottom: 4px;
+  display: flex;
+  padding: 2px 3px;
+  border-radius: 0.4rem;
+  background: rgba(46, 46, 46, 0.96);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.12s ease,
+    visibility 0.12s ease;
+}
+.apps-kanban-card--compact .apps-kc-foot-meta {
   display: none;
-  padding-top: 2px;
 }
 .apps-kanban-card--compact:hover .apps-kc-foot,
 .apps-kanban-card--compact:focus-within .apps-kc-foot {
-  display: flex;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 @media (hover: none) {
   .apps-kanban-card--compact .apps-kc-foot {
-    display: flex;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
   }
 }
 
 /* Kanban drag preview floating card */
 .apps-drag-preview {
-  background: var(--secondary);
-  border: 2px solid var(--accent);
-  border-radius: 0.75rem;
-  padding: 12px;
-  min-width: 240px;
-  max-width: 320px;
+  border-color: var(--accent);
+  min-width: 0;
+  max-width: none;
   box-shadow:
-    0 12px 28px rgba(0, 0, 0, 0.45),
+    0 18px 44px rgba(0, 0, 0, 0.46),
     0 0 0 1px rgba(255, 226, 47, 0.2);
   cursor: grabbing;
+  pointer-events: none;
+}
+.apps-drag-preview .apps-card-drag-grip {
+  color: rgba(255, 226, 47, 0.75);
+}
+.apps-drag-preview.apps-kanban-card--compact .apps-kc-foot {
+  opacity: 0;
+  visibility: hidden;
 }
 
 /* ==========================================================================
