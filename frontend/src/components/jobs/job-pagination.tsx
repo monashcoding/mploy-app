@@ -10,11 +10,9 @@ interface JobPaginationProps {
 
 export default function JobPagination({ pageSize = 20 }: JobPaginationProps) {
   const { filters, updateFilters, totalJobs, isLoading } = useFilterContext();
-
-  const isReady = totalJobs !== undefined;
   const totalPages = Math.ceil(totalJobs / pageSize);
 
-  if (!isReady || totalPages <= 1 || isLoading) return null;
+  if (totalPages <= 1 || isLoading) return null;
 
   const handlePageChange = (page: number) => {
     const scrollContainer = document.querySelector("#job-list-container");
@@ -31,7 +29,7 @@ export default function JobPagination({ pageSize = 20 }: JobPaginationProps) {
   };
 
   return (
-    //   mb-12 gives extra space for feedback button on mobile. it would've blocked the pagination controls.
+    // mb-12 gives extra space for feedback button on mobile. it would've blocked the pagination controls.
     <div className="flex justify-center py-4 mb-12 sm:mb-0">
       <Pagination
         autoContrast
@@ -41,7 +39,7 @@ export default function JobPagination({ pageSize = 20 }: JobPaginationProps) {
         size="md"
         gap={12}
         boundaries={1}
-        siblings={0}
+        siblings={1}
         radius="lg"
         color="accent"
         getItemProps={(page) => ({
