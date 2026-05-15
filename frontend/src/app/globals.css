@@ -484,7 +484,7 @@ body {
   background: var(--bg-soft);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  padding: 12px;
+  padding: 8px 4px 8px;
   min-height: 420px;
   transition: outline 0.12s ease, opacity 0.12s ease;
 }
@@ -501,9 +501,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 4px 12px;
+  padding: 4px 2px 8px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 .apps-kc-col-head-left {
   display: flex;
@@ -591,7 +591,7 @@ body {
   background: var(--secondary);
   border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: 0.75rem;
-  padding: 12px;
+  padding: 11px 9px 11px 17px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -661,6 +661,27 @@ body {
   font-size: 11px;
   color: var(--muted-3);
 }
+.apps-kc-role-wrap {
+  position: relative;
+}
+.apps-card-drag-grip {
+  position: absolute;
+  top: 50%;
+  left: -16px;
+  color: rgba(255, 255, 255, 0.24);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition:
+    color 0.12s ease,
+    opacity 0.12s ease;
+}
+.apps-kanban-card:hover .apps-card-drag-grip,
+.apps-kanban-card:focus-within .apps-card-drag-grip {
+  color: rgba(255, 226, 47, 0.75);
+}
 .apps-kc-role {
   font-weight: 600;
   font-size: 14px;
@@ -694,7 +715,7 @@ body {
 
 /* Compact density */
 .apps-kanban-card--compact {
-  padding: 6px 8px;
+  padding: 6px 6px 6px 15px;
   gap: 2px;
   border-radius: 0.5rem;
 }
@@ -716,6 +737,9 @@ body {
   font-size: 11px;
   font-weight: 500;
   color: var(--muted-2);
+}
+.apps-kanban-card--compact .apps-card-drag-grip {
+  left: -14px;
 }
 .apps-kanban-card--compact .apps-kc-role {
   font-size: 12.5px;

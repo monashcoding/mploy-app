@@ -564,9 +564,9 @@ function KanbanColumn({
             <Stack gap="xs">
               <TextInput
                 size="xs"
-                placeholder="Role"
-                value={title}
-                onChange={(e) => setTitle(e.currentTarget.value)}
+                placeholder="Company"
+                value={company}
+                onChange={(e) => setCompany(e.currentTarget.value)}
                 styles={{
                   input: {
                     backgroundColor: "#3a3a3a",
@@ -578,9 +578,9 @@ function KanbanColumn({
               />
               <TextInput
                 size="xs"
-                placeholder="Company"
-                value={company}
-                onChange={(e) => setCompany(e.currentTarget.value)}
+                placeholder="Role"
+                value={title}
+                onChange={(e) => setTitle(e.currentTarget.value)}
                 styles={{
                   input: {
                     backgroundColor: "#3a3a3a",
@@ -902,7 +902,12 @@ function KanbanCard({
           <div className="apps-kc-company">{app.jobSnapshot.companyName}</div>
         </div>
       </header>
-      <h3 className="apps-kc-role">{app.jobSnapshot.title}</h3>
+      <div className="apps-kc-role-wrap">
+        <span className="apps-card-drag-grip" aria-hidden="true">
+          <IconGripVertical size={14} />
+        </span>
+        <h3 className="apps-kc-role">{app.jobSnapshot.title}</h3>
+      </div>
       <footer className="apps-kc-foot">
         <span className="apps-kc-foot-meta">{dateLabel}</span>
         <div className="apps-kc-foot-icons">

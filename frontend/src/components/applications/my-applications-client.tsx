@@ -457,7 +457,7 @@ export default function MyApplicationsClient({
         >
           <IconInfoCircle size={14} style={{ flexShrink: 0 }} />
           <span>
-            Jobs you click <strong style={{ color: "rgba(255,255,255,0.7)" }}>Apply</strong> on are auto-added here.
+            Jobs you click <strong style={{ color: "rgba(255,255,255,0.7)" }}>Apply</strong> on are auto-added
           </span>
         </div>
       </div>
@@ -518,6 +518,20 @@ export default function MyApplicationsClient({
             <Stack gap="xs">
               <TextInput
                 size="xs"
+                placeholder="Company"
+                value={customCompany}
+                onChange={(e) => setCustomCompany(e.currentTarget.value)}
+                styles={{
+                  input: {
+                    backgroundColor: "#3a3a3a",
+                    border: "none",
+                    borderRadius: "0.4rem",
+                    color: "white",
+                  },
+                }}
+              />
+              <TextInput
+                size="xs"
                 placeholder="Role"
                 value={customTitle}
                 onChange={(e) => setCustomTitle(e.currentTarget.value)}
@@ -530,19 +544,10 @@ export default function MyApplicationsClient({
                   },
                 }}
               />
-              <TextInput
-                size="xs"
-                placeholder="Company"
-                value={customCompany}
-                onChange={(e) => setCustomCompany(e.currentTarget.value)}
-                styles={{
-                  input: {
-                    backgroundColor: "#3a3a3a",
-                    border: "none",
-                    borderRadius: "0.4rem",
-                    color: "white",
-                  },
-                }}
+              <ApplicationDatePicker
+                value={customDate}
+                onChange={setCustomDate}
+                ariaLabel="Application date for custom application"
               />
               <Select
                 size="xs"
@@ -563,11 +568,6 @@ export default function MyApplicationsClient({
                     borderRadius: "0.65rem",
                   },
                 }}
-              />
-              <ApplicationDatePicker
-                value={customDate}
-                onChange={setCustomDate}
-                ariaLabel="Application date for custom application"
               />
               <Button
                 size="xs"

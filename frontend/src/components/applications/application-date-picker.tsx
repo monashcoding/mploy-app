@@ -98,7 +98,7 @@ export default function ApplicationDatePicker({
       onChange={setOpened}
       position="bottom-start"
       shadow="md"
-      withinPortal
+      withinPortal={false}
     >
       <Popover.Target>
         <button
