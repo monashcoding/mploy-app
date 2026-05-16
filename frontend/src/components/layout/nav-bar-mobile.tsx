@@ -1,12 +1,7 @@
 "use client";
 import Link from "next/link";
 import { Button, Menu } from "@mantine/core";
-import {
-  IconMenu2,
-  IconSearch,
-  IconLogout,
-  IconClipboardList,
-} from "@tabler/icons-react";
+import { IconMenu2, IconSearch, IconLogout } from "@tabler/icons-react";
 import Logo from "@/components/layout/logo";
 import SearchBar from "@/components/search/search-bar";
 import { useState } from "react";
@@ -68,11 +63,6 @@ export const NavBarMobile = () => {
                     component={Link}
                     href={item.href}
                     className={pathname === item.href ? "font-bold" : ""}
-                    leftSection={
-                      item.href === "/my-applications" ? (
-                        <IconClipboardList size={16} />
-                      ) : undefined
-                    }
                   >
                     {item.label}
                   </Menu.Item>

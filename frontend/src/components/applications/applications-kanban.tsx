@@ -24,9 +24,18 @@ import {
 } from "@dnd-kit/core";
 import { snapCenterToCursor } from "@dnd-kit/modifiers";
 import { useDraggable } from "@dnd-kit/core";
-import { Button, Popover, Stack, TextInput, Textarea } from "@mantine/core";
+import {
+  Button,
+  Menu,
+  Popover,
+  Stack,
+  TextInput,
+  Textarea,
+} from "@mantine/core";
 import {
   IconArrowRight,
+  IconCheck,
+  IconChevronDown,
   IconChevronsDown,
   IconChevronsUp,
   IconGripVertical,
@@ -93,6 +102,8 @@ type Props = {
   onClearStage: (stageName: string) => Promise<void>;
   onStageReorder: (activeStageName: string, targetStageName: string) => void;
   density: KanbanDensity;
+  mobileStageName?: string;
+  onMobileStageChange?: (stageName: string) => void;
 };
 
 export default function ApplicationsKanban({
@@ -108,8 +119,13 @@ export default function ApplicationsKanban({
   onClearStage,
   onStageReorder,
   density,
+  mobileStageName,
+  onMobileStageChange,
 }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [moveNotice, setMoveNotice] = useState<string | null>(null);
+  const [isMobileKanban, setIsMobileKanban] = useState(false);
+  const moveNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const grouped = useMemo(() => {
     const map = new Map<string, DbApplication[]>();
@@ -137,6 +153,16 @@ export default function ApplicationsKanban({
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 640px)");
+    const updateIsMobile = () => setIsMobileKanban(query.matches);
+
+    updateIsMobile();
+    query.addEventListener("change", updateIsMobile);
+
+    return () => query.removeEventListener("change", updateIsMobile);
+  }, []);
 
   function handleDragStart(e: DragStartEvent) {
     const activeType = e.active.data.current?.type;
@@ -183,32 +209,72 @@ export default function ApplicationsKanban({
     if (!targetStage) return;
     if (sourceStage === targetStage) return;
 
-    await onStatusChange(
-      sourceApp._id,
-      sourceApp.jobId,
-      sourceStage,
-      targetStage as ApplicationStatus,
-    );
+    try {
+      await onStatusChange(
+        sourceApp._id,
+        sourceApp.jobId,
+        sourceStage,
+        targetStage as ApplicationStatus,
+      );
+    } catch {
+      // The parent restores the original status on failure.
+    }
   }
 
   const activeApp = activeId
     ? (apps.find((a) => a._id === activeId) ?? null)
     : null;
 
-  const visibleStages = stages.filter((s) =>
+  const desktopVisibleStages = stages.filter((s) =>
     visibleStageNames.includes(s.name),
   );
+  const renderedStages = isMobileKanban ? stages : desktopVisibleStages;
+  const stageCounts = useMemo(
+    () =>
+      new Map(
+        stages.map((stage) => [
+          stage.name,
+          grouped.get(stage.name)?.length ?? 0,
+        ]),
+      ),
+    [grouped, stages],
+  );
+
+  useEffect(
+    () => () => {
+      if (moveNoticeTimerRef.current) {
+        clearTimeout(moveNoticeTimerRef.current);
+      }
+    },
+    [],
+  );
+
+  const showMoveNotice = useCallback((message: string) => {
+    setMoveNotice(message);
+    if (moveNoticeTimerRef.current) {
+      clearTimeout(moveNoticeTimerRef.current);
+    }
+    moveNoticeTimerRef.current = setTimeout(() => {
+      setMoveNotice(null);
+      moveNoticeTimerRef.current = null;
+    }, 1800);
+  }, []);
 
   return (
     <DndContext
-      sensors={sensors}
+      sensors={isMobileKanban ? [] : sensors}
       collisionDetection={cursorCollisionDetection}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onDragCancel={() => setActiveId(null)}
     >
+      {moveNotice && (
+        <div className="apps-move-notice" role="status">
+          {moveNotice}
+        </div>
+      )}
       <div className="apps-kanban-board">
-        {visibleStages.map((stage) => {
+        {renderedStages.map((stage) => {
           const stageApps = grouped.get(stage.name) ?? [];
           return (
             <KanbanColumn
@@ -222,6 +288,13 @@ export default function ApplicationsKanban({
               onToggleStar={onToggleStar}
               onClearStage={onClearStage}
               density={density}
+              stages={stages}
+              isMobileSelected={mobileStageName === stage.name}
+              onMoveFeedback={showMoveNotice}
+              mobileDragDisabled={isMobileKanban}
+              mobileStages={stages}
+              mobileStageCounts={stageCounts}
+              onMobileStageChange={onMobileStageChange}
             />
           );
         })}
@@ -285,52 +358,107 @@ export function ApplicationsStatStrip({
     countsByStage[s.name] = apps.filter((a) => a.status === s.name).length;
   }
   const max = Math.max(1, ...stages.map((s) => countsByStage[s.name] ?? 0));
+  const mobileRailSegments = (["neutral", "active", "win", "loss"] as const)
+    .map((role) => ({
+      role,
+      count: stages
+        .filter((stage) => stage.colorRole === role)
+        .reduce((sum, stage) => sum + (countsByStage[stage.name] ?? 0), 0),
+      palette: rolePalette(role),
+    }))
+    .filter(({ count }) => count > 0);
+  const mobileCells = [
+    { label: "Total", value: totalCount, role: "neutral" as const },
+    { label: "Active", value: active, role: "active" as const },
+    { label: "Accepted", value: `${winRate}%`, role: "win" as const },
+    { label: "Rejected", value: `${lossRate}%`, role: "loss" as const },
+  ];
 
   return (
-    <div className="apps-stat-strip">
-      {cells.map((c) => {
-        const palette = rolePalette(c.role);
-        return (
-          <div key={c.label} className="apps-stat-cell">
-            <div className="apps-stat-label">
-              <span
-                className="apps-status-dot"
-                style={{ background: palette.dot }}
-              />
-              {c.label}
-            </div>
-            <div className="apps-stat-value" style={{ color: palette.solid }}>
-              {c.value}
-            </div>
-            <div className="apps-stat-sub">{c.sub}</div>
-          </div>
-        );
-      })}
-      <div className="apps-stat-cell apps-stat-spark">
-        <div className="apps-stat-label">Stats</div>
-        <div className="apps-mini-bars">
-          {stages.map((s) => {
-            const count = countsByStage[s.name] ?? 0;
-            const palette = rolePalette(s.colorRole);
-            const h = 4 + (count / max) * 28;
+    <>
+      <div className="apps-stat-mobile-summary">
+        <div className="apps-stat-mobile-top">
+          {mobileCells.map((cell) => {
+            const palette = rolePalette(cell.role);
             return (
-              <div
-                key={s.id}
-                className="apps-mini-bar"
-                title={`${s.displayName}: ${count}`}
-              >
-                <span className="apps-mini-bar-count">{count}</span>
-                <div
-                  className="apps-mini-bar-fill"
-                  style={{ height: h, background: palette.dot }}
+              <div key={cell.label}>
+                <span
+                  className="apps-stat-mobile-dot"
+                  style={{ background: palette.dot }}
                 />
-                <span className="apps-mini-bar-label">{s.displayName}</span>
+                <span className="apps-stat-mobile-label">{cell.label}</span>
+                <strong>{cell.value}</strong>
               </div>
             );
           })}
         </div>
+        <div className="apps-stat-mobile-rail" aria-hidden="true">
+          {mobileRailSegments.length > 0 ? (
+            mobileRailSegments.map(({ role, count, palette }) => (
+              <span
+                key={role}
+                style={{
+                  flexGrow: count,
+                  background: palette.dot,
+                }}
+              />
+            ))
+          ) : (
+            <span
+              style={{
+                flexGrow: 1,
+                background: "rgba(255,255,255,0.08)",
+              }}
+            />
+          )}
+        </div>
       </div>
-    </div>
+
+      <div className="apps-stat-strip">
+        {cells.map((c) => {
+          const palette = rolePalette(c.role);
+          return (
+            <div key={c.label} className="apps-stat-cell">
+              <div className="apps-stat-label">
+                <span
+                  className="apps-status-dot"
+                  style={{ background: palette.dot }}
+                />
+                {c.label}
+              </div>
+              <div className="apps-stat-value" style={{ color: palette.solid }}>
+                {c.value}
+              </div>
+              <div className="apps-stat-sub">{c.sub}</div>
+            </div>
+          );
+        })}
+        <div className="apps-stat-cell apps-stat-spark">
+          <div className="apps-stat-label">Stats</div>
+          <div className="apps-mini-bars">
+            {stages.map((s) => {
+              const count = countsByStage[s.name] ?? 0;
+              const palette = rolePalette(s.colorRole);
+              const h = 4 + (count / max) * 28;
+              return (
+                <div
+                  key={s.id}
+                  className="apps-mini-bar"
+                  title={`${s.displayName}: ${count}`}
+                >
+                  <span className="apps-mini-bar-count">{count}</span>
+                  <div
+                    className="apps-mini-bar-fill"
+                    style={{ height: h, background: palette.dot }}
+                  />
+                  <span className="apps-mini-bar-label">{s.displayName}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -344,6 +472,13 @@ function KanbanColumn({
   onToggleStar,
   onClearStage,
   density,
+  stages,
+  isMobileSelected,
+  onMoveFeedback,
+  mobileDragDisabled,
+  mobileStages,
+  mobileStageCounts,
+  onMobileStageChange,
 }: {
   stage: UserStage;
   apps: DbApplication[];
@@ -354,6 +489,13 @@ function KanbanColumn({
   onToggleStar: Props["onToggleStar"];
   onClearStage: Props["onClearStage"];
   density: KanbanDensity;
+  stages: UserStage[];
+  isMobileSelected: boolean;
+  onMoveFeedback: (message: string) => void;
+  mobileDragDisabled: boolean;
+  mobileStages: UserStage[];
+  mobileStageCounts: Map<string, number>;
+  onMobileStageChange?: (stageName: string) => void;
 }) {
   const palette = rolePalette(stage.colorRole);
   const { setNodeRef: setDropNodeRef, isOver } = useDroppable({
@@ -370,6 +512,9 @@ function KanbanColumn({
     id: `stage:${stage.name}`,
     data: { type: "stage", stageName: stage.name },
   });
+  const columnDragProps = mobileDragDisabled
+    ? {}
+    : { ...columnAttributes, ...columnListeners };
 
   const setColumnNodeRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -396,6 +541,7 @@ function KanbanColumn({
   const [clearOpen, setClearOpen] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [stagePickerOpen, setStagePickerOpen] = useState(false);
 
   const visibleCardLimit =
     density === "compact"
@@ -439,7 +585,8 @@ function KanbanColumn({
       className={
         "apps-kanban-col" +
         (isOver ? " is-drop-target" : "") +
-        (isColumnDragging ? " is-column-dragging" : "")
+        (isColumnDragging ? " is-column-dragging" : "") +
+        (isMobileSelected ? " is-mobile-selected" : "")
       }
       style={columnStyle}
     >
@@ -450,14 +597,95 @@ function KanbanColumn({
             className="apps-kc-col-drag"
             aria-label={`Move ${stage.displayName} column`}
             title={`Move ${stage.displayName} column`}
-            {...columnAttributes}
-            {...columnListeners}
+            {...columnDragProps}
           >
             <IconGripVertical size={15} />
           </button>
-          <span className="apps-kc-col-name">{stage.displayName}</span>
+          <span className="apps-kc-col-name apps-kc-col-name-desktop">
+            {stage.displayName}
+          </span>
+          <Popover
+            opened={stagePickerOpen}
+            onChange={setStagePickerOpen}
+            position="bottom-start"
+            shadow="md"
+            withinPortal
+          >
+            <Popover.Target>
+              <button
+                type="button"
+                className="apps-mobile-stage-header-trigger"
+                aria-label="Select application stage"
+                aria-expanded={stagePickerOpen}
+                onPointerDown={(event) => event.stopPropagation()}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setStagePickerOpen((open) => !open);
+                }}
+              >
+                <span
+                  className="apps-mobile-stage-header-dot"
+                  style={{ background: palette.dot }}
+                />
+                <span className="apps-mobile-stage-header-name">
+                  {stage.displayName}
+                </span>
+                <span
+                  className="apps-mobile-stage-header-count"
+                  style={{ background: palette.pillBg, color: palette.pillFg }}
+                >
+                  {apps.length}
+                </span>
+                <IconChevronDown size={15} />
+              </button>
+            </Popover.Target>
+            <Popover.Dropdown
+              className="apps-mobile-stage-header-menu"
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="apps-mobile-stage-menu-list">
+                {mobileStages.map((mobileStage) => {
+                  const mobilePalette = rolePalette(mobileStage.colorRole);
+                  const mobileCount =
+                    mobileStageCounts.get(mobileStage.name) ?? 0;
+                  const selected = mobileStage.name === stage.name;
+                  return (
+                    <button
+                      key={mobileStage.id}
+                      type="button"
+                      className={
+                        "apps-mobile-stage-menu-item" +
+                        (selected ? " is-selected" : "")
+                      }
+                      onClick={() => {
+                        onMobileStageChange?.(mobileStage.name);
+                        setStagePickerOpen(false);
+                      }}
+                    >
+                      <span
+                        className="apps-mobile-stage-menu-dot"
+                        style={{ background: mobilePalette.dot }}
+                      />
+                      <span>{mobileStage.displayName}</span>
+                      <span
+                        className="apps-mobile-stage-menu-count"
+                        style={{
+                          background: mobilePalette.pillBg,
+                          color: mobilePalette.pillFg,
+                        }}
+                      >
+                        {mobileCount}
+                      </span>
+                      {selected && <IconCheck size={14} />}
+                    </button>
+                  );
+                })}
+              </div>
+            </Popover.Dropdown>
+          </Popover>
           <span
-            className="apps-count-pill"
+            className="apps-count-pill apps-count-pill-desktop"
             style={{ background: palette.pillBg, color: palette.pillFg }}
           >
             {apps.length}
@@ -626,6 +854,9 @@ function KanbanColumn({
               onSaveNotes={onSaveNotes}
               onToggleStar={onToggleStar}
               density={density}
+              stages={stages}
+              onMoveFeedback={onMoveFeedback}
+              mobileDragDisabled={mobileDragDisabled}
             />
           ))
         )}
@@ -660,6 +891,9 @@ function KanbanCard({
   onSaveNotes,
   onToggleStar,
   density,
+  stages,
+  onMoveFeedback,
+  mobileDragDisabled,
 }: {
   app: DbApplication;
   onStatusChange: Props["onStatusChange"];
@@ -667,13 +901,20 @@ function KanbanCard({
   onSaveNotes: Props["onSaveNotes"];
   onToggleStar: Props["onToggleStar"];
   density: KanbanDensity;
+  stages: UserStage[];
+  onMoveFeedback: (message: string) => void;
+  mobileDragDisabled: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: app._id, data: { type: "app", status: app.status } });
 
-  const style: CSSProperties = transform
-    ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
-    : {};
+  const style: CSSProperties =
+    !mobileDragDisabled && transform
+      ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
+      : {};
+  const cardDragProps = mobileDragDisabled
+    ? {}
+    : { ...attributes, ...listeners };
 
   const url = app.jobSnapshot.applicationUrl;
 
@@ -688,6 +929,13 @@ function KanbanCard({
   const draftRef = useRef(draft);
   const lastSavedNotesRef = useRef(app.notes ?? "");
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const moveFeedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const [movingTo, setMovingTo] = useState<string | null>(null);
+  const [moveFeedback, setMoveFeedback] = useState<string | null>(null);
+  const currentStage = stages.find((stage) => stage.name === app.status);
+  const moveTargets = stages.filter((stage) => stage.name !== app.status);
 
   const setCardNodeRef = useCallback(
     (node: HTMLElement | null) => {
@@ -700,6 +948,44 @@ function KanbanCard({
   useEffect(() => {
     draftRef.current = draft;
   }, [draft]);
+
+  useEffect(
+    () => () => {
+      if (moveFeedbackTimerRef.current) {
+        clearTimeout(moveFeedbackTimerRef.current);
+      }
+    },
+    [],
+  );
+
+  function showCardMoveFeedback(message: string) {
+    setMoveFeedback(message);
+    if (moveFeedbackTimerRef.current) {
+      clearTimeout(moveFeedbackTimerRef.current);
+    }
+    moveFeedbackTimerRef.current = setTimeout(() => {
+      setMoveFeedback(null);
+      moveFeedbackTimerRef.current = null;
+    }, 1800);
+  }
+
+  async function moveToStage(stage: UserStage) {
+    if (stage.name === app.status) return;
+
+    setMovingTo(stage.name);
+    try {
+      await onStatusChange(app._id, app.jobId, app.status, stage.name);
+      const message = `Moved to ${stage.displayName}`;
+      showCardMoveFeedback(message);
+      onMoveFeedback(message);
+    } catch {
+      const message = `Could not move to ${stage.displayName}`;
+      showCardMoveFeedback(message);
+      onMoveFeedback(message);
+    } finally {
+      setMovingTo(null);
+    }
+  }
 
   useEffect(() => {
     const nextNotes = app.notes ?? "";
@@ -877,12 +1163,12 @@ function KanbanCard({
         "apps-kanban-card" +
         (app.status === "STARTED" ? " has-started-action" : "") +
         (density === "compact" ? " apps-kanban-card--compact" : "") +
-        (isDragging ? " is-dragging" : "")
+        (!mobileDragDisabled && isDragging ? " is-dragging" : "") +
+        (mobileDragDisabled ? " is-mobile-drag-disabled" : "")
       }
       style={style}
       onClick={() => url && window.open(url, "_blank", "noreferrer")}
-      {...attributes}
-      {...listeners}
+      {...cardDragProps}
     >
       <header className="apps-kc-head">
         <CompanyLogo
@@ -903,6 +1189,50 @@ function KanbanCard({
       </div>
       <footer className="apps-kc-foot">
         <span className="apps-kc-foot-meta">{dateLabel}</span>
+        <div className="apps-mobile-card-actions">
+          <Menu position="bottom-end" shadow="md" withinPortal>
+            <Menu.Target>
+              <button
+                type="button"
+                className="apps-mobile-card-move"
+                aria-label={`Move ${app.jobSnapshot.title} to another column`}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span>
+                  {movingTo ? "Moving" : (currentStage?.displayName ?? "Move")}
+                </span>
+                <IconChevronDown size={13} />
+              </button>
+            </Menu.Target>
+            <Menu.Dropdown
+              className="apps-mobile-card-move-menu"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Menu.Label>Move to</Menu.Label>
+              {moveTargets.map((stage) => (
+                <Menu.Item
+                  key={stage.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void moveToStage(stage);
+                  }}
+                  rightSection={
+                    movingTo === stage.name ? (
+                      <IconCheck size={14} color="#ffe22f" />
+                    ) : undefined
+                  }
+                >
+                  {stage.displayName}
+                </Menu.Item>
+              ))}
+            </Menu.Dropdown>
+          </Menu>
+          {moveFeedback && (
+            <span className="apps-card-move-feedback">{moveFeedback}</span>
+          )}
+        </div>
         <div className="apps-kc-foot-icons">
           <button
             type="button"
@@ -955,7 +1285,9 @@ function KanbanCard({
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
-            onStatusChange(app._id, app.jobId, "STARTED", "APPLIED");
+            void onStatusChange(app._id, app.jobId, "STARTED", "APPLIED").catch(
+              () => undefined,
+            );
           }}
         >
           <IconArrowRight size={15} />

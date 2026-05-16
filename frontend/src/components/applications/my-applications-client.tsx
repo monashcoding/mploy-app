@@ -174,6 +174,7 @@ export default function MyApplicationsClient({
   const [visibleStages, setVisibleStages] = useState<string[]>(() =>
     stages.map((s) => s.name),
   );
+  const [mobileStageName, setMobileStageName] = useState(stages[0]?.name ?? "");
   const [customAddOpen, setCustomAddOpen] = useState(false);
   const [customTitle, setCustomTitle] = useState("");
   const [customCompany, setCustomCompany] = useState("");
@@ -239,6 +240,17 @@ export default function MyApplicationsClient({
     setSelectedCycleId(cycles[0]?.id ?? DEFAULT_RECRUITMENT_CYCLE_ID);
   }, [cycles, selectedCycleId]);
 
+  useEffect(() => {
+    if (stages.length === 0) {
+      setMobileStageName("");
+      return;
+    }
+    if (stages.some((stage) => stage.name === mobileStageName)) {
+      return;
+    }
+    setMobileStageName(stages[0].name);
+  }, [mobileStageName, stages]);
+
   const selectedCycle = useMemo(
     () =>
       cycles.find((cycle) => cycle.id === selectedCycleId) ??
@@ -287,10 +299,11 @@ export default function MyApplicationsClient({
     );
     try {
       await updateApplicationStatus(jobId, next);
-    } catch {
+    } catch (error) {
       setApps((prev) =>
         prev.map((p) => (p._id === appId ? { ...p, status: oldStatus } : p)),
       );
+      throw error;
     }
   }
 
@@ -615,7 +628,7 @@ export default function MyApplicationsClient({
           </p>
         </div>
         <div
-          className="flex items-center gap-1.5"
+          className="apps-auto-added-note flex items-center gap-1.5"
           style={{
             color: "rgba(255,255,255,0.5)",
             fontSize: 12,
@@ -634,8 +647,9 @@ export default function MyApplicationsClient({
       <ApplicationsStatStrip apps={cycleApps} stages={stages} />
 
       {/* Toolbar */}
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="apps-toolbar flex items-center gap-2 flex-wrap">
         <TextInput
+          className="apps-toolbar-search"
           placeholder="Search"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.currentTarget.value)}
@@ -802,8 +816,9 @@ export default function MyApplicationsClient({
           </Popover.Dropdown>
         </Popover>
 
-        <div className="flex items-center gap-2 flex-wrap ml-auto">
+        <div className="apps-toolbar-actions flex items-center gap-2 flex-wrap ml-auto">
           <SegmentedControl
+            className="apps-view-toggle"
             value={density}
             onChange={(v) => setDensity(v as KanbanDensity)}
             data={[
@@ -845,7 +860,10 @@ export default function MyApplicationsClient({
 
           <Popover position="bottom-end" shadow="md" withinPortal>
             <Popover.Target>
-              <button className={compactBtn} style={compactBtnStyle}>
+              <button
+                className={`${compactBtn} apps-columns-trigger`}
+                style={compactBtnStyle}
+              >
                 <IconEye size={14} />
                 <span>Columns</span>
                 <IconChevronDown size={12} />
@@ -880,17 +898,20 @@ export default function MyApplicationsClient({
           </Popover>
 
           <Select
+            className="apps-sort-select"
             value={sort}
             onChange={(v) => v && setSort(v as KanbanSort)}
             data={[
-              { value: "newest", label: "Newest first" },
-              { value: "oldest", label: "Oldest first" },
+              { value: "newest", label: "Newest" },
+              { value: "oldest", label: "Oldest" },
             ]}
             allowDeselect={false}
             withCheckIcon={false}
             renderOption={({ option, checked }) => (
               <Group justify="space-between" wrap="nowrap" w="100%">
-                <span>{option.label}</span>
+                <span>
+                  {option.value === "newest" ? "Newest first" : "Oldest first"}
+                </span>
                 {checked && <IconCheck size={14} color={MAC_YELLOW} />}
               </Group>
             )}
@@ -995,6 +1016,8 @@ export default function MyApplicationsClient({
         onClearStage={handleClearStage}
         onStageReorder={handleStageReorder}
         density={density}
+        mobileStageName={mobileStageName}
+        onMobileStageChange={setMobileStageName}
       />
     </div>
   );

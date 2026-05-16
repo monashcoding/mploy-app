@@ -26,8 +26,8 @@ export default async function MyApplicationsPage() {
   ]);
 
   return (
-    <div className="h-[calc(100svh-80px)] lg:h-[calc(100svh-96px)] overflow-y-auto">
-      <div className="max-w-7xl mx-auto py-6 px-6">
+    <div className="apps-page-shell h-[calc(100svh-80px)] lg:h-[calc(100svh-96px)] overflow-y-auto">
+      <div className="apps-page-inner max-w-7xl mx-auto py-6 px-6">
         <MyApplicationsClient
           initial={apps}
           initialStages={STAGES}
