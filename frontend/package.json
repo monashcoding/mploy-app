@@ -15,7 +15,7 @@
     "@dnd-kit/modifiers": "^9.0.0",
     "@dnd-kit/sortable": "^10.0.0",
     "@mantine/core": "^7.17.0",
-    "@mantine/hooks": "^7.16.1",
+    "@mantine/hooks": "^9.2.1",
     "@mantine/notifications": "^7.17.1",
     "@next/third-parties": "^16.2.3",
     "@tabler/icons-react": "^3.30.0",
