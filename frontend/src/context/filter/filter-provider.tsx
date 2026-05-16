@@ -2,8 +2,8 @@
 "use client";
 
 import { ReactNode, useState } from "react";
-import { FilterContext } from "./filter-context";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { FilterContext } from "./filter-context";
 import { CreateQueryString } from "@/lib/utils";
 import { FilterState } from "@/types/filters";
 import {
@@ -74,9 +74,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [totalJobs, setTotalJobs] = useState<number>(0);
 
-  // Wrapper for SelectedJob to validate attributes first
   const setSelectedJob = (job: Job | null) => {
-    // Remove duplicates from working_rights
     if (job?.working_rights && job.working_rights.length > 0) {
       job.working_rights = [...new Set(job.working_rights)];
     }
@@ -91,14 +89,18 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     router.push(`/jobs?${params}`);
   };
 
-  const navKey = `${pathname}|${searchParams.toString()}`;
+  const searchParamsKey = searchParams.toString();
+  const navKey = `${pathname}|${searchParamsKey}`;
   const [prevNavKey, setPrevNavKey] = useState(navKey);
+
   if (prevNavKey !== navKey) {
     setPrevNavKey(navKey);
+
     if (pathname === "/jobs") {
       setIsLoading(false);
-      setSelectedJob(null);
+      setSelectedJobInternal(null);
     }
+
     if (pathname === "/") {
       setFilters(emptyFilterState);
     }

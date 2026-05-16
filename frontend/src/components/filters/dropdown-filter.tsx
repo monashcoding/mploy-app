@@ -61,11 +61,11 @@ export default function DropdownFilter({
         <Input
           component="button"
           type="button"
-          radius={"lg"}
+          radius="lg"
           pointer
           rightSection={<IconChevronDown size={16} />}
           onClick={() => combobox.toggleDropdown()}
-          className={`min-w-32`}
+          className="min-w-32"
         >
           <Text size="sm" color={selected.length > 0 ? "light" : "dimmed"}>
             {getDisplayText()}
@@ -73,7 +73,7 @@ export default function DropdownFilter({
         </Input>
       </Combobox.Target>
 
-      <Combobox.Dropdown className={`min-w-56`}>
+      <Combobox.Dropdown className="min-w-56">
         <Combobox.Options>
           {options.map((option) => (
             <Combobox.Option

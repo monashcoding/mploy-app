@@ -1,19 +1,24 @@
 "use client";
 import Link from "next/link";
 import { Button, Menu } from "@mantine/core";
-import { IconMenu2, IconSearch } from "@tabler/icons-react";
+import { IconMenu2, IconSearch, IconLogout } from "@tabler/icons-react";
 import Logo from "@/components/layout/logo";
 import SearchBar from "@/components/search/search-bar";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 
 export const NavBarMobile = () => {
   const [showSearch, setShowSearch] = useState(false);
   const pathname = usePathname();
+  const { data: session, status } = useSession();
 
   const menuItems = [
     { href: "/", label: "Home" },
     { href: "/jobs", label: "Jobs" },
+    ...(status === "authenticated"
+      ? [{ href: "/my-applications", label: "Applications" }]
+      : [{ href: "/sign-in", label: "Sign in" }]),
   ];
 
   return (
@@ -42,13 +47,16 @@ export const NavBarMobile = () => {
             >
               <IconSearch size={20} />
             </Button>
-            <Menu position="bottom-end" offset={8} width={150}>
+            <Menu position="bottom-end" offset={8}>
               <Menu.Target>
                 <Button variant="subtle" className="p-0">
                   <IconMenu2 size={20} />
                 </Button>
               </Menu.Target>
               <Menu.Dropdown>
+                {session?.user?.email && (
+                  <Menu.Label>{session.user.email}</Menu.Label>
+                )}
                 {menuItems.map((item) => (
                   <Menu.Item
                     key={item.href}
@@ -59,6 +67,18 @@ export const NavBarMobile = () => {
                     {item.label}
                   </Menu.Item>
                 ))}
+                {status === "authenticated" && (
+                  <>
+                    <Menu.Divider />
+                    <Menu.Item
+                      color="red"
+                      leftSection={<IconLogout size={16} />}
+                      onClick={() => signOut({ callbackUrl: "/" })}
+                    >
+                      Sign out
+                    </Menu.Item>
+                  </>
+                )}
               </Menu.Dropdown>
             </Menu>
           </div>
