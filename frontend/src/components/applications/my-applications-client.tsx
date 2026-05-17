@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
   Box,
@@ -69,6 +69,12 @@ const DENSITY_STORAGE_KEY = "mp:apps:kanban-density:v1";
 const STAGE_ORDER_STORAGE_KEY = "mp:apps:stage-order:v1";
 const MAC_YELLOW = "#ffe22f";
 const DELETE_CARD_FADE_MS = 220;
+const ACCEPTED_CELEBRATION_MS = 2000;
+
+type AcceptedCelebration = {
+  id: number;
+  stageName: string;
+};
 
 function readSort(): KanbanSort {
   if (typeof window === "undefined") return "newest";
@@ -192,6 +198,12 @@ export default function MyApplicationsClient({
   const [cycleDeleteTarget, setCycleDeleteTarget] =
     useState<RecruitmentCycle | null>(null);
   const [deletingCycle, setDeletingCycle] = useState(false);
+  const [acceptedCelebration, setAcceptedCelebration] =
+    useState<AcceptedCelebration | null>(null);
+  const acceptedCelebrationIdRef = useRef(0);
+  const acceptedCelebrationTimerRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
 
   useEffect(() => {
     try {
@@ -237,6 +249,15 @@ export default function MyApplicationsClient({
       }
     })();
   }, [sessionStatus]);
+
+  useEffect(
+    () => () => {
+      if (acceptedCelebrationTimerRef.current) {
+        clearTimeout(acceptedCelebrationTimerRef.current);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (cycles.some((cycle) => cycle.id === selectedCycleId)) return;
@@ -290,6 +311,36 @@ export default function MyApplicationsClient({
     );
   }, [cycleApps, searchQuery]);
 
+  function isWinStatus(status: ApplicationStatus) {
+    return (
+      status === "ACCEPTED" ||
+      stages.find((stage) => stage.name === status)?.colorRole === "win"
+    );
+  }
+
+  function showAcceptedCelebration(stageName: string) {
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+
+    acceptedCelebrationIdRef.current += 1;
+    setAcceptedCelebration({
+      id: acceptedCelebrationIdRef.current,
+      stageName,
+    });
+
+    if (acceptedCelebrationTimerRef.current) {
+      clearTimeout(acceptedCelebrationTimerRef.current);
+    }
+    acceptedCelebrationTimerRef.current = setTimeout(() => {
+      setAcceptedCelebration(null);
+      acceptedCelebrationTimerRef.current = null;
+    }, ACCEPTED_CELEBRATION_MS);
+  }
+
   async function handleStatusChange(
     appId: string,
     jobId: string,
@@ -302,6 +353,9 @@ export default function MyApplicationsClient({
     );
     try {
       await updateApplicationStatus(jobId, next);
+      if (!isWinStatus(oldStatus) && isWinStatus(next)) {
+        showAcceptedCelebration(next);
+      }
     } catch (error) {
       setApps((prev) =>
         prev.map((p) => (p._id === appId ? { ...p, status: oldStatus } : p)),
@@ -1115,6 +1169,7 @@ export default function MyApplicationsClient({
         density={density}
         mobileStageName={mobileStageName}
         onMobileStageChange={setMobileStageName}
+        acceptedCelebration={acceptedCelebration}
       />
     </div>
   );

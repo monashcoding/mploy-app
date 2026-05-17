@@ -61,23 +61,6 @@ type StageDrilldown = {
   apps: StageDrilldownApplication[];
 };
 
-type CompanyCount = {
-  name: string;
-  count: number;
-};
-
-type RecentMovement = {
-  id: string;
-  app: DbApplication;
-  label: string;
-  createdAt: string;
-};
-
-type MovementBucket = {
-  label: string;
-  count: number;
-};
-
 const PIPELINE_STAGES: PipelineStageName[] = [
   "STARTED",
   "APPLIED",
@@ -510,76 +493,6 @@ function buildStageDrilldown(
   };
 }
 
-function buildTopCompanies(apps: DbApplication[]): CompanyCount[] {
-  const counts = new Map<string, number>();
-
-  for (const app of apps) {
-    const name = app.jobSnapshot.companyName.trim() || "Unknown company";
-    counts.set(name, (counts.get(name) ?? 0) + 1);
-  }
-
-  return [...counts.entries()]
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
-    .slice(0, 5);
-}
-
-function buildRecentMovements(
-  apps: DbApplication[],
-  events: ApplicationStatusEvent[],
-): RecentMovement[] {
-  const appsByJobId = new Map(apps.map((app) => [app.jobId, app]));
-
-  return [...events]
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .reduce<RecentMovement[]>((items, event) => {
-      if (items.length >= 5) return items;
-
-      const app = appsByJobId.get(event.jobId);
-      if (!app) return items;
-
-      const label =
-        event.fromStatus && event.fromStatus !== event.toStatus
-          ? `${formatStageName(event.fromStatus)} -> ${formatStageName(
-              event.toStatus,
-            )}`
-          : event.source === "application_created"
-            ? `Added to ${formatStageName(event.toStatus)}`
-            : `Set to ${formatStageName(event.toStatus)}`;
-
-      items.push({
-        id: event._id,
-        app,
-        label,
-        createdAt: event.createdAt,
-      });
-
-      return items;
-    }, []);
-}
-
-function buildMovementBuckets(events: ApplicationStatusEvent[]) {
-  const dayMs = 86_400_000;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const startTime = today.getTime() - dayMs * 6;
-  const buckets: MovementBucket[] = Array.from({ length: 7 }, (_, index) => ({
-    label: index === 6 ? "Today" : `${6 - index}d`,
-    count: 0,
-  }));
-
-  for (const event of events) {
-    const eventDay = new Date(event.createdAt);
-    eventDay.setHours(0, 0, 0, 0);
-    const index = Math.floor((eventDay.getTime() - startTime) / dayMs);
-    if (index >= 0 && index < buckets.length) {
-      buckets[index].count += 1;
-    }
-  }
-
-  return buckets;
-}
-
 function ApplicationSankey({
   stats,
   selectedStage,
@@ -732,43 +645,6 @@ function StatTile({
   );
 }
 
-function ConversionRow({
-  label,
-  value,
-  count,
-  role,
-}: {
-  label: string;
-  value: number;
-  count: string;
-  role: UserStage["colorRole"];
-}) {
-  const palette = rolePalette(role);
-
-  return (
-    <motion.div className="stats-rate-row" {...listItemMotion}>
-      <div>
-        <span>{label}</span>
-        <strong style={{ color: palette.solid }}>{value}%</strong>
-      </div>
-      <div className="stats-rate-track">
-        <motion.span
-          style={{
-            backgroundColor: palette.dot,
-          }}
-          initial={{ width: 0 }}
-          whileInView={{
-            width: `${Math.min(100, Math.max(0, value))}%`,
-          }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, ease: PANEL_EASE }}
-        />
-      </div>
-      <p>{count}</p>
-    </motion.div>
-  );
-}
-
 function OutcomeMixPanel({
   stats,
   activeCount,
@@ -778,6 +654,7 @@ function OutcomeMixPanel({
 }) {
   const activePct = percentNumber(activeCount, stats.total);
   const acceptedPct = percentNumber(stats.accepted, stats.total);
+  const rejectedPct = percentNumber(stats.rejected, stats.total);
   const acceptedStop = activePct + acceptedPct;
   const hasApps = stats.total > 0;
 
@@ -788,7 +665,9 @@ function OutcomeMixPanel({
     >
       <div className="stats-mini-head">
         <h2>Outcome mix</h2>
-        <span>{formatPercent(stats.accepted, stats.total)} accepted</span>
+        <span>
+          {acceptedPct}% accepted / {rejectedPct}% rejected
+        </span>
       </div>
       <div className="stats-outcome-body">
         <motion.div
@@ -803,22 +682,31 @@ function OutcomeMixPanel({
           transition={{ duration: 0.58, ease: PANEL_EASE }}
         >
           <div>
-            <strong>{activeCount}</strong>
-            <span>active</span>
+            <strong>{stats.total}</strong>
+            <span>total</span>
           </div>
         </motion.div>
         <div className="stats-outcome-legend">
           <span>
             <i style={{ backgroundColor: "#ffe22f" }} />
-            Active <strong>{activeCount}</strong>
+            Active{" "}
+            <strong>
+              {activeCount} / {activePct}%
+            </strong>
           </span>
           <span>
             <i style={{ backgroundColor: "#9ddfb0" }} />
-            Accepted <strong>{stats.accepted}</strong>
+            Accepted{" "}
+            <strong>
+              {stats.accepted} / {acceptedPct}%
+            </strong>
           </span>
           <span>
             <i style={{ backgroundColor: "#ff7351" }} />
-            Rejected <strong>{stats.rejected}</strong>
+            Rejected{" "}
+            <strong>
+              {stats.rejected} / {rejectedPct}%
+            </strong>
           </span>
         </div>
       </div>
@@ -826,32 +714,59 @@ function OutcomeMixPanel({
   );
 }
 
-function MovementSparkPanel({ buckets }: { buckets: MovementBucket[] }) {
-  const maxCount = Math.max(1, ...buckets.map((bucket) => bucket.count));
-  const total = buckets.reduce((sum, bucket) => sum + bucket.count, 0);
+function RejectionSplitPanel({ stats }: { stats: PipelineStats }) {
+  const directPct = percentNumber(stats.directRejected, stats.rejected);
+  const postInterviewPct = percentNumber(
+    stats.postInterviewRejected,
+    stats.rejected,
+  );
 
   return (
-    <motion.section className="stats-panel stats-visual-panel" {...panelMotion}>
+    <motion.section
+      className="stats-panel stats-visual-panel stats-rejection-panel"
+      {...panelMotion}
+    >
       <div className="stats-mini-head">
-        <h2>7-day movement</h2>
-        <span>{total} moves</span>
+        <h2>Rejection split</h2>
+        <span>
+          {formatPercent(stats.rejected, stats.reachedApplied)} rejected
+        </span>
       </div>
-      <div className="stats-spark-bars" aria-label="Status moves over 7 days">
-        {buckets.map((bucket) => (
-          <div key={bucket.label}>
+      <div className="stats-rejection-bars">
+        <div className="stats-rejection-row">
+          <span>Applied screen</span>
+          <div>
+            <strong>
+              {stats.directRejected} / {directPct}%
+            </strong>
             <motion.span
-              title={`${bucket.label}: ${bucket.count} moves`}
-              initial={{ height: 8, opacity: 0.55 }}
-              whileInView={{
-                height: `${Math.max(8, (bucket.count / maxCount) * 54)}px`,
-                opacity: 1,
+              style={{
+                width: stats.rejected > 0 ? `${directPct}%` : "0%",
               }}
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.58, ease: PANEL_EASE }}
+              transition={{ duration: 0.62, ease: PANEL_EASE }}
             />
-            <small>{bucket.label}</small>
           </div>
-        ))}
+        </div>
+        <div className="stats-rejection-row">
+          <span>After interview</span>
+          <div>
+            <strong>
+              {stats.postInterviewRejected} / {postInterviewPct}%
+            </strong>
+            <motion.span
+              style={{
+                width: stats.rejected > 0 ? `${postInterviewPct}%` : "0%",
+              }}
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.62, ease: PANEL_EASE }}
+            />
+          </div>
+        </div>
       </div>
     </motion.section>
   );
@@ -1059,36 +974,10 @@ export default function ApplicationsStatisticsClient({
     [cycleApps, eventsByJobId, selectedStage, stats],
   );
 
-  const topCompanies = useMemo(() => buildTopCompanies(cycleApps), [cycleApps]);
-  const recentMovements = useMemo(
-    () => buildRecentMovements(cycleApps, cycleEvents),
-    [cycleApps, cycleEvents],
-  );
-  const movementBuckets = useMemo(
-    () => buildMovementBuckets(cycleEvents),
-    [cycleEvents],
-  );
-
   const activeCount =
     stats.currentCounts.STARTED +
     stats.currentCounts.APPLIED +
     stats.currentCounts.INTERVIEW;
-  const appliedToInterviewRate = Number(
-    formatPercent(stats.reachedInterview, stats.reachedApplied).replace(
-      "%",
-      "",
-    ),
-  );
-  const interviewToAcceptedRate = Number(
-    formatPercent(stats.accepted, stats.reachedInterview).replace("%", ""),
-  );
-  const rejectionRate = Number(
-    formatPercent(stats.rejected, stats.reachedApplied).replace("%", ""),
-  );
-  const maxTopCompanyCount = Math.max(
-    1,
-    ...topCompanies.map((company) => company.count),
-  );
 
   if (sessionStatus === "unauthenticated") {
     return (
@@ -1154,211 +1043,71 @@ export default function ApplicationsStatisticsClient({
         />
       </motion.div>
 
-      <motion.div className="stats-grid" {...panelMotion}>
-        <StatTile
-          label="Total"
-          value={stats.total}
-          detail={`${stats.reachedApplied} reached Applied`}
-          role="neutral"
-        />
-        <StatTile
-          label="Active"
-          value={activeCount}
-          detail={`${stats.currentCounts.INTERVIEW} interviewing`}
-          role="active"
-        />
-        <StatTile
-          label="Interview rate"
-          value={formatPercent(stats.reachedInterview, stats.reachedApplied)}
-          detail={`${stats.reachedInterview} reached Interview`}
-          role="active"
-        />
-        <StatTile
-          label="Offer rate"
-          value={formatPercent(stats.accepted, stats.reachedInterview)}
-          detail={`${stats.accepted} accepted`}
-          role="win"
-        />
-        <StatTile
-          label="Rejected"
-          value={stats.rejected}
-          detail={`${stats.postInterviewRejected} after Interview`}
-          role="loss"
-        />
-      </motion.div>
+      <div className="stats-primary-grid">
+        <motion.section
+          className="stats-panel stats-flow-panel stats-flow-panel--primary"
+          {...panelMotion}
+        >
+          <div className="stats-panel-head">
+            <div>
+              <h2>Pipeline flow</h2>
+              <p>
+                Current applications with tracked interview history layered in.
+              </p>
+            </div>
+            <div className="stats-tracked-pill">
+              {stats.trackedEvents} tracked move
+              {stats.trackedEvents === 1 ? "" : "s"}
+            </div>
+          </div>
+          <ApplicationSankey
+            stats={stats}
+            selectedStage={selectedStage}
+            onStageSelect={setSelectedStage}
+          />
+        </motion.section>
 
-      <div className="stats-visual-grid">
+        <motion.div
+          className="stats-grid stats-side-table"
+          aria-label="Application statistics summary"
+          {...panelMotion}
+        >
+          <StatTile
+            label="Total"
+            value={stats.total}
+            detail={`${stats.reachedApplied} reached Applied`}
+            role="neutral"
+          />
+          <StatTile
+            label="Active"
+            value={activeCount}
+            detail={`${stats.currentCounts.INTERVIEW} interviewing`}
+            role="active"
+          />
+          <StatTile
+            label="Interview rate"
+            value={formatPercent(stats.reachedInterview, stats.reachedApplied)}
+            detail={`${stats.reachedInterview} reached Interview`}
+            role="active"
+          />
+          <StatTile
+            label="Offer rate"
+            value={formatPercent(stats.accepted, stats.reachedInterview)}
+            detail={`${stats.accepted} accepted`}
+            role="win"
+          />
+          <StatTile
+            label="Rejected"
+            value={formatPercent(stats.rejected, stats.reachedApplied)}
+            detail={`${stats.rejected} rejected after Applied`}
+            role="loss"
+          />
+        </motion.div>
+      </div>
+
+      <div className="stats-outcome-grid">
         <OutcomeMixPanel stats={stats} activeCount={activeCount} />
-        <MovementSparkPanel buckets={movementBuckets} />
-      </div>
-
-      <motion.section className="stats-panel stats-flow-panel" {...panelMotion}>
-        <div className="stats-panel-head">
-          <div>
-            <h2>Pipeline flow</h2>
-            <p>
-              Current applications with tracked interview history layered in.
-            </p>
-          </div>
-          <div className="stats-tracked-pill">
-            {stats.trackedEvents} tracked move
-            {stats.trackedEvents === 1 ? "" : "s"}
-          </div>
-        </div>
-        <ApplicationSankey
-          stats={stats}
-          selectedStage={selectedStage}
-          onStageSelect={setSelectedStage}
-        />
-      </motion.section>
-
-      <div className="stats-dashboard-grid">
-        <motion.section
-          className="stats-panel stats-insight-panel"
-          {...panelMotion}
-        >
-          <div className="stats-panel-head">
-            <div>
-              <h2>Conversion</h2>
-              <p>How applications move through the core stages.</p>
-            </div>
-          </div>
-          <div className="stats-panel-body">
-            <ConversionRow
-              label="Applied to Interview"
-              value={appliedToInterviewRate}
-              count={`${stats.reachedInterview} of ${stats.reachedApplied}`}
-              role="active"
-            />
-            <ConversionRow
-              label="Interview to Accepted"
-              value={interviewToAcceptedRate}
-              count={`${stats.accepted} of ${stats.reachedInterview}`}
-              role="win"
-            />
-            <ConversionRow
-              label="Applied to Rejected"
-              value={rejectionRate}
-              count={`${stats.rejected} of ${stats.reachedApplied}`}
-              role="loss"
-            />
-          </div>
-        </motion.section>
-
-        <motion.section
-          className="stats-panel stats-insight-panel"
-          {...panelMotion}
-        >
-          <div className="stats-panel-head">
-            <div>
-              <h2>Top companies</h2>
-              <p>Where your tracked applications are clustered.</p>
-            </div>
-          </div>
-          <div className="stats-panel-body">
-            {topCompanies.length === 0 ? (
-              <div className="stats-quiet-empty">No companies yet.</div>
-            ) : (
-              <ul className="stats-company-list">
-                {topCompanies.map((company) => (
-                  <motion.li key={company.name} {...listItemMotion}>
-                    <div>
-                      <span>{company.name}</span>
-                      <em>
-                        <motion.i
-                          style={{
-                            width: `${(company.count / maxTopCompanyCount) * 100}%`,
-                          }}
-                          initial={{ scaleX: 0 }}
-                          whileInView={{ scaleX: 1 }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 0.62, ease: PANEL_EASE }}
-                        />
-                      </em>
-                    </div>
-                    <strong>{company.count}</strong>
-                  </motion.li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </motion.section>
-      </div>
-
-      <div className="stats-lower-grid">
-        <motion.section className="stats-breakdown" {...panelMotion}>
-          <div>
-            <h2>Rejection split</h2>
-            <p>
-              Rejected applications are split once interview history exists.
-            </p>
-          </div>
-          <div className="stats-rejection-bars">
-            <div className="stats-rejection-row">
-              <span>Applied screen</span>
-              <div>
-                <strong>{stats.directRejected}</strong>
-                <motion.span
-                  style={{
-                    width:
-                      stats.rejected > 0
-                        ? `${(stats.directRejected / stats.rejected) * 100}%`
-                        : "0%",
-                  }}
-                  initial={{ scaleX: 0 }}
-                  whileInView={{ scaleX: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.62, ease: PANEL_EASE }}
-                />
-              </div>
-            </div>
-            <div className="stats-rejection-row">
-              <span>After interview</span>
-              <div>
-                <strong>{stats.postInterviewRejected}</strong>
-                <motion.span
-                  style={{
-                    width:
-                      stats.rejected > 0
-                        ? `${(stats.postInterviewRejected / stats.rejected) * 100}%`
-                        : "0%",
-                  }}
-                  initial={{ scaleX: 0 }}
-                  whileInView={{ scaleX: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.62, ease: PANEL_EASE }}
-                />
-              </div>
-            </div>
-          </div>
-        </motion.section>
-
-        <motion.section
-          className="stats-panel stats-recent-panel"
-          {...panelMotion}
-        >
-          <div className="stats-panel-head">
-            <div>
-              <h2>Recent movement</h2>
-              <p>The latest tracked status changes in this cycle.</p>
-            </div>
-          </div>
-          <div className="stats-panel-body">
-            {recentMovements.length === 0 ? (
-              <div className="stats-quiet-empty">No movements tracked yet.</div>
-            ) : (
-              <ul className="stats-movement-list">
-                {recentMovements.map((movement) => (
-                  <motion.li key={movement.id} {...listItemMotion}>
-                    <span>{movement.label}</span>
-                    <strong>{movement.app.jobSnapshot.companyName}</strong>
-                    <small>{relativeDate(movement.createdAt)}</small>
-                  </motion.li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </motion.section>
+        <RejectionSplitPanel stats={stats} />
       </div>
 
       <AnimatePresence>
