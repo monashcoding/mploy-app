@@ -90,7 +90,7 @@ type Props = {
     oldStatus: ApplicationStatus,
     next: ApplicationStatus,
   ) => Promise<void>;
-  onDelete: (appId: string, jobId: string) => void;
+  onDelete: (appId: string, jobId: string) => Promise<void>;
   onSaveNotes: (jobId: string, notes: string) => Promise<void>;
   onCreateInStage: (
     title: string,
@@ -934,8 +934,17 @@ function KanbanCard({
   );
   const [movingTo, setMovingTo] = useState<string | null>(null);
   const [moveFeedback, setMoveFeedback] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const mountedRef = useRef(true);
   const currentStage = stages.find((stage) => stage.name === app.status);
   const moveTargets = stages.filter((stage) => stage.name !== app.status);
+
+  useEffect(
+    () => () => {
+      mountedRef.current = false;
+    },
+    [],
+  );
 
   const setCardNodeRef = useCallback(
     (node: HTMLElement | null) => {
@@ -1164,7 +1173,8 @@ function KanbanCard({
         (app.status === "STARTED" ? " has-started-action" : "") +
         (density === "compact" ? " apps-kanban-card--compact" : "") +
         (!mobileDragDisabled && isDragging ? " is-dragging" : "") +
-        (mobileDragDisabled ? " is-mobile-drag-disabled" : "")
+        (mobileDragDisabled ? " is-mobile-drag-disabled" : "") +
+        (isDeleting ? " is-deleting" : "")
       }
       style={style}
       onClick={() => url && window.open(url, "_blank", "noreferrer")}
@@ -1267,9 +1277,15 @@ function KanbanCard({
             type="button"
             className="apps-icon-btn"
             aria-label="Delete"
+            disabled={isDeleting}
             onClick={(e) => {
               e.stopPropagation();
-              onDelete(app._id, app.jobId);
+              if (isDeleting) return;
+              setNotesOpen(false);
+              setIsDeleting(true);
+              void onDelete(app._id, app.jobId).catch(() => {
+                if (mountedRef.current) setIsDeleting(false);
+              });
             }}
           >
             <IconTrash size={14} />

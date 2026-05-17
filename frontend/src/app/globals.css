@@ -806,7 +806,8 @@ body {
   position: relative;
   transition:
     border-color 0.12s ease,
-    transform 0.12s ease;
+    opacity 0.22s ease,
+    transform 0.22s cubic-bezier(0.2, 0, 0.2, 1);
 }
 .apps-kanban-card.has-started-action {
   padding-right: 30px;
@@ -816,6 +817,12 @@ body {
 }
 .apps-kanban-card.is-dragging {
   visibility: hidden;
+}
+.apps-kanban-card.is-deleting {
+  opacity: 0;
+  transform: translate3d(0, -4px, 0) scale(0.985);
+  pointer-events: none;
+  will-change: opacity, transform;
 }
 .apps-started-action {
   position: absolute;
