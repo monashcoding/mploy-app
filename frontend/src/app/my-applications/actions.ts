@@ -23,6 +23,19 @@ type RecruitmentCycleRecord = {
   updatedAt: Date;
 };
 
+type ApplicationRecord = {
+  _id: ObjectId;
+  userId: ObjectId;
+  jobId: string;
+  status: ApplicationStatus;
+  startedAt: Date;
+  updatedAt: Date;
+  jobSnapshot: ApplicationJobSnapshot;
+  cycleId?: string;
+  notes?: string;
+  starred?: boolean;
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function requireUserId(session: any) {
   const id = (session?.user as { id?: string } | undefined)?.id;
@@ -41,6 +54,26 @@ function serializeCycle(
     isDefault: doc.isDefault ?? false,
     createdAt: doc.createdAt ? new Date(doc.createdAt).toISOString() : now,
     updatedAt: doc.updatedAt ? new Date(doc.updatedAt).toISOString() : now,
+  };
+}
+
+function serializeApplication(
+  doc: ApplicationRecord,
+  fallbackLogo?: string,
+): DbApplication {
+  return {
+    _id: doc._id.toString(),
+    jobId: doc.jobId,
+    status: doc.status,
+    startedAt: new Date(doc.startedAt).toISOString(),
+    updatedAt: new Date(doc.updatedAt).toISOString(),
+    jobSnapshot: {
+      ...doc.jobSnapshot,
+      logo: doc.jobSnapshot.logo ?? fallbackLogo,
+    },
+    cycleId: doc.cycleId ?? DEFAULT_RECRUITMENT_CYCLE_ID,
+    notes: doc.notes ?? undefined,
+    starred: doc.starred ?? false,
   };
 }
 
@@ -210,7 +243,7 @@ export async function listApplications(): Promise<DbApplication[]> {
   const db = client.db(process.env.MONGODB_DATABASE || "default");
 
   const docs = await db
-    .collection("applications")
+    .collection<ApplicationRecord>("applications")
     .find({ userId: new ObjectId(userId) })
     .sort({ updatedAt: -1 })
     .limit(500)
@@ -242,20 +275,7 @@ export async function listApplications(): Promise<DbApplication[]> {
     }
   }
 
-  return docs.map((d) => ({
-    _id: d._id.toString(),
-    jobId: d.jobId,
-    status: d.status,
-    startedAt: new Date(d.startedAt).toISOString(),
-    updatedAt: new Date(d.updatedAt).toISOString(),
-    jobSnapshot: {
-      ...d.jobSnapshot,
-      logo: d.jobSnapshot.logo ?? logoMap.get(d.jobId),
-    },
-    cycleId: d.cycleId ?? DEFAULT_RECRUITMENT_CYCLE_ID,
-    notes: d.notes ?? undefined,
-    starred: d.starred ?? false,
-  })) as DbApplication[];
+  return docs.map((d) => serializeApplication(d, logoMap.get(d.jobId)));
 }
 
 export async function addApplication(
@@ -298,6 +318,51 @@ export async function deleteApplication(jobId: string) {
   });
 
   return { ok: true };
+}
+
+export async function restoreDeletedApplication(
+  application: DbApplication,
+): Promise<DbApplication> {
+  const session = await getServerSession(getAuthOptions());
+  const userId = requireUserId(session);
+  const userObjectId = new ObjectId(userId);
+
+  const client = await getMongoClientPromise();
+  const db = client.db(process.env.MONGODB_DATABASE || "default");
+  const collection = db.collection<ApplicationRecord>("applications");
+  const startedAt = new Date(application.startedAt);
+  const updatedAt = new Date(application.updatedAt);
+  const hasNotes =
+    typeof application.notes === "string" && application.notes.trim().length > 0;
+
+  await collection.updateOne(
+    { userId: userObjectId, jobId: application.jobId },
+    {
+      $set: {
+        jobId: application.jobId,
+        status: application.status,
+        startedAt,
+        updatedAt,
+        jobSnapshot: application.jobSnapshot,
+        cycleId: application.cycleId ?? DEFAULT_RECRUITMENT_CYCLE_ID,
+        starred: application.starred ?? false,
+        ...(hasNotes ? { notes: application.notes } : {}),
+      },
+      ...(hasNotes ? {} : { $unset: { notes: "" } }),
+      $setOnInsert: {
+        userId: userObjectId,
+      },
+    },
+    { upsert: true },
+  );
+
+  const restored = await collection.findOne({
+    userId: userObjectId,
+    jobId: application.jobId,
+  });
+
+  if (!restored) throw new Error("Application could not be restored");
+  return serializeApplication(restored);
 }
 
 export async function createCustomApplication(

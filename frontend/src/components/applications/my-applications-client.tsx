@@ -28,6 +28,7 @@ import {
   IconSearch,
   IconTrash,
 } from "@tabler/icons-react";
+import { notifications } from "@mantine/notifications";
 import Link from "next/link";
 import {
   ApplicationStatus,
@@ -47,6 +48,7 @@ import {
   deleteRecruitmentCycle,
   deleteApplication,
   renameRecruitmentCycle,
+  restoreDeletedApplication,
   syncLocalApplications,
   toggleApplicationStar,
   updateApplicationNotes,
@@ -66,6 +68,7 @@ const SORT_STORAGE_KEY = "mp:apps:kanban-sort:v1";
 const DENSITY_STORAGE_KEY = "mp:apps:kanban-density:v1";
 const STAGE_ORDER_STORAGE_KEY = "mp:apps:stage-order:v1";
 const MAC_YELLOW = "#ffe22f";
+const DELETE_CARD_FADE_MS = 220;
 
 function readSort(): KanbanSort {
   if (typeof window === "undefined") return "newest";
@@ -309,11 +312,105 @@ export default function MyApplicationsClient({
 
   async function handleDelete(appId: string, jobId: string) {
     const removed = apps.find((a) => a._id === appId);
-    setApps((prev) => prev.filter((a) => a._id !== appId));
+    if (!removed) throw new Error("Application not found");
+
+    const fadePromise = new Promise<"fade">((resolve) => {
+      window.setTimeout(() => resolve("fade"), DELETE_CARD_FADE_MS);
+    });
+    const deleteResultPromise = deleteApplication(jobId).then(
+      () => ({ status: "deleted" as const }),
+      (error) => ({ status: "failed" as const, error }),
+    );
+
     try {
-      await deleteApplication(jobId);
-    } catch {
-      if (removed) setApps((prev) => [removed, ...prev]);
+      const firstResult = await Promise.race([
+        fadePromise,
+        deleteResultPromise,
+      ]);
+
+      if (firstResult !== "fade" && firstResult.status === "failed") {
+        throw firstResult.error;
+      }
+
+      await fadePromise;
+      setApps((prev) => prev.filter((a) => a._id !== appId));
+
+      const deleteResult =
+        firstResult === "fade" ? await deleteResultPromise : firstResult;
+
+      if (deleteResult.status === "failed") {
+        setApps((prev) =>
+          prev.some((app) => app._id === removed._id)
+            ? prev
+            : [removed, ...prev],
+        );
+        throw deleteResult.error;
+      }
+
+      const notificationId = `deleted-application-${removed._id}`;
+      notifications.show({
+        id: notificationId,
+        position: "top-right",
+        autoClose: 7000,
+        withCloseButton: true,
+        color: "accent",
+        message: (
+          <Group gap="sm" justify="space-between" wrap="nowrap">
+            <Text size="sm" c="white" lineClamp={1}>
+              Deleted{" "}
+              <span style={{ color: MAC_YELLOW, fontWeight: 700 }}>
+                {removed.jobSnapshot.title}
+              </span>{" "}
+              at{" "}
+              <span style={{ color: MAC_YELLOW, fontWeight: 700 }}>
+                {removed.jobSnapshot.companyName}
+              </span>
+            </Text>
+            <Button
+              size="xs"
+              variant="subtle"
+              color="accent"
+              onClick={async () => {
+                notifications.hide(notificationId);
+                setApps((prev) =>
+                  prev.some((app) => app.jobId === removed.jobId)
+                    ? prev
+                    : [removed, ...prev],
+                );
+
+                try {
+                  const restored = await restoreDeletedApplication(removed);
+                  setApps((prev) =>
+                    prev.map((app) =>
+                      app.jobId === restored.jobId ? restored : app,
+                    ),
+                  );
+                } catch {
+                  setApps((prev) =>
+                    prev.filter((app) => app.jobId !== removed.jobId),
+                  );
+                  notifications.show({
+                    position: "top-right",
+                    autoClose: 3000,
+                    color: "red",
+                    message: "Couldn't undo delete. Try refreshing.",
+                  });
+                }
+              }}
+            >
+              Undo
+            </Button>
+          </Group>
+        ),
+      });
+    } catch (error) {
+      notifications.show({
+        position: "top-right",
+        autoClose: 3000,
+        color: "red",
+        message: "Couldn't delete application. Try again.",
+      });
+      throw error;
     }
   }
 
