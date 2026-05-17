@@ -333,7 +333,8 @@ export async function restoreDeletedApplication(
   const startedAt = new Date(application.startedAt);
   const updatedAt = new Date(application.updatedAt);
   const hasNotes =
-    typeof application.notes === "string" && application.notes.trim().length > 0;
+    typeof application.notes === "string" &&
+    application.notes.trim().length > 0;
 
   await collection.updateOne(
     { userId: userObjectId, jobId: application.jobId },
