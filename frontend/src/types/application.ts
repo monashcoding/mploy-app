@@ -54,3 +54,18 @@ export type LocalApplication = {
 export type DbApplication = LocalApplication & {
   _id: string;
 };
+
+export type ApplicationStatusEventSource =
+  | "application_created"
+  | "local_sync"
+  | "status_change";
+
+export type ApplicationStatusEvent = {
+  _id: string;
+  jobId: string;
+  fromStatus?: ApplicationStatus | null;
+  toStatus: ApplicationStatus;
+  cycleId?: string;
+  source: ApplicationStatusEventSource;
+  createdAt: string;
+};

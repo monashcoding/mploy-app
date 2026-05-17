@@ -72,6 +72,294 @@ body {
 }
 
 /* ==========================================================================
+   Statistics
+   ========================================================================== */
+
+.stats-page-shell,
+.stats-page-inner {
+  min-width: 0;
+}
+.stats-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.stats-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.stats-title {
+  margin: 0;
+  color: white;
+  font-size: clamp(28px, 4vw, 36px);
+  font-weight: 800;
+  line-height: 1;
+}
+.stats-subtitle {
+  margin: 5px 0 0;
+  color: var(--muted-2);
+  font-size: 13.5px;
+}
+.stats-cycle-select {
+  width: min(260px, 100%);
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--border);
+}
+.stats-tile {
+  min-width: 0;
+  padding: 14px;
+  background: var(--secondary);
+}
+.stats-tile-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  color: var(--muted-1);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+.stats-tile-value {
+  margin-top: 12px;
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.stats-tile-detail {
+  margin-top: 7px;
+  color: var(--muted-3);
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.stats-panel,
+.stats-breakdown {
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--bg-soft);
+}
+.stats-panel {
+  overflow: hidden;
+}
+.stats-panel-head,
+.stats-breakdown {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px;
+}
+.stats-panel-head {
+  border-bottom: 1px solid var(--border);
+}
+.stats-panel h2,
+.stats-breakdown h2 {
+  margin: 0;
+  color: white;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.stats-panel p,
+.stats-breakdown p {
+  margin: 5px 0 0;
+  color: var(--muted-2);
+  font-size: 12px;
+  line-height: 1.35;
+}
+.stats-tracked-pill {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 226, 47, 0.2);
+  border-radius: 999px;
+  background: rgba(255, 226, 47, 0.08);
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 11.5px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+.stats-sankey-shell {
+  min-height: 360px;
+  padding: 12px;
+  overflow-x: auto;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent), #1b1b1b;
+}
+.stats-empty-state {
+  min-height: 340px;
+  border: 1px dashed var(--border);
+  border-radius: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 14px;
+  padding: 28px;
+  text-align: center;
+}
+.stats-empty-state h3 {
+  margin: 0;
+  color: white;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.stats-empty-state p {
+  max-width: 330px;
+  margin: 7px auto 0;
+  color: var(--muted-2);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.stats-empty-action {
+  min-height: 32px;
+  padding: 0 13px;
+  border-radius: 0.55rem;
+  background: var(--accent);
+  color: #1f1f1f;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  transition:
+    filter 0.12s ease,
+    transform 0.12s ease;
+}
+.stats-empty-action:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+.stats-sankey {
+  width: 100%;
+  min-width: 760px;
+  height: auto;
+  display: block;
+}
+.stats-sankey-link {
+  fill: none;
+  stroke-linecap: round;
+  opacity: 0.34;
+  transition:
+    opacity 0.14s ease,
+    stroke-width 0.14s ease;
+}
+.stats-sankey-link:hover {
+  opacity: 0.66;
+}
+.stats-sankey-link--success {
+  opacity: 0.42;
+}
+.stats-sankey-link--danger {
+  opacity: 0.38;
+}
+.stats-sankey-node rect {
+  stroke-width: 1.5;
+}
+.stats-sankey-node-label {
+  fill: rgba(255, 255, 255, 0.86);
+  font-size: 13px;
+  font-weight: 800;
+}
+.stats-sankey-node-value {
+  fill: white;
+  font-size: 27px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.stats-breakdown {
+  align-items: stretch;
+}
+.stats-rejection-bars {
+  width: min(520px, 100%);
+  display: grid;
+  gap: 10px;
+}
+.stats-rejection-row {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  color: var(--muted-1);
+  font-size: 12px;
+  font-weight: 700;
+}
+.stats-rejection-row > div {
+  height: 28px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255, 115, 81, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.stats-rejection-row strong {
+  position: absolute;
+  inset: 0 10px 0 auto;
+  z-index: 2;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.stats-rejection-row > div > span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(255, 115, 81, 0.42), #ff7351);
+}
+
+@media (max-width: 760px) {
+  .stats-header,
+  .stats-breakdown {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .stats-cycle-select {
+    width: 100%;
+  }
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .stats-panel-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .stats-rejection-bars {
+    width: 100%;
+  }
+}
+
+@media (max-width: 460px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .stats-rejection-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+/* ==========================================================================
    Applications redesign - shared atoms + Kanban
    ========================================================================== */
 

@@ -22,9 +22,17 @@ export default function NavLinks() {
       </Link>
 
       {status === "authenticated" && (
-        <Link className={linkClass("/my-applications")} href="/my-applications">
-          Applications
-        </Link>
+        <>
+          <Link
+            className={linkClass("/my-applications")}
+            href="/my-applications"
+          >
+            Applications
+          </Link>
+          <Link className={linkClass("/statistics")} href="/statistics">
+            Statistics
+          </Link>
+        </>
       )}
 
       {status === "authenticated" ? (

@@ -2,12 +2,15 @@
 
 import { getMongoClientPromise } from "@/lib/mongodb";
 import { getAuthOptions } from "@/lib/auth";
+import logger from "@/lib/logger";
 import { getServerSession } from "next-auth";
 import type { Db } from "mongodb";
 import { ObjectId } from "mongodb";
 import {
   ApplicationJobSnapshot,
   ApplicationStatus,
+  ApplicationStatusEvent,
+  ApplicationStatusEventSource,
   DbApplication,
   DEFAULT_RECRUITMENT_CYCLE_ID,
   LocalApplication,
@@ -35,6 +38,19 @@ type ApplicationRecord = {
   notes?: string;
   starred?: boolean;
 };
+
+type ApplicationStatusEventRecord = {
+  _id: ObjectId;
+  userId: ObjectId;
+  jobId: string;
+  fromStatus?: ApplicationStatus | null;
+  toStatus: ApplicationStatus;
+  cycleId?: string;
+  source: ApplicationStatusEventSource;
+  createdAt: Date;
+};
+
+let statusEventIndexesPromise: Promise<string[]> | null = null;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function requireUserId(session: any) {
@@ -77,6 +93,20 @@ function serializeApplication(
   };
 }
 
+function serializeStatusEvent(
+  doc: ApplicationStatusEventRecord,
+): ApplicationStatusEvent {
+  return {
+    _id: doc._id.toString(),
+    jobId: doc.jobId,
+    fromStatus: doc.fromStatus ?? null,
+    toStatus: doc.toStatus,
+    cycleId: doc.cycleId,
+    source: doc.source,
+    createdAt: new Date(doc.createdAt).toISOString(),
+  };
+}
+
 async function ensureDefaultCycle(db: Db, userObjectId: ObjectId) {
   const now = new Date();
 
@@ -94,6 +124,68 @@ async function ensureDefaultCycle(db: Db, userObjectId: ObjectId) {
     },
     { upsert: true },
   );
+}
+
+async function ensureStatusEventIndexes(db: Db) {
+  statusEventIndexesPromise ??= db
+    .collection<ApplicationStatusEventRecord>("application_status_events")
+    .createIndexes([
+      {
+        key: { userId: 1, createdAt: -1 },
+        name: "application_status_events_user_created",
+      },
+      {
+        key: { userId: 1, jobId: 1, createdAt: 1 },
+        name: "application_status_events_user_job_created",
+      },
+    ]);
+
+  try {
+    await statusEventIndexesPromise;
+  } catch (error) {
+    statusEventIndexesPromise = null;
+    logger.warn({ error }, "Failed to ensure application status event indexes");
+  }
+}
+
+async function recordApplicationStatusEvent(
+  db: Db,
+  userObjectId: ObjectId,
+  event: {
+    jobId: string;
+    fromStatus?: ApplicationStatus | null;
+    toStatus: ApplicationStatus;
+    cycleId?: string;
+    source: ApplicationStatusEventSource;
+  },
+) {
+  if (event.fromStatus === event.toStatus) return;
+
+  try {
+    await ensureStatusEventIndexes(db);
+    await db
+      .collection<ApplicationStatusEventRecord>("application_status_events")
+      .insertOne({
+        _id: new ObjectId(),
+        userId: userObjectId,
+        jobId: event.jobId,
+        fromStatus: event.fromStatus ?? null,
+        toStatus: event.toStatus,
+        cycleId: event.cycleId,
+        source: event.source,
+        createdAt: new Date(),
+      });
+  } catch (error) {
+    logger.warn(
+      {
+        error,
+        jobId: event.jobId,
+        fromStatus: event.fromStatus,
+        toStatus: event.toStatus,
+      },
+      "Failed to record application status event",
+    );
+  }
 }
 
 export async function listRecruitmentCycles(): Promise<RecruitmentCycle[]> {
@@ -203,6 +295,7 @@ export async function deleteRecruitmentCycle(cycleId: string) {
 export async function syncLocalApplications(apps: LocalApplication[]) {
   const session = await getServerSession(getAuthOptions());
   const userId = requireUserId(session);
+  const userObjectId = new ObjectId(userId);
 
   if (!apps.length) return { ok: true, upserted: 0 };
 
@@ -213,8 +306,8 @@ export async function syncLocalApplications(apps: LocalApplication[]) {
   let upserted = 0;
 
   for (const app of apps) {
-    await collection.updateOne(
-      { userId: new ObjectId(userId), jobId: app.jobId },
+    const result = await collection.updateOne(
+      { userId: userObjectId, jobId: app.jobId },
       {
         $setOnInsert: {
           startedAt: new Date(app.startedAt),
@@ -229,6 +322,15 @@ export async function syncLocalApplications(apps: LocalApplication[]) {
       },
       { upsert: true },
     );
+    if (result.upsertedCount > 0) {
+      await recordApplicationStatusEvent(db, userObjectId, {
+        jobId: app.jobId,
+        fromStatus: null,
+        toStatus: app.status,
+        cycleId: app.cycleId ?? DEFAULT_RECRUITMENT_CYCLE_ID,
+        source: "local_sync",
+      });
+    }
     upserted += 1;
   }
 
@@ -278,19 +380,45 @@ export async function listApplications(): Promise<DbApplication[]> {
   return docs.map((d) => serializeApplication(d, logoMap.get(d.jobId)));
 }
 
+export async function listApplicationStatusEvents(
+  jobIds: string[],
+): Promise<ApplicationStatusEvent[]> {
+  const session = await getServerSession(getAuthOptions());
+  const userId = requireUserId(session);
+
+  if (!jobIds.length) return [];
+
+  const client = await getMongoClientPromise();
+  const db = client.db(process.env.MONGODB_DATABASE || "default");
+  await ensureStatusEventIndexes(db);
+
+  const docs = await db
+    .collection<ApplicationStatusEventRecord>("application_status_events")
+    .find({
+      userId: new ObjectId(userId),
+      jobId: { $in: Array.from(new Set(jobIds)) },
+    })
+    .sort({ createdAt: 1 })
+    .limit(5000)
+    .toArray();
+
+  return docs.map(serializeStatusEvent);
+}
+
 export async function addApplication(
   jobId: string,
   jobSnapshot: ApplicationJobSnapshot,
 ) {
   const session = await getServerSession(getAuthOptions());
   const userId = requireUserId(session);
+  const userObjectId = new ObjectId(userId);
 
   const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
   const now = new Date();
 
-  await db.collection("applications").updateOne(
-    { userId: new ObjectId(userId), jobId },
+  const result = await db.collection("applications").updateOne(
+    { userId: userObjectId, jobId },
     {
       $set: { updatedAt: now, jobSnapshot },
       $setOnInsert: {
@@ -301,6 +429,16 @@ export async function addApplication(
     },
     { upsert: true },
   );
+
+  if (result.upsertedCount > 0) {
+    await recordApplicationStatusEvent(db, userObjectId, {
+      jobId,
+      fromStatus: null,
+      toStatus: "STARTED",
+      cycleId: DEFAULT_RECRUITMENT_CYCLE_ID,
+      source: "application_created",
+    });
+  }
 
   return { ok: true };
 }
@@ -375,6 +513,7 @@ export async function createCustomApplication(
 ): Promise<DbApplication> {
   const session = await getServerSession(getAuthOptions());
   const userId = requireUserId(session);
+  const userObjectId = new ObjectId(userId);
 
   const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
@@ -384,13 +523,21 @@ export async function createCustomApplication(
   const parsedDate = new Date(date);
 
   const result = await db.collection("applications").insertOne({
-    userId: new ObjectId(userId),
+    userId: userObjectId,
     jobId,
     status,
     cycleId,
     startedAt: parsedDate,
     updatedAt: parsedDate,
     jobSnapshot,
+  });
+
+  await recordApplicationStatusEvent(db, userObjectId, {
+    jobId,
+    fromStatus: null,
+    toStatus: status,
+    cycleId,
+    source: "application_created",
   });
 
   return {
@@ -410,12 +557,15 @@ export async function updateApplicationStatus(
 ) {
   const session = await getServerSession(getAuthOptions());
   const userId = requireUserId(session);
+  const userObjectId = new ObjectId(userId);
 
   const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
+  const collection = db.collection<ApplicationRecord>("applications");
+  const existing = await collection.findOne({ userId: userObjectId, jobId });
 
-  await db.collection("applications").updateOne(
-    { userId: new ObjectId(userId), jobId },
+  await collection.updateOne(
+    { userId: userObjectId, jobId },
     {
       $set: { status, updatedAt: new Date() },
       $setOnInsert: {
@@ -425,6 +575,14 @@ export async function updateApplicationStatus(
     },
     { upsert: true },
   );
+
+  await recordApplicationStatusEvent(db, userObjectId, {
+    jobId,
+    fromStatus: existing?.status ?? null,
+    toStatus: status,
+    cycleId: existing?.cycleId ?? DEFAULT_RECRUITMENT_CYCLE_ID,
+    source: "status_change",
+  });
 
   return { ok: true };
 }
