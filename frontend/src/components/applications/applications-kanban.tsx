@@ -64,6 +64,10 @@ export type KanbanDensity = "compact" | "detailed";
 
 const VISIBLE_CARDS_PER_COLUMN = 4;
 const COMPACT_VISIBLE_CARDS_PER_COLUMN = 8;
+const ACCEPTED_COLUMN_CONFETTI = Array.from(
+  { length: 14 },
+  (_, index) => index,
+);
 
 function applicationLogo(app: DbApplication) {
   const isCustomApplication =
@@ -84,6 +88,7 @@ type Props = {
   stages: UserStage[];
   visibleStageNames: string[];
   sort: KanbanSort;
+  acceptedCelebration?: { stageName: string; id: number } | null;
   onStatusChange: (
     appId: string,
     jobId: string,
@@ -111,6 +116,7 @@ export default function ApplicationsKanban({
   stages,
   visibleStageNames,
   sort,
+  acceptedCelebration,
   onStatusChange,
   onDelete,
   onSaveNotes,
@@ -295,6 +301,7 @@ export default function ApplicationsKanban({
               mobileStages={stages}
               mobileStageCounts={stageCounts}
               onMobileStageChange={onMobileStageChange}
+              acceptedCelebration={acceptedCelebration}
             />
           );
         })}
@@ -479,6 +486,7 @@ function KanbanColumn({
   mobileStages,
   mobileStageCounts,
   onMobileStageChange,
+  acceptedCelebration,
 }: {
   stage: UserStage;
   apps: DbApplication[];
@@ -496,8 +504,14 @@ function KanbanColumn({
   mobileStages: UserStage[];
   mobileStageCounts: Map<string, number>;
   onMobileStageChange?: (stageName: string) => void;
+  acceptedCelebration?: Props["acceptedCelebration"];
 }) {
   const palette = rolePalette(stage.colorRole);
+  const acceptedCelebrationKey =
+    acceptedCelebration?.stageName === stage.name
+      ? acceptedCelebration.id
+      : null;
+  const isAcceptedCelebrating = acceptedCelebrationKey !== null;
   const { setNodeRef: setDropNodeRef, isOver } = useDroppable({
     id: `col:${stage.name}`,
     data: { stageName: stage.name },
@@ -586,7 +600,8 @@ function KanbanColumn({
         "apps-kanban-col" +
         (isOver ? " is-drop-target" : "") +
         (isColumnDragging ? " is-column-dragging" : "") +
-        (isMobileSelected ? " is-mobile-selected" : "")
+        (isMobileSelected ? " is-mobile-selected" : "") +
+        (isAcceptedCelebrating ? " is-accepted-celebrating" : "")
       }
       style={columnStyle}
     >
@@ -839,6 +854,27 @@ function KanbanColumn({
           </Popover>
         </div>
       </header>
+      {acceptedCelebrationKey !== null && (
+        <span
+          key={acceptedCelebrationKey}
+          className="apps-accepted-column-toast"
+          role="status"
+          aria-live="polite"
+        >
+          Congrats!
+        </span>
+      )}
+      {acceptedCelebrationKey !== null && (
+        <span
+          key={`confetti-${acceptedCelebrationKey}`}
+          className="apps-accepted-column-confetti"
+          aria-hidden="true"
+        >
+          {ACCEPTED_COLUMN_CONFETTI.map((index) => (
+            <span key={index} />
+          ))}
+        </span>
+      )}
       <div className="apps-kc-col-body">
         {apps.length === 0 ? (
           <div className="apps-kc-col-empty">

@@ -17,7 +17,10 @@ export const NavBarMobile = () => {
     { href: "/", label: "Home" },
     { href: "/jobs", label: "Jobs" },
     ...(status === "authenticated"
-      ? [{ href: "/my-applications", label: "Applications" }]
+      ? [
+          { href: "/my-applications", label: "Applications" },
+          { href: "/statistics", label: "Statistics" },
+        ]
       : [{ href: "/sign-in", label: "Sign in" }]),
   ];
 

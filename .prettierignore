@@ -1,0 +1,17 @@
+node_modules/
+frontend/node_modules/
+
+.next/
+frontend/.next/
+dist/
+build/
+coverage/
+
+.agents/
+.claude/
+repo-to-text/
+
+*.log
+*.pid
+*.pidfile
+*.tsbuildinfo
