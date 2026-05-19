@@ -603,9 +603,7 @@ function ApplicationSankey({
                     animate={{ pathLength: 1 }}
                     transition={{ duration: 0.75, ease: PANEL_EASE }}
                   >
-                    <title>
-                      {link.label}: {link.value}
-                    </title>
+                    <title>{`${link.label}: ${link.value}`}</title>
                   </motion.path>
                 );
               })}
