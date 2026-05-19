@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { KeyboardEvent } from "react";
+import type { KeyboardEvent, Ref } from "react";
 import { useSession } from "next-auth/react";
 import { Box, Select } from "@mantine/core";
-import { IconExternalLink, IconX } from "@tabler/icons-react";
+import { IconDownload, IconExternalLink, IconX } from "@tabler/icons-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   ApplicationStatusEvent,
@@ -14,6 +14,7 @@ import {
   RecruitmentCycle,
   UserStage,
 } from "@/types/application";
+import macLogo from "@/assets/mac.svg";
 import CompanyLogo from "@/components/jobs/company-logo";
 import { rolePalette } from "@/lib/role-palette";
 import { relativeDate } from "@/lib/utils";
@@ -98,6 +99,10 @@ const NODE_LAYOUT: Record<
 
 const NODE_WIDTH = 136;
 const PANEL_EASE = [0.22, 1, 0.36, 1] as const;
+const SANKEY_EXPORT_WIDTH = 1160;
+const SANKEY_EXPORT_HEIGHT = 520;
+const SANKEY_EXPORT_DIAGRAM_OFFSET_X = 70;
+const SANKEY_EXPORT_DIAGRAM_OFFSET_Y = 80;
 
 const pageMotion = {
   initial: { opacity: 0 },
@@ -159,6 +164,10 @@ function formatPercent(value: number, total: number) {
   return `${percentNumber(value, total)}%`;
 }
 
+function formatCountPercent(value: number, total: number) {
+  return `${value} (${formatPercent(value, total)})`;
+}
+
 function percentNumber(value: number, total: number) {
   if (total <= 0) return 0;
   return Math.round((value / total) * 100);
@@ -166,6 +175,47 @@ function percentNumber(value: number, total: number) {
 
 function pluralLabel(count: number, singular: string, plural = `${singular}s`) {
   return count === 1 ? singular : plural;
+}
+
+function safeFilename(value: string) {
+  return (
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "pipeline-flow"
+  );
+}
+
+function triggerImageDownload(href: string, filename: string) {
+  const link = document.createElement("a");
+  link.href = href;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
+function staticAssetSrc(asset: string | { src: string }) {
+  return typeof asset === "string" ? asset : asset.src;
+}
+
+async function svgHrefToDataUri(href: string) {
+  const response = await fetch(href);
+  if (!response.ok) {
+    throw new Error(`Failed to load SVG asset: ${href}`);
+  }
+
+  const svgText = await response.text();
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgText)}`;
+}
+
+async function macLogoDataUri() {
+  try {
+    return await svgHrefToDataUri(staticAssetSrc(macLogo));
+  } catch {
+    return svgHrefToDataUri("/mac.svg");
+  }
 }
 
 function buildEventsByJobId(events: ApplicationStatusEvent[]) {
@@ -497,10 +547,12 @@ function ApplicationSankey({
   stats,
   selectedStage,
   onStageSelect,
+  svgRef,
 }: {
   stats: PipelineStats;
   selectedStage: PipelineStageName | null;
   onStageSelect: (stage: PipelineStageName) => void;
+  svgRef?: Ref<SVGSVGElement>;
 }) {
   const links = buildSankeyLinks(stats);
   const maxLinkValue = Math.max(1, ...links.map((link) => link.value));
@@ -529,6 +581,7 @@ function ApplicationSankey({
         </div>
       ) : (
         <svg
+          ref={svgRef}
           className="stats-sankey"
           viewBox="0 0 980 420"
           role="img"
@@ -666,7 +719,7 @@ function OutcomeMixPanel({
       <div className="stats-mini-head">
         <h2>Outcome mix</h2>
         <span>
-          {acceptedPct}% accepted / {rejectedPct}% rejected
+          {acceptedPct}% accepted, {rejectedPct}% rejected
         </span>
       </div>
       <div className="stats-outcome-body">
@@ -690,23 +743,17 @@ function OutcomeMixPanel({
           <span>
             <i style={{ backgroundColor: "#ffe22f" }} />
             Active{" "}
-            <strong>
-              {activeCount} / {activePct}%
-            </strong>
+            <strong>{formatCountPercent(activeCount, stats.total)}</strong>
           </span>
           <span>
             <i style={{ backgroundColor: "#9ddfb0" }} />
             Accepted{" "}
-            <strong>
-              {stats.accepted} / {acceptedPct}%
-            </strong>
+            <strong>{formatCountPercent(stats.accepted, stats.total)}</strong>
           </span>
           <span>
             <i style={{ backgroundColor: "#ff7351" }} />
             Rejected{" "}
-            <strong>
-              {stats.rejected} / {rejectedPct}%
-            </strong>
+            <strong>{formatCountPercent(stats.rejected, stats.total)}</strong>
           </span>
         </div>
       </div>
@@ -737,7 +784,7 @@ function RejectionSplitPanel({ stats }: { stats: PipelineStats }) {
           <span>Applied screen</span>
           <div>
             <strong>
-              {stats.directRejected} / {directPct}%
+              {formatCountPercent(stats.directRejected, stats.rejected)}
             </strong>
             <motion.span
               style={{
@@ -754,7 +801,7 @@ function RejectionSplitPanel({ stats }: { stats: PipelineStats }) {
           <span>After interview</span>
           <div>
             <strong>
-              {stats.postInterviewRejected} / {postInterviewPct}%
+              {formatCountPercent(stats.postInterviewRejected, stats.rejected)}
             </strong>
             <motion.span
               style={{
@@ -767,6 +814,51 @@ function RejectionSplitPanel({ stats }: { stats: PipelineStats }) {
             />
           </div>
         </div>
+      </div>
+      <p className="stats-rejection-note">
+        It&apos;s a numbers game. Don&apos;t give up.
+      </p>
+    </motion.section>
+  );
+}
+
+function InterviewYieldPanel({ stats }: { stats: PipelineStats }) {
+  const interviewPct = percentNumber(
+    stats.reachedInterview,
+    stats.reachedApplied,
+  );
+  const waitingForInterview = Math.max(
+    0,
+    stats.reachedApplied - stats.reachedInterview,
+  );
+  const waitingPct = percentNumber(waitingForInterview, stats.reachedApplied);
+
+  return (
+    <motion.section
+      className="stats-panel stats-visual-panel stats-yield-panel"
+      {...panelMotion}
+    >
+      <div className="stats-mini-head">
+        <h2>Interview yield</h2>
+        <span>
+          {formatCountPercent(stats.reachedInterview, stats.reachedApplied)}
+        </span>
+      </div>
+      <div className="stats-yield-body">
+        <div className="stats-yield-value">
+          <strong>{interviewPct}%</strong>
+          <span>
+            {stats.reachedInterview} of {stats.reachedApplied} reached Interview
+          </span>
+        </div>
+        <div className="stats-yield-stack" aria-hidden>
+          <span
+            className="is-interview"
+            style={{ width: `${interviewPct}%` }}
+          />
+          <span className="is-waiting" style={{ width: `${waitingPct}%` }} />
+        </div>
+        <p>{waitingForInterview} still waiting for an interview signal.</p>
       </div>
     </motion.section>
   );
@@ -925,6 +1017,7 @@ export default function ApplicationsStatisticsClient({
   const [selectedStage, setSelectedStage] = useState<PipelineStageName | null>(
     null,
   );
+  const sankeySvgRef = useRef<SVGSVGElement | null>(null);
 
   const selectedCycle = initialCycles.find(
     (cycle) => cycle.id === selectedCycleId,
@@ -978,6 +1071,226 @@ export default function ApplicationsStatisticsClient({
     stats.currentCounts.STARTED +
     stats.currentCounts.APPLIED +
     stats.currentCounts.INTERVIEW;
+  const cycleSelectWidth = Math.min(
+    280,
+    Math.max(150, selectedCycle.name.length * 8 + 62),
+  );
+
+  async function downloadPipelineImage() {
+    const svg = sankeySvgRef.current;
+    if (!svg) return;
+    const macLogoHref = await macLogoDataUri();
+
+    const clone = svg.cloneNode(true) as SVGSVGElement;
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    clone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+    clone.setAttribute("width", String(SANKEY_EXPORT_WIDTH));
+    clone.setAttribute("height", String(SANKEY_EXPORT_HEIGHT));
+    clone.setAttribute(
+      "viewBox",
+      `0 0 ${SANKEY_EXPORT_WIDTH} ${SANKEY_EXPORT_HEIGHT}`,
+    );
+    clone
+      .querySelectorAll(".stats-sankey-click-label")
+      .forEach((node) => node.remove());
+
+    const sankeyDiagram = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "g",
+    );
+    sankeyDiagram.setAttribute(
+      "transform",
+      `translate(${SANKEY_EXPORT_DIAGRAM_OFFSET_X}, ${SANKEY_EXPORT_DIAGRAM_OFFSET_Y})`,
+    );
+
+    const sankeyLinks = clone.querySelector(".stats-sankey-links");
+    const sankeyNodes = clone.querySelector(".stats-sankey-nodes");
+    if (sankeyLinks) sankeyDiagram.appendChild(sankeyLinks);
+    if (sankeyNodes) sankeyDiagram.appendChild(sankeyNodes);
+    clone.appendChild(sankeyDiagram);
+
+    const style = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "style",
+    );
+    style.textContent = `
+      text { font-family: Poppins, Arial, sans-serif; }
+      .stats-sankey-link { fill: none; stroke-linecap: round; opacity: 0.34; }
+      .stats-sankey-link--success { opacity: 0.42; }
+      .stats-sankey-link--danger { opacity: 0.38; }
+      .stats-sankey-node rect { stroke-width: 1.5; filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.22)); }
+      .stats-sankey-node-label { fill: rgba(255, 255, 255, 0.86); font-size: 13px; font-weight: 800; }
+      .stats-sankey-node-value { fill: white; font-size: 27px; font-weight: 800; }
+    `;
+
+    const background = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "rect",
+    );
+    background.setAttribute("x", "0");
+    background.setAttribute("y", "0");
+    background.setAttribute("width", String(SANKEY_EXPORT_WIDTH));
+    background.setAttribute("height", String(SANKEY_EXPORT_HEIGHT));
+    background.setAttribute("fill", "#1a1a1a");
+
+    const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+    const dotPattern = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "pattern",
+    );
+    dotPattern.setAttribute("id", "stats-export-dot-pattern");
+    dotPattern.setAttribute("width", "25");
+    dotPattern.setAttribute("height", "25");
+    dotPattern.setAttribute("patternUnits", "userSpaceOnUse");
+
+    const dot = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "circle",
+    );
+    dot.setAttribute("cx", "1");
+    dot.setAttribute("cy", "1");
+    dot.setAttribute("r", "1");
+    dot.setAttribute("fill", "#ffffff");
+    dot.setAttribute("opacity", "0.08");
+    dotPattern.appendChild(dot);
+    defs.appendChild(dotPattern);
+
+    const dotLayer = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "rect",
+    );
+    dotLayer.setAttribute("x", "0");
+    dotLayer.setAttribute("y", "0");
+    dotLayer.setAttribute("width", String(SANKEY_EXPORT_WIDTH));
+    dotLayer.setAttribute("height", String(SANKEY_EXPORT_HEIGHT));
+    dotLayer.setAttribute("fill", "url(#stats-export-dot-pattern)");
+
+    const title = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "text",
+    );
+    title.setAttribute("x", "34");
+    title.setAttribute("y", "52");
+    title.setAttribute("fill", "#ffffff");
+    title.setAttribute("font-size", "28");
+    title.setAttribute("font-weight", "900");
+    title.textContent = selectedCycle.name;
+
+    const titleUnderline = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line",
+    );
+    titleUnderline.setAttribute("x1", "34");
+    titleUnderline.setAttribute("y1", "67");
+    titleUnderline.setAttribute(
+      "x2",
+      String(34 + Math.min(460, Math.max(90, selectedCycle.name.length * 16))),
+    );
+    titleUnderline.setAttribute("y2", "67");
+    titleUnderline.setAttribute("stroke", "#ffffff");
+    titleUnderline.setAttribute("stroke-width", "3");
+    titleUnderline.setAttribute("stroke-linecap", "round");
+    titleUnderline.setAttribute("opacity", "0.92");
+
+    const brandCenterX = SANKEY_EXPORT_WIDTH - 78;
+    const brandLogoSize = 38;
+    const brandLogo = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "image",
+    );
+    brandLogo.setAttribute("x", String(brandCenterX - brandLogoSize / 2));
+    brandLogo.setAttribute("y", "24");
+    brandLogo.setAttribute("width", String(brandLogoSize));
+    brandLogo.setAttribute("height", String(brandLogoSize));
+    brandLogo.setAttribute("href", macLogoHref);
+    brandLogo.setAttributeNS(
+      "http://www.w3.org/1999/xlink",
+      "href",
+      macLogoHref,
+    );
+
+    const brandText = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "text",
+    );
+    brandText.setAttribute("x", String(brandCenterX));
+    brandText.setAttribute("y", "78");
+    brandText.setAttribute("fill", "#fee22f");
+    brandText.setAttribute("font-size", "7.2");
+    brandText.setAttribute("font-weight", "900");
+    brandText.setAttribute("text-anchor", "middle");
+
+    const brandTextTop = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "tspan",
+    );
+    brandTextTop.setAttribute("x", String(brandCenterX));
+    brandTextTop.textContent = "Monash Association";
+
+    const brandTextBottom = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "tspan",
+    );
+    brandTextBottom.setAttribute("x", String(brandCenterX));
+    brandTextBottom.setAttribute("dy", "8");
+    brandTextBottom.textContent = "of Coding";
+    brandText.append(brandTextTop, brandTextBottom);
+
+    const website = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "text",
+    );
+    website.setAttribute("x", String(SANKEY_EXPORT_WIDTH - 22));
+    website.setAttribute("y", String(SANKEY_EXPORT_HEIGHT - 18));
+    website.setAttribute("fill", "#8f8f8f");
+    website.setAttribute("font-size", "11");
+    website.setAttribute("font-weight", "800");
+    website.setAttribute("text-anchor", "end");
+    website.textContent = "jobs.monashcoding.com";
+
+    clone.insertBefore(background, clone.firstChild);
+    clone.insertBefore(style, clone.firstChild);
+    clone.insertBefore(defs, background.nextSibling);
+    clone.insertBefore(dotLayer, defs.nextSibling);
+    clone.append(title, titleUnderline, brandLogo, brandText, website);
+
+    const serialized = new XMLSerializer().serializeToString(clone);
+    const blob = new Blob([serialized], {
+      type: "image/svg+xml;charset=utf-8",
+    });
+    const objectUrl = URL.createObjectURL(blob);
+    const image = new Image();
+    const filename = `${safeFilename(selectedCycle.name)}-pipeline-flow.png`;
+
+    image.onload = () => {
+      const scale = 2;
+      const canvas = document.createElement("canvas");
+      canvas.width = SANKEY_EXPORT_WIDTH * scale;
+      canvas.height = SANKEY_EXPORT_HEIGHT * scale;
+
+      const context = canvas.getContext("2d");
+      if (!context) {
+        URL.revokeObjectURL(objectUrl);
+        return;
+      }
+
+      context.fillStyle = "#1a1a1a";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      triggerImageDownload(canvas.toDataURL("image/png"), filename);
+      URL.revokeObjectURL(objectUrl);
+    };
+
+    image.onerror = () => {
+      triggerImageDownload(
+        objectUrl,
+        `${safeFilename(selectedCycle.name)}-pipeline-flow.svg`,
+      );
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+    };
+
+    image.src = objectUrl;
+  }
 
   if (sessionStatus === "unauthenticated") {
     return (
@@ -1007,40 +1320,8 @@ export default function ApplicationsStatisticsClient({
       <motion.div className="stats-header" {...panelMotion}>
         <div>
           <h1 className="stats-title">Statistics</h1>
-          <p className="stats-subtitle">
-            {stats.total} applications in {selectedCycle.name}
-          </p>
+          <p className="stats-subtitle">{stats.total} applications tracked</p>
         </div>
-        <Select
-          aria-label="Recruitment cycle"
-          value={selectedCycle.id}
-          onChange={(value) => {
-            setSelectedCycleId(value ?? DEFAULT_RECRUITMENT_CYCLE_ID);
-            setSelectedStage(null);
-          }}
-          data={initialCycles.map((cycle) => ({
-            value: cycle.id,
-            label: cycle.name,
-          }))}
-          allowDeselect={false}
-          className="stats-cycle-select"
-          styles={{
-            input: {
-              backgroundColor: "transparent",
-              border: "2px solid #3a3a3a",
-              borderRadius: "0.5rem",
-              color: "white",
-              minHeight: 34,
-            },
-            dropdown: {
-              backgroundColor: "#2e2e2e",
-              border: "2px solid #3a3a3a",
-            },
-            option: {
-              fontSize: 13,
-            },
-          }}
-        />
       </motion.div>
 
       <div className="stats-primary-grid">
@@ -1049,21 +1330,64 @@ export default function ApplicationsStatisticsClient({
           {...panelMotion}
         >
           <div className="stats-panel-head">
-            <div>
-              <h2>Pipeline flow</h2>
-              <p>
-                Current applications with tracked interview history layered in.
-              </p>
+            <div className="stats-flow-title-wrap">
+              <div className="stats-flow-title-row">
+                <h2>{selectedCycle.name}</h2>
+                <div className="stats-tracked-pill">
+                  {stats.trackedEvents} tracked move
+                  {stats.trackedEvents === 1 ? "" : "s"}
+                </div>
+              </div>
             </div>
-            <div className="stats-tracked-pill">
-              {stats.trackedEvents} tracked move
-              {stats.trackedEvents === 1 ? "" : "s"}
+
+            <div className="stats-flow-actions">
+              <Select
+                aria-label="Recruitment cycle"
+                value={selectedCycle.id}
+                onChange={(value) => {
+                  setSelectedCycleId(value ?? DEFAULT_RECRUITMENT_CYCLE_ID);
+                  setSelectedStage(null);
+                }}
+                data={initialCycles.map((cycle) => ({
+                  value: cycle.id,
+                  label: cycle.name,
+                }))}
+                allowDeselect={false}
+                className="stats-cycle-select stats-cycle-select--panel"
+                style={{ maxWidth: "100%", width: cycleSelectWidth }}
+                styles={{
+                  input: {
+                    backgroundColor: "transparent",
+                    border: "2px solid #3a3a3a",
+                    borderRadius: "0.5rem",
+                    color: "white",
+                    minHeight: 34,
+                  },
+                  dropdown: {
+                    backgroundColor: "#2e2e2e",
+                    border: "2px solid #3a3a3a",
+                  },
+                  option: {
+                    fontSize: 13,
+                  },
+                }}
+              />
+              <button
+                className="stats-export-button"
+                type="button"
+                disabled={stats.total === 0}
+                onClick={downloadPipelineImage}
+              >
+                <IconDownload size={15} aria-hidden />
+                <span>Export</span>
+              </button>
             </div>
           </div>
           <ApplicationSankey
             stats={stats}
             selectedStage={selectedStage}
             onStageSelect={setSelectedStage}
+            svgRef={sankeySvgRef}
           />
         </motion.section>
 
@@ -1079,9 +1403,9 @@ export default function ApplicationsStatisticsClient({
             role="neutral"
           />
           <StatTile
-            label="Active"
-            value={activeCount}
-            detail={`${stats.currentCounts.INTERVIEW} interviewing`}
+            label="Applied"
+            value={stats.currentCounts.APPLIED}
+            detail="Currently in Applied"
             role="active"
           />
           <StatTile
@@ -1099,15 +1423,16 @@ export default function ApplicationsStatisticsClient({
           <StatTile
             label="Rejected"
             value={formatPercent(stats.rejected, stats.reachedApplied)}
-            detail={`${stats.rejected} rejected after Applied`}
+            detail={`${stats.rejected} total rejected`}
             role="loss"
           />
         </motion.div>
       </div>
 
       <div className="stats-outcome-grid">
-        <OutcomeMixPanel stats={stats} activeCount={activeCount} />
         <RejectionSplitPanel stats={stats} />
+        <InterviewYieldPanel stats={stats} />
+        <OutcomeMixPanel stats={stats} activeCount={activeCount} />
       </div>
 
       <AnimatePresence>

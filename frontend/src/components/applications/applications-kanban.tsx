@@ -64,6 +64,10 @@ export type KanbanDensity = "compact" | "detailed";
 
 const VISIBLE_CARDS_PER_COLUMN = 4;
 const COMPACT_VISIBLE_CARDS_PER_COLUMN = 8;
+const ACCEPTED_COLUMN_CONFETTI = Array.from(
+  { length: 14 },
+  (_, index) => index,
+);
 
 function applicationLogo(app: DbApplication) {
   const isCustomApplication =
@@ -702,16 +706,6 @@ function KanbanColumn({
             {apps.length}
           </span>
         </div>
-        {acceptedCelebrationKey !== null && (
-          <span
-            key={acceptedCelebrationKey}
-            className="apps-accepted-column-toast"
-            role="status"
-            aria-live="polite"
-          >
-            Congrats!
-          </span>
-        )}
         <div className="apps-kc-col-head-actions">
           {apps.length > 0 && (
             <Popover
@@ -860,6 +854,27 @@ function KanbanColumn({
           </Popover>
         </div>
       </header>
+      {acceptedCelebrationKey !== null && (
+        <span
+          key={acceptedCelebrationKey}
+          className="apps-accepted-column-toast"
+          role="status"
+          aria-live="polite"
+        >
+          Congrats!
+        </span>
+      )}
+      {acceptedCelebrationKey !== null && (
+        <span
+          key={`confetti-${acceptedCelebrationKey}`}
+          className="apps-accepted-column-confetti"
+          aria-hidden="true"
+        >
+          {ACCEPTED_COLUMN_CONFETTI.map((index) => (
+            <span key={index} />
+          ))}
+        </span>
+      )}
       <div className="apps-kc-col-body">
         {apps.length === 0 ? (
           <div className="apps-kc-col-empty">
