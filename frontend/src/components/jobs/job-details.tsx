@@ -17,6 +17,8 @@ import JobDetailsLoading from "@/components/layout/job-details-loading";
 import JobSummary from "@/components/jobs/job-summary";
 import { upsertLocalStartedApplication } from "@/lib/local-applications";
 import { addApplication } from "@/app/my-applications/actions";
+import { trackApplyClick } from "@/actions/analytics";
+import { sendGAEvent } from "@next/third-parties/google";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 
@@ -49,6 +51,18 @@ export default function JobDetails() {
 
   const handleApplyClick = () => {
     window.open(selectedJob.application_url, "_blank");
+
+    trackApplyClick({
+      jobId: selectedJob.id,
+      jobTitle: selectedJob.title,
+      companyName: selectedJob.company?.name || "Unknown",
+    });
+
+    sendGAEvent("event", "apply_click", {
+      job_id: selectedJob.id,
+      job_title: selectedJob.title,
+      company: selectedJob.company?.name || "Unknown",
+    });
 
     if (session?.user) {
       addApplication(selectedJob.id, {
