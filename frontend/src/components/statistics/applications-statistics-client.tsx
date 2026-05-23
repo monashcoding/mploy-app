@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, Ref } from "react";
 import { useSession } from "next-auth/react";
-import { Box, Select } from "@mantine/core";
+import { Select } from "@mantine/core";
 import { IconDownload, IconExternalLink, IconX } from "@tabler/icons-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
@@ -15,6 +15,7 @@ import {
   UserStage,
 } from "@/types/application";
 import macLogo from "@/assets/mac.svg";
+import AuthRequiredPanel from "@/components/auth/auth-required-panel";
 import CompanyLogo from "@/components/jobs/company-logo";
 import { rolePalette } from "@/lib/role-palette";
 import { relativeDate } from "@/lib/utils";
@@ -1291,22 +1292,7 @@ export default function ApplicationsStatisticsClient({
   }
 
   if (sessionStatus === "unauthenticated") {
-    return (
-      <Box
-        bg="secondary"
-        bd="2px solid selected"
-        className="rounded-xl p-4 text-sm"
-      >
-        You&apos;re not signed in.{" "}
-        <Link
-          className="underline font-semibold"
-          href="/sign-in?callbackUrl=%2Fstatistics"
-        >
-          Sign in
-        </Link>{" "}
-        to view your application statistics.
-      </Box>
-    );
+    return <AuthRequiredPanel screen="statistics" />;
   }
 
   return (

@@ -29,7 +29,6 @@ import {
   IconTrash,
 } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
-import Link from "next/link";
 import {
   ApplicationStatus,
   DbApplication,
@@ -63,6 +62,7 @@ import ApplicationDatePicker, {
   formatApplicationDateValue,
 } from "@/components/applications/application-date-picker";
 import { rolePalette } from "@/lib/role-palette";
+import AuthRequiredPanel from "@/components/auth/auth-required-panel";
 
 const SORT_STORAGE_KEY = "mp:apps:kanban-sort:v1";
 const DENSITY_STORAGE_KEY = "mp:apps:kanban-density:v1";
@@ -637,22 +637,7 @@ export default function MyApplicationsClient({
   }
 
   if (sessionStatus === "unauthenticated") {
-    return (
-      <Box
-        bg="secondary"
-        bd="2px solid selected"
-        className="rounded-xl p-4 text-sm"
-      >
-        You&apos;re not signed in.{" "}
-        <Link
-          className="underline font-semibold"
-          href="/sign-in?callbackUrl=%2Fmy-applications"
-        >
-          Sign in
-        </Link>{" "}
-        to view and manage your applications across devices.
-      </Box>
-    );
+    return <AuthRequiredPanel screen="applications" />;
   }
 
   const segmentedStyles = {
