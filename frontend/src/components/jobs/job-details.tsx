@@ -22,13 +22,16 @@ import { sendGAEvent } from "@next/third-parties/google";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 
+const APPLY_SIGNIN_PROMPT_SESSION_KEY = "mp:apply-signin-prompt-shown:v1";
+
 export default function JobDetails() {
   const { selectedJob, isLoading } = useFilterContext();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isCopied, setIsCopied] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const signinPromptShownRef = useRef(false);
   const [showSigninModal, setShowSigninModal] = useState(false);
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
 
   // Scroll to top whenever a new job is selected
   useEffect(() => {
@@ -49,6 +52,27 @@ export default function JobDetails() {
     return <JobDetailsLoading />;
   }
 
+  const shouldShowSigninPrompt = () => {
+    if (signinPromptShownRef.current) return false;
+
+    try {
+      if (
+        window.sessionStorage.getItem(APPLY_SIGNIN_PROMPT_SESSION_KEY) ===
+        "true"
+      ) {
+        signinPromptShownRef.current = true;
+        return false;
+      }
+
+      window.sessionStorage.setItem(APPLY_SIGNIN_PROMPT_SESSION_KEY, "true");
+    } catch {
+      // If sessionStorage is unavailable, fall back to once per component mount.
+    }
+
+    signinPromptShownRef.current = true;
+    return true;
+  };
+
   const handleApplyClick = () => {
     window.open(selectedJob.application_url, "_blank");
 
@@ -64,7 +88,7 @@ export default function JobDetails() {
       company: selectedJob.company?.name || "Unknown",
     });
 
-    if (session?.user) {
+    if (sessionStatus === "authenticated" && session?.user) {
       addApplication(selectedJob.id, {
         jobId: selectedJob.id,
         title: selectedJob.title,
@@ -74,7 +98,10 @@ export default function JobDetails() {
       });
     } else {
       upsertLocalStartedApplication(selectedJob);
-      setShowSigninModal(true);
+
+      if (sessionStatus === "unauthenticated" && shouldShowSigninPrompt()) {
+        setShowSigninModal(true);
+      }
     }
   };
 

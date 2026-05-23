@@ -20,20 +20,12 @@ export default function NavLinks() {
       <Link className={linkClass("/jobs")} href="/jobs">
         Jobs
       </Link>
-
-      {status === "authenticated" && (
-        <>
-          <Link
-            className={linkClass("/my-applications")}
-            href="/my-applications"
-          >
-            Applications
-          </Link>
-          <Link className={linkClass("/statistics")} href="/statistics">
-            Statistics
-          </Link>
-        </>
-      )}
+      <Link className={linkClass("/my-applications")} href="/my-applications">
+        Applications
+      </Link>
+      <Link className={linkClass("/statistics")} href="/statistics">
+        Statistics
+      </Link>
 
       {status === "authenticated" ? (
         <Menu position="bottom-end" offset={8}>

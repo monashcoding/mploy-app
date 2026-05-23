@@ -16,11 +16,10 @@ export const NavBarMobile = () => {
   const menuItems = [
     { href: "/", label: "Home" },
     { href: "/jobs", label: "Jobs" },
+    { href: "/my-applications", label: "Applications" },
+    { href: "/statistics", label: "Statistics" },
     ...(status === "authenticated"
-      ? [
-          { href: "/my-applications", label: "Applications" },
-          { href: "/statistics", label: "Statistics" },
-        ]
+      ? []
       : [{ href: "/sign-in", label: "Sign in" }]),
   ];
 
