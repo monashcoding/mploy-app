@@ -188,6 +188,12 @@ async function recordApplicationStatusEvent(
   }
 }
 
+function parseLocalDate(value: string | undefined, fallback: Date) {
+  if (!value) return fallback;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? fallback : date;
+}
+
 export async function listRecruitmentCycles(): Promise<RecruitmentCycle[]> {
   const session = await getServerSession(getAuthOptions());
   const userId = requireUserId(session);
@@ -297,44 +303,107 @@ export async function syncLocalApplications(apps: LocalApplication[]) {
   const userId = requireUserId(session);
   const userObjectId = new ObjectId(userId);
 
-  if (!apps.length) return { ok: true, upserted: 0 };
-
   const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
-  const collection = db.collection("applications");
+  const collection = db.collection<ApplicationRecord>("applications");
 
-  let upserted = 0;
+  if (!apps.length) {
+    const current = await collection
+      .find({ userId: userObjectId })
+      .sort({ updatedAt: -1 })
+      .toArray();
+
+    return {
+      ok: true,
+      upserted: 0,
+      inserted: 0,
+      updated: 0,
+      skipped: 0,
+      applications: current.map((app) => serializeApplication(app)),
+    };
+  }
+
+  let inserted = 0;
+  let updated = 0;
+  let skipped = 0;
 
   for (const app of apps) {
-    const result = await collection.updateOne(
-      { userId: userObjectId, jobId: app.jobId },
-      {
-        $setOnInsert: {
-          startedAt: new Date(app.startedAt),
-        },
-        $set: {
-          updatedAt: new Date(app.updatedAt),
-          status: app.status,
-          jobSnapshot: app.jobSnapshot,
-          cycleId: app.cycleId ?? DEFAULT_RECRUITMENT_CYCLE_ID,
-          ...(app.starred !== undefined ? { starred: app.starred } : {}),
-        },
-      },
-      { upsert: true },
-    );
-    if (result.upsertedCount > 0) {
+    const now = new Date();
+    const localStartedAt = parseLocalDate(app.startedAt, now);
+    const localUpdatedAt = parseLocalDate(app.updatedAt, localStartedAt);
+    const nextCycleId = app.cycleId ?? DEFAULT_RECRUITMENT_CYCLE_ID;
+    const existing = await collection.findOne({
+      userId: userObjectId,
+      jobId: app.jobId,
+    });
+
+    if (!existing) {
+      await collection.insertOne({
+        _id: new ObjectId(),
+        userId: userObjectId,
+        jobId: app.jobId,
+        status: app.status,
+        startedAt: localStartedAt,
+        updatedAt: localUpdatedAt,
+        jobSnapshot: app.jobSnapshot,
+        cycleId: nextCycleId,
+        ...(app.starred !== undefined ? { starred: app.starred } : {}),
+      });
+
       await recordApplicationStatusEvent(db, userObjectId, {
         jobId: app.jobId,
         fromStatus: null,
         toStatus: app.status,
-        cycleId: app.cycleId ?? DEFAULT_RECRUITMENT_CYCLE_ID,
+        cycleId: nextCycleId,
         source: "local_sync",
       });
+
+      inserted += 1;
+      continue;
     }
-    upserted += 1;
+
+    if (localUpdatedAt.getTime() <= existing.updatedAt.getTime()) {
+      skipped += 1;
+      continue;
+    }
+
+    await collection.updateOne(
+      { _id: existing._id },
+      {
+        $set: {
+          updatedAt: localUpdatedAt,
+          status: app.status,
+          jobSnapshot: app.jobSnapshot,
+          cycleId: nextCycleId,
+          ...(app.starred !== undefined ? { starred: app.starred } : {}),
+        },
+      },
+    );
+
+    await recordApplicationStatusEvent(db, userObjectId, {
+      jobId: app.jobId,
+      fromStatus: existing.status,
+      toStatus: app.status,
+      cycleId: nextCycleId,
+      source: "local_sync",
+    });
+
+    updated += 1;
   }
 
-  return { ok: true, upserted };
+  const current = await collection
+    .find({ userId: userObjectId })
+    .sort({ updatedAt: -1 })
+    .toArray();
+
+  return {
+    ok: true,
+    upserted: inserted + updated,
+    inserted,
+    updated,
+    skipped,
+    applications: current.map((app) => serializeApplication(app)),
+  };
 }
 
 export async function listApplications(): Promise<DbApplication[]> {

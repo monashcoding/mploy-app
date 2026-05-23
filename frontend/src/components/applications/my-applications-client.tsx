@@ -241,8 +241,15 @@ export default function MyApplicationsClient({
       try {
         const res = await syncLocalApplications(local);
         clearLocalApplications();
+        setApps(res.applications);
+
+        const synced = res.inserted + res.updated;
+        const syncedLabel = `${synced} application${synced === 1 ? "" : "s"}`;
+        const skippedLabel = `${res.skipped} already newer in your account`;
         setSyncMessage(
-          `Synced ${res.upserted} application${res.upserted === 1 ? "" : "s"} from this device.`,
+          synced > 0
+            ? `Synced ${syncedLabel} from this device${res.skipped > 0 ? `; ${skippedLabel}.` : "."}`
+            : `Your account already had the latest version of ${res.skipped} local application${res.skipped === 1 ? "" : "s"}.`,
         );
       } catch {
         setSyncMessage("Couldn't sync local applications yet. Try refreshing.");
