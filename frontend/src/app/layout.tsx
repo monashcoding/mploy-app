@@ -7,6 +7,7 @@ import "@mantine/notifications/styles.css";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import Link from "next/link";
 
 import NavBar from "@/components/layout/nav-bar";
 import { MantineProvider } from "@mantine/core";
@@ -68,6 +69,14 @@ export default function RootLayout({ children }: PropsWithChildren) {
                       {children}
                       <FirstVisitNotification />
                       <FeedbackButton />
+                      <footer className="fixed bottom-5 left-6 z-40 text-xs font-semibold text-white/45">
+                        <Link
+                          className="transition-colors hover:text-accent focus-visible:text-accent focus-visible:outline-none"
+                          href="/privacy"
+                        >
+                          Privacy
+                        </Link>
+                      </footer>
                       <Analytics />
                       <SpeedInsights />
                       <GoogleAnalytics gaId="G-1RXLVCFJC0" />

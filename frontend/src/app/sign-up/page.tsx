@@ -71,6 +71,14 @@ export default function SignUpPage() {
           <Button type="submit" loading={isLoading} bg="accent" c="black">
             Sign up
           </Button>
+          <p className="text-xs leading-5 opacity-70">
+            By creating an account, you acknowledge that we process your
+            information as described in our{" "}
+            <Link className="underline" href="/privacy">
+              Privacy Policy
+            </Link>
+            .
+          </p>
           <Button
             variant="default"
             onClick={() =>

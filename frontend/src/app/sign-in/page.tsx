@@ -74,6 +74,13 @@ export default function SignInPage() {
           <Button type="submit" loading={isLoading} bg="accent" c="black">
             Sign in
           </Button>
+          <p className="text-xs leading-5 opacity-70">
+            We handle account and usage data as described in our{" "}
+            <Link className="underline" href="/privacy">
+              Privacy Policy
+            </Link>
+            .
+          </p>
           <Button
             variant="default"
             onClick={() => signIn("google", { callbackUrl })}
