@@ -1432,6 +1432,8 @@ body {
 .apps-notes-editor {
   position: fixed;
   width: min(360px, calc(100vw - 32px));
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
   padding: 12px;
   border: 1px solid var(--border-2);
   border-radius: 0.75rem;
@@ -1439,7 +1441,7 @@ body {
   box-shadow:
     0 24px 72px rgba(0, 0, 0, 0.58),
     0 0 0 1px rgba(255, 226, 47, 0.16);
-  z-index: 1200;
+  z-index: 4000;
   cursor: default;
 }
 .apps-notes-editor-head {

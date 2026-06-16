@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import {
   CollisionDetection,
   DndContext,
@@ -1345,47 +1346,52 @@ function KanbanCard({
           <IconArrowRight size={15} />
         </button>
       )}
-      {notesOpen && (
-        <div
-          ref={notesEditorRef}
-          className="apps-notes-editor"
-          data-apps-note-editor={app._id}
-          style={notesPosition ?? { visibility: "hidden" }}
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="apps-notes-editor-head">
-            <div>
-              <span className="apps-notes-editor-label">Notes</span>
-              <div className="apps-notes-editor-title">
-                {app.jobSnapshot.title}
+      {notesOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={notesEditorRef}
+            className="apps-notes-editor"
+            data-apps-note-editor={app._id}
+            role="dialog"
+            aria-label={`Notes for ${app.jobSnapshot.title}`}
+            style={notesPosition ?? { visibility: "hidden" }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="apps-notes-editor-head">
+              <div>
+                <span className="apps-notes-editor-label">Notes</span>
+                <div className="apps-notes-editor-title">
+                  {app.jobSnapshot.title}
+                </div>
               </div>
+              <span className="apps-notes-editor-status">
+                {savingNotes ? "Saving..." : "Auto-saved"}
+              </span>
             </div>
-            <span className="apps-notes-editor-status">
-              {savingNotes ? "Saving..." : "Auto-saved"}
-            </span>
-          </div>
-          <Stack gap="xs">
-            <Textarea
-              autosize
-              minRows={5}
-              maxRows={10}
-              placeholder="Interview prep, recruiter, salary..."
-              value={draft}
-              onChange={(e) => setDraft(e.currentTarget.value)}
-              styles={{
-                input: {
-                  backgroundColor: "#3a3a3a",
-                  border: "none",
-                  borderRadius: "0.4rem",
-                  color: "white",
-                  fontSize: 13,
-                },
-              }}
-            />
-          </Stack>
-        </div>
-      )}
+            <Stack gap="xs">
+              <Textarea
+                autosize
+                minRows={5}
+                maxRows={10}
+                placeholder="Interview prep, recruiter, salary..."
+                value={draft}
+                onChange={(e) => setDraft(e.currentTarget.value)}
+                styles={{
+                  input: {
+                    backgroundColor: "#3a3a3a",
+                    border: "none",
+                    borderRadius: "0.4rem",
+                    color: "white",
+                    fontSize: 13,
+                  },
+                }}
+              />
+            </Stack>
+          </div>,
+          document.body,
+        )}
     </article>
   );
 }
