@@ -10,6 +10,9 @@ export interface JobFilters {
   locations: LocationType[];
   workingRights: WorkingRight[];
   industryFields: IndustryField[];
+  // Company names to hide from results (exclusion-based filter).
+  // Empty = show all companies.
+  excludedCompanies: string[];
   page: number;
 }
 
@@ -17,4 +20,13 @@ export interface FilterState {
   filters: JobFilters;
   isLoading: boolean;
   error: Error | null;
+}
+
+/**
+ * A single company facet: the company name and how many listings match the
+ * currently applied filters (excluding the company exclusion itself).
+ */
+export interface CompanyFacet {
+  company: string;
+  count: number;
 }
