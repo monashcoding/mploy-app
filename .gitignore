@@ -35,6 +35,7 @@ coverage/
 # Miscellaneous
 .env
 .env.local
+*.env
 *.local
 *.lock
 *.bak
