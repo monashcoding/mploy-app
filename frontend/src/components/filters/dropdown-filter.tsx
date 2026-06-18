@@ -1,5 +1,4 @@
 // frontend/src/components/jobs/filters/dropdown-filter.tsx
-import { useEffect, useState } from "react";
 import {
   Checkbox,
   Combobox,
@@ -30,22 +29,13 @@ export default function DropdownFilter({
   });
 
   const { filters, updateFilters } = useFilterContext();
-  const [localSelected, setLocalSelected] = useState<string[]>(
-    (filters.filters[filterKey] as string[]) || [],
-  );
+  const selected = (filters.filters[filterKey] as string[]) || [];
 
-  // Sync when filters change
-  useEffect(() => {
-    setLocalSelected((filters.filters[filterKey] as string[]) || []);
-  }, [filters.filters, filterKey]);
-
-  // Updates locally selected value & filters
   const handleValueSelect = (value: string) => {
-    const newValues = localSelected.includes(value)
-      ? localSelected.filter((item) => item !== value)
-      : [...localSelected, value];
+    const newValues = selected.includes(value)
+      ? selected.filter((item) => item !== value)
+      : [...selected, value];
 
-    setLocalSelected(newValues);
     updateFilters({
       filters: {
         ...filters.filters,
@@ -56,9 +46,9 @@ export default function DropdownFilter({
   };
 
   const getDisplayText = () => {
-    if (localSelected.length === 0) return label;
-    if (localSelected.length === 1) return formatCapString(localSelected[0]);
-    return `${localSelected.length} ${getPluralLabel(label)}`;
+    if (selected.length === 0) return label;
+    if (selected.length === 1) return formatCapString(selected[0]);
+    return `${selected.length} ${getPluralLabel(label)}`;
   };
 
   return (
@@ -71,29 +61,29 @@ export default function DropdownFilter({
         <Input
           component="button"
           type="button"
-          radius={"lg"}
+          radius="lg"
           pointer
           rightSection={<IconChevronDown size={16} />}
           onClick={() => combobox.toggleDropdown()}
-          className={`min-w-32`}
+          className="min-w-32"
         >
-          <Text size="sm" color={localSelected.length > 0 ? "light" : "dimmed"}>
+          <Text size="sm" color={selected.length > 0 ? "light" : "dimmed"}>
             {getDisplayText()}
           </Text>
         </Input>
       </Combobox.Target>
 
-      <Combobox.Dropdown className={`min-w-56`}>
+      <Combobox.Dropdown className="min-w-56">
         <Combobox.Options>
           {options.map((option) => (
             <Combobox.Option
               value={option}
               key={option}
-              active={localSelected.includes(option)}
+              active={selected.includes(option)}
             >
               <Group gap="sm">
                 <Checkbox
-                  checked={localSelected.includes(option)}
+                  checked={selected.includes(option)}
                   onChange={() => {}}
                   aria-hidden
                   tabIndex={-1}

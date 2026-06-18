@@ -1,9 +1,10 @@
 // frontend/src/components/jobs/details/job-card.tsx
+"use client";
 import { Box } from "@mantine/core";
 import { Job } from "@/types/job";
 import { formatCapString, getTimeAgo } from "@/lib/utils";
 import Badge from "@/components/ui/badge";
-import DOMPurify from "isomorphic-dompurify";
+import DOMPurify from "dompurify";
 import CompanyLogo from "@/components/jobs/company-logo";
 
 interface JobCardProps {

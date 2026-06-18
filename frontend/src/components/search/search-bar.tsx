@@ -1,18 +1,20 @@
 // frontend/src/components/search/search-bar.tsx
 "use client";
+
 import { Input } from "@mantine/core";
-import { IconSearch } from "@tabler/icons-react";
-import { useFilterContext } from "@/context/filter/filter-context";
 import { useDebouncedCallback } from "@mantine/hooks";
+import { IconSearch } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
+import { useFilterContext } from "@/context/filter/filter-context";
 
 export default function SearchBar() {
   const { filters, updateFilters } = useFilterContext();
-  const [searchValue, setSearchValue] = useState(filters.filters.search || "");
+  const externalSearch = filters.filters.search || "";
+  const [searchValue, setSearchValue] = useState(externalSearch);
 
   useEffect(() => {
-    setSearchValue(filters.filters.search || "");
-  }, [filters.filters.search]);
+    setSearchValue(externalSearch);
+  }, [externalSearch]);
 
   const handleSearch = useDebouncedCallback((value: string) => {
     updateFilters({
@@ -24,11 +26,6 @@ export default function SearchBar() {
     });
   }, 150);
 
-  const handleInputChange = (value: string) => {
-    setSearchValue(value);
-    handleSearch(value);
-  };
-
   return (
     <Input
       value={searchValue}
@@ -39,7 +36,11 @@ export default function SearchBar() {
         />
       }
       placeholder="Search company or role..."
-      onChange={(e) => handleInputChange(e.currentTarget.value)}
+      onChange={(e) => {
+        const value = e.currentTarget.value;
+        setSearchValue(value);
+        handleSearch(value);
+      }}
       radius="lg"
       variant="filled"
       className="w-full"

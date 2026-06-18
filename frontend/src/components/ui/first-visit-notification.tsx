@@ -4,14 +4,15 @@
 import { useEffect } from "react";
 import { showNotification } from "@mantine/notifications";
 
+const FIRST_VISIT_KEY = "mploy_has_visited";
+
 export default function FirstVisitNotification() {
   useEffect(() => {
-    const hasVisited = localStorage.getItem("mploy_has_visited");
+    const hasVisited = localStorage.getItem(FIRST_VISIT_KEY);
 
     if (!hasVisited) {
-      localStorage.setItem("mploy_has_visited", "true");
+      localStorage.setItem(FIRST_VISIT_KEY, "true");
 
-      // Show notification
       showNotification({
         title: "Welcome!",
         position: "top-right",

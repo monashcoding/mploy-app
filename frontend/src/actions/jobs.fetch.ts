@@ -158,18 +158,32 @@ async function withDbConnection<T>(
   }
 }
 
+const SPONSOR_TIERS: Record<string, number> = {
+  // Platinum (rank 0) — highest priority
+  "Jane Street": 0,
+  Atlassian: 0,
+  // Gold (rank 1)
+  "Citadel Securities": 1,
+  Canva: 1,
+  "Lyra Technologies": 1,
+  Susquehanna: 1,
+  IMC: 1,
+  Vivcourt: 1,
+  // Silver (rank 2)
+  "January Capital": 2,
+  Optiver: 2,
+};
+
 /**
  * Fetches paginated and filtered job listings from MongoDB.
  */
 export async function getJobs(
   filters: Partial<JobFilters>,
   minSponsors: number = -1,
-  prioritySponsors: Array<string> = ["IMC", "Atlassian"],
 ): Promise<{ jobs: Job[]; total: number }> {
   const page = filters.page || 1;
   const normalizedFilters = normalizeFiltersForKey(filters);
-  const priorityStr = prioritySponsors.sort().join(",");
-  const cacheKey = `jobs:${JSON.stringify(normalizedFilters)}:${page}:${minSponsors}:${priorityStr}`;
+  const cacheKey = `jobs:${JSON.stringify(normalizedFilters)}:${page}:${minSponsors}`;
 
   // Check cache first
   const cached = jobCache.get(cacheKey);
@@ -178,10 +192,7 @@ export async function getJobs(
     return cached as { jobs: Job[]; total: number };
   }
 
-  logger.info(
-    { filters, minSponsors, prioritySponsors },
-    "Fetching jobs with filters",
-  );
+  logger.info({ filters, minSponsors }, "Fetching jobs with filters");
 
   return await withDbConnection(async (client) => {
     const collection = client.db("default").collection("active_jobs");
@@ -218,11 +229,16 @@ export async function getJobs(
           ])
           .toArray();
 
+        // Sort by tier (platinum=0 first, gold=1, silver=2, unknown=3),
+        // shuffling randomly within each tier.
         sponsoredJobs = sponsoredJobs
-          .filter((job) => {
-            const isPriority = prioritySponsors.includes(job.company.name);
-            return isPriority ? Math.random() < 0.65 : Math.random() >= 0.35;
-          })
+          .map((job) => ({
+            job,
+            rank: SPONSOR_TIERS[job.company?.name as string] ?? 3,
+            rand: Math.random(),
+          }))
+          .sort((a, b) => a.rank - b.rank || a.rand - b.rand)
+          .map(({ job }) => job)
           .slice(0, minSponsors)
           .map((job) => ({ ...job, highlight: true }));
 

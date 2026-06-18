@@ -136,12 +136,31 @@ export function getPluralLabel(label: string) {
   return irregularPlurals[label] || `${label}s`;
 }
 
+export function relativeDate(isoDate: string): string {
+  const then = new Date(isoDate);
+  const now = new Date();
+  const days = Math.floor(
+    (now.getTime() - then.getTime()) / (1000 * 60 * 60 * 24),
+  );
+  if (days < 1) return "today";
+  if (days < 7) return days === 1 ? "1 day ago" : `${days} days ago`;
+  if (days < 30) {
+    const w = Math.floor(days / 7);
+    return w === 1 ? "1 week ago" : `${w} weeks ago`;
+  }
+  if (days < 365) {
+    const m = Math.floor(days / 30);
+    return m === 1 ? "1 month ago" : `${m} months ago`;
+  }
+  return "1+ year ago";
+}
+
 export function formatISODate(isoDate: string): string {
   const date = new Date(isoDate);
-  const day = date.getDate();
-  const month = date.toLocaleString("en-US", { month: "short" });
-  const year = date.getFullYear();
-  return `${day} ${month} ${year}`;
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const year = date.getUTCFullYear();
+  return `${day}/${month}/${year}`;
 }
 
 export const formatWorkingRights = (rights: WorkingRight[]): string => {

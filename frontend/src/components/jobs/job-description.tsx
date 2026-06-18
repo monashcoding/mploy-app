@@ -1,7 +1,8 @@
 // frontend/src/components/jobs/details/sections/job-description.tsx
+"use client";
 import SectionHeading from "@/components/ui/section-heading";
 import { TypographyStylesProvider } from "@mantine/core";
-import DOMPurify from "isomorphic-dompurify";
+import DOMPurify from "dompurify";
 import { IconBook } from "@tabler/icons-react";
 
 interface JobDescriptionProps {

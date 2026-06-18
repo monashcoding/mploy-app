@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx next:*)",
+      "Bash(npm run:*)",
+      "Bash(node -e \"console.log\\(require\\('eslint-config-next/package.json'\\).version\\)\")",
+      "Bash(npx tsc:*)",
+      "Bash(npx prettier:*)",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(echo \"TSC=$?\")",
+      "Bash(npx eslint *)",
+      "PowerShell(Get-Item *)"
+    ]
+  }
+}

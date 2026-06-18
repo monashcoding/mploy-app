@@ -1,9 +1,9 @@
 // frontend/src/context/jobs/jobs-provider.tsx
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
-import { FilterContext } from "./filter-context";
+import { ReactNode, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { FilterContext } from "./filter-context";
 import { CreateQueryString } from "@/lib/utils";
 import { FilterState } from "@/types/filters";
 import {
@@ -84,6 +84,13 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [totalJobs, setTotalJobs] = useState<number>(0);
 
+  const setSelectedJob = (job: Job | null) => {
+    if (job?.working_rights && job.working_rights.length > 0) {
+      job.working_rights = [...new Set(job.working_rights)];
+    }
+    setSelectedJobInternal(job);
+  };
+
   const updateFilters = (newFilters: Partial<FilterState>) => {
     setIsLoading(true);
     setFilters((curr) => ({ ...curr, ...newFilters }));
@@ -92,28 +99,22 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     router.push(`/jobs?${params}`);
   };
 
-  useEffect(() => {
+  const searchParamsKey = searchParams.toString();
+  const navKey = `${pathname}|${searchParamsKey}`;
+  const [prevNavKey, setPrevNavKey] = useState(navKey);
+
+  if (prevNavKey !== navKey) {
+    setPrevNavKey(navKey);
+
     if (pathname === "/jobs") {
       setIsLoading(false);
-      setSelectedJob(null);
+      setSelectedJobInternal(null);
     }
-  }, [pathname, searchParams]);
 
-  useEffect(() => {
-    // clear filters on return to homepage
     if (pathname === "/") {
       setFilters(emptyFilterState);
     }
-  }, [pathname]);
-
-  // Wrapper for SelectedJob to validate attributes first
-  const setSelectedJob = (job: Job | null) => {
-    // Remove duplicates from working_rights
-    if (job?.working_rights && job.working_rights.length > 0) {
-      job.working_rights = [...new Set(job.working_rights)];
-    }
-    setSelectedJobInternal(job);
-  };
+  }
 
   const clearFilters = () => {
     setIsLoading(true);

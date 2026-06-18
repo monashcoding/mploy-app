@@ -7,6 +7,7 @@ import "@mantine/notifications/styles.css";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import Link from "next/link";
 
 import NavBar from "@/components/layout/nav-bar";
 import { MantineProvider } from "@mantine/core";
@@ -22,6 +23,9 @@ import FeedbackButton from "@/components/ui/feedback-button";
 import { Notifications } from "@mantine/notifications";
 
 import FirstVisitNotification from "@/components/ui/first-visit-notification";
+import AuthSessionProvider from "@/components/auth/session-provider";
+import { PHProvider } from "@/components/analytics/posthog-provider";
+import { PostHogPageView } from "@/components/analytics/posthog-pageview";
 
 export const metadata: Metadata = {
   title: {
@@ -52,24 +56,37 @@ export default function RootLayout({ children }: PropsWithChildren) {
         <ColorSchemeScript defaultColorScheme="dark" />
       </Head>
       <body className={`${poppins.className}`}>
-        <Suspense>
-          <MantineProvider theme={theme} defaultColorScheme="dark">
-            <FilterProvider>
-              <div className="min-h-screen flex flex-col px-6">
-                <Notifications />
-                <NavBar />
-                <main className="">
-                  {children}
-                  <FirstVisitNotification />
-                  <FeedbackButton />
-                  <Analytics />
-                  <SpeedInsights />
-                  <GoogleAnalytics gaId="G-1RXLVCFJC0" />
-                </main>
-              </div>
-            </FilterProvider>
-          </MantineProvider>
-        </Suspense>
+        <PHProvider>
+          <Suspense>
+            <PostHogPageView />
+            <AuthSessionProvider>
+              <MantineProvider theme={theme} defaultColorScheme="dark">
+                <FilterProvider>
+                  <div className="min-h-screen flex flex-col px-6">
+                    <Notifications className="mploy-notifications" />
+                    <NavBar />
+                    <main className="">
+                      {children}
+                      <FirstVisitNotification />
+                      <FeedbackButton />
+                      <footer className="fixed bottom-5 left-6 z-40 text-xs font-semibold text-white/45">
+                        <Link
+                          className="transition-colors hover:text-accent focus-visible:text-accent focus-visible:outline-none"
+                          href="/privacy"
+                        >
+                          Privacy
+                        </Link>
+                      </footer>
+                      <Analytics />
+                      <SpeedInsights />
+                      <GoogleAnalytics gaId="G-1RXLVCFJC0" />
+                    </main>
+                  </div>
+                </FilterProvider>
+              </MantineProvider>
+            </AuthSessionProvider>
+          </Suspense>
+        </PHProvider>
       </body>
     </html>
   );
