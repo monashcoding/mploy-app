@@ -1,5 +1,5 @@
 import { MongoClient, ObjectId } from "mongodb";
-import { JobFilters } from "@/types/filters";
+import { JobFilters, CompanyFacet } from "@/types/filters";
 import { Job } from "@/types/job";
 import serializeJob from "@/lib/utils";
 import logger from "@/lib/logger";
@@ -16,6 +16,13 @@ const jobCache = new LRUCache<string, CacheValue>({
   allowStale: false,
 });
 
+// Separate cache for company facet counts
+const facetCache = new LRUCache<string, CompanyFacet[]>({
+  max: 200,
+  ttl: 1000 * 3600, // 1 hour
+  allowStale: false,
+});
+
 // Helper to normalize filters for cache key (handles string vs array for array fields)
 function normalizeFiltersForKey(
   filters: Partial<JobFilters>,
@@ -25,6 +32,7 @@ function normalizeFiltersForKey(
     "locations[]",
     "industryFields[]",
     "jobTypes[]",
+    "excludedCompanies[]",
   ];
   const normalized: Record<string, string> = {
     search: (filters.search || "").toLowerCase().trim(),
@@ -54,49 +62,63 @@ function normalizeFiltersForKey(
 }
 
 /**
+ * Reads an array-valued filter, tolerating both URL-style keys (e.g.
+ * "jobTypes[]" coming from searchParams) and plain JobFilters keys (e.g.
+ * "jobTypes" coming from the client). A single value is wrapped into an array.
+ */
+function readArrayFilter(
+  source: Record<string, unknown>,
+  bracketKey: string,
+  plainKey: string,
+): string[] {
+  const val = source[bracketKey] ?? source[plainKey];
+  if (val === undefined || val === null) return [];
+  return Array.isArray(val) ? (val as string[]) : [String(val)];
+}
+
+/**
  * Helper function to build a query object from filters.
- * @param filters - The job filters from the client.
- * @param additional - Additional query overrides (e.g. { is_sponsor: true }).
+ * @param filters - The job filters from the client (URL-style or plain keys).
+ * @param additional - Additional query overrides (e.g. { is_sponsored: true }).
+ * @param options - includeCompanyExclusion (default true): set false when
+ *   building the company-facet match so a facet ignores its own selection.
  * @returns The query object to use with MongoDB.
  */
 function buildJobQuery(
   filters: Partial<JobFilters>,
   additional?: Record<string, unknown>,
+  options?: { includeCompanyExclusion?: boolean },
 ) {
-  const array_jobs = JSON.parse(JSON.stringify(filters, null, 2));
+  const includeCompanyExclusion = options?.includeCompanyExclusion ?? true;
+  const raw = JSON.parse(JSON.stringify(filters)) as Record<string, unknown>;
+
+  const workingRights = readArrayFilter(
+    raw,
+    "workingRights[]",
+    "workingRights",
+  );
+  const locations = readArrayFilter(raw, "locations[]", "locations");
+  const industryFields = readArrayFilter(
+    raw,
+    "industryFields[]",
+    "industryFields",
+  );
+  const jobTypes = readArrayFilter(raw, "jobTypes[]", "jobTypes");
+  const excludedCompanies = readArrayFilter(
+    raw,
+    "excludedCompanies[]",
+    "excludedCompanies",
+  );
+
   const query = {
     outdated: false,
-    ...(array_jobs["workingRights[]"] !== undefined &&
-      array_jobs["workingRights[]"].length && {
-        working_rights: {
-          $in: Array.isArray(array_jobs["workingRights[]"])
-            ? array_jobs["workingRights[]"]
-            : [array_jobs["workingRights[]"]],
-        },
-      }),
-    ...(array_jobs["locations[]"] !== undefined &&
-      array_jobs["locations[]"].length && {
-        locations: {
-          $in: Array.isArray(array_jobs["locations[]"])
-            ? array_jobs["locations[]"]
-            : [array_jobs["locations[]"]],
-        },
-      }),
-    ...(array_jobs["industryFields[]"] !== undefined &&
-      array_jobs["industryFields[]"].length && {
-        industry_field: {
-          $in: Array.isArray(array_jobs["industryFields[]"])
-            ? array_jobs["industryFields[]"]
-            : [array_jobs["industryFields[]"]],
-        },
-      }),
-    ...(array_jobs["jobTypes[]"] !== undefined &&
-      array_jobs["jobTypes[]"].length && {
-        type: {
-          $in: Array.isArray(array_jobs["jobTypes[]"])
-            ? array_jobs["jobTypes[]"]
-            : [array_jobs["jobTypes[]"]],
-        },
+    ...(workingRights.length && { working_rights: { $in: workingRights } }),
+    ...(locations.length && { locations: { $in: locations } }),
+    ...(industryFields.length && { industry_field: { $in: industryFields } }),
+    ...(jobTypes.length && { type: { $in: jobTypes } }),
+    ...(includeCompanyExclusion &&
+      excludedCompanies.length && {
+        "company.name": { $nin: excludedCompanies },
       }),
     ...(filters.search && {
       $or: [
@@ -274,6 +296,80 @@ export async function getJobById(id: string): Promise<Job | null> {
     const serializedJob = serializeJob(job as MongoJob);
     jobCache.set(cacheKey, serializedJob);
     return serializedJob;
+  });
+}
+
+/**
+ * Builds a stable cache key for company facets. Intentionally ignores
+ * `excludedCompanies` and `page`: a facet's counts must not depend on its own
+ * selection or on pagination.
+ */
+function companyFacetCacheKey(filters: Partial<JobFilters>): string {
+  const sorted = (val: unknown): string => {
+    const arr = Array.isArray(val)
+      ? (val as string[])
+      : val
+        ? [String(val)]
+        : [];
+    return [...arr].sort().join(",");
+  };
+  const f = filters as Record<string, unknown>;
+  const norm = {
+    search: (filters.search || "").toLowerCase().trim(),
+    jobTypes: sorted(f["jobTypes[]"] ?? f.jobTypes),
+    locations: sorted(f["locations[]"] ?? f.locations),
+    industryFields: sorted(f["industryFields[]"] ?? f.industryFields),
+    workingRights: sorted(f["workingRights[]"] ?? f.workingRights),
+  };
+  return `facets:companies:${JSON.stringify(norm)}`;
+}
+
+/**
+ * Aggregates the number of listings per company for the current filter set.
+ *
+ * The company exclusion (`excludedCompanies`) is deliberately NOT applied so the
+ * counts reflect "what's available" regardless of which companies are hidden -
+ * this is the standard faceted-search rule. The results are sorted by count
+ * descending (then name ascending) and cached for 1 hour.
+ */
+export async function getCompanyFacets(
+  filters: Partial<JobFilters>,
+): Promise<CompanyFacet[]> {
+  const cacheKey = companyFacetCacheKey(filters);
+
+  const cached = facetCache.get(cacheKey);
+  if (cached) {
+    logger.debug({ cacheKey }, "Returning cached company facets");
+    return cached;
+  }
+
+  logger.info({ filters }, "Fetching company facets");
+
+  return await withDbConnection(async (client) => {
+    const collection = client.db("default").collection("active_jobs");
+    const query = buildJobQuery(filters, undefined, {
+      includeCompanyExclusion: false,
+    });
+
+    try {
+      const results = await collection
+        .aggregate<{
+          _id: string;
+          count: number;
+        }>([{ $match: query }, { $group: { _id: "$company.name", count: { $sum: 1 } } }, { $sort: { count: -1, _id: 1 } }])
+        .toArray();
+
+      const facets: CompanyFacet[] = results
+        .filter((r) => typeof r._id === "string" && r._id.length > 0)
+        .map((r) => ({ company: r._id, count: r.count }));
+
+      facetCache.set(cacheKey, facets);
+      logger.debug({ count: facets.length }, "Fetched company facets");
+      return facets;
+    } catch (error) {
+      logger.error({ query, filters }, "Error fetching company facets");
+      throw error;
+    }
   });
 }
 
