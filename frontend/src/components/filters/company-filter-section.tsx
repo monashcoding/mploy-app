@@ -82,21 +82,17 @@ export function CompanyFilterSection() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  // Chips rendered in the "hidden" row. Lags behind `excluded` when clearing so
-  // the area animates closed with content present, instead of snapping shut.
+  // Chips rendered in the "hidden" row. When clearing, this lags behind
+  // `excluded` so the area animates closed with content still present. It's
+  // driven from setExcluded (an event handler) to keep setState out of effects.
   const [displayedHidden, setDisplayedHidden] = useState<string[]>(excluded);
+  const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (excluded.length > 0) {
-      setDisplayedHidden(excluded);
-      return;
-    }
-    const timeout = setTimeout(
-      () => setDisplayedHidden([]),
-      HIDDEN_ANIM_MS + 40,
-    );
-    return () => clearTimeout(timeout);
-  }, [excluded]);
+    return () => {
+      if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
+    };
+  }, []);
 
   // Animate the hidden-chips area to its measured content height, so EVERY change
   // (open, close, and wrapping to more/fewer rows) transitions smoothly.
@@ -152,7 +148,6 @@ export function CompanyFilterSection() {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     getCompanyFacets(facetFilters)
       .then((res) => {
         if (!cancelled) setFacets(res);
@@ -183,11 +178,25 @@ export function CompanyFilterSection() {
 
   // Keep latest values in a ref so the handlers can have stable identities
   // (empty deps). Stable `onToggle` lets the memoised rows skip re-rendering.
+  // The ref is updated in an effect (never during render) per react-hooks/refs.
   const latest = useRef({ excluded, filters, updateFilters });
-  latest.current = { excluded, filters, updateFilters };
+  useEffect(() => {
+    latest.current = { excluded, filters, updateFilters };
+  });
 
   const setExcluded = useCallback((next: string[]) => {
     const { filters, updateFilters } = latest.current;
+    // Drive the chips row: show `next` while non-empty; when clearing, keep the
+    // current chips mounted until the collapse animation finishes.
+    if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
+    if (next.length > 0) {
+      setDisplayedHidden(next);
+    } else {
+      clearTimerRef.current = setTimeout(
+        () => setDisplayedHidden([]),
+        HIDDEN_ANIM_MS + 40,
+      );
+    }
     updateFilters({
       filters: {
         ...filters.filters,
