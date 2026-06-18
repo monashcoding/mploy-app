@@ -372,7 +372,11 @@ export async function getCompanyFacets(
         .aggregate<{
           _id: string;
           count: number;
-        }>([{ $match: query }, { $group: { _id: "$company.name", count: { $sum: 1 } } }, { $sort: { count: -1, _id: 1 } }])
+        }>([
+          { $match: query },
+          { $group: { _id: "$company.name", count: { $sum: 1 } } },
+          { $sort: { count: -1, _id: 1 } },
+        ])
         .toArray();
 
       const facets: CompanyFacet[] = results
