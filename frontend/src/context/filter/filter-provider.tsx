@@ -25,6 +25,7 @@ const emptyFilterState: FilterState = {
     jobTypes: [],
     locations: [],
     workingRights: [],
+    excludedCompanies: [],
     page: 1,
   },
   isLoading: false,
@@ -63,6 +64,15 @@ export function FilterProvider({ children }: { children: ReactNode }) {
           .filter((field): field is WorkingRight =>
             WORKING_RIGHTS.includes(field as WorkingRight),
           ) || [],
+      // Company names are dynamic (not a fixed enum), so we only trim + dedupe.
+      excludedCompanies: [
+        ...new Set(
+          searchParams
+            .getAll("excludedCompanies[]")
+            .map((name) => name.trim())
+            .filter((name) => name.length > 0),
+        ),
+      ],
       page: Number(searchParams.get("page")) || 1,
     },
     isLoading: false,

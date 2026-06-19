@@ -2,6 +2,7 @@ import { Modal, Button, ScrollArea, Group } from "@mantine/core";
 import { IconFilter } from "@tabler/icons-react";
 import { useState } from "react";
 import { FilterSectionGroup } from "./filter-section-group";
+import { CompanyFilterSection } from "./company-filter-section";
 import { useFilterContext } from "@/context/filter/filter-context";
 import {
   INDUSTRY_FIELDS,
@@ -86,6 +87,8 @@ export default function FilterModal() {
               selectedValues={filters.filters.jobTypes}
               onToggle={(value) => handleToggle("jobTypes", value)}
             />
+
+            <CompanyFilterSection />
           </div>
         </ScrollArea>
       </Modal>

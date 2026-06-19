@@ -16,14 +16,21 @@ export default function ResetFilters({
 
   // Check if any filters are applied
   const hasActiveFilters = () => {
-    const { search, industryFields, jobTypes, locations, workingRights } =
-      filters.filters;
+    const {
+      search,
+      industryFields,
+      jobTypes,
+      locations,
+      workingRights,
+      excludedCompanies,
+    } = filters.filters;
     return (
       search !== "" ||
       industryFields.length > 0 ||
       jobTypes.length > 0 ||
       locations.length > 0 ||
-      workingRights.length > 0
+      workingRights.length > 0 ||
+      excludedCompanies.length > 0
     );
   };
 
