@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, Ref } from "react";
-import { useSession } from "next-auth/react";
+import { useMacSession } from "@/lib/mac-session";
 import { Select } from "@mantine/core";
 import { IconDownload, IconExternalLink, IconX } from "@tabler/icons-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -1008,7 +1008,7 @@ export default function ApplicationsStatisticsClient({
   initialEvents: ApplicationStatusEvent[];
   initialCycles: RecruitmentCycle[];
 }) {
-  const { status: sessionStatus } = useSession();
+  const { status: sessionStatus } = useMacSession();
   const shouldReduceMotion = useReducedMotion();
   const [selectedCycleId, setSelectedCycleId] = useState(
     initialCycles[0]?.id ?? DEFAULT_RECRUITMENT_CYCLE_ID,

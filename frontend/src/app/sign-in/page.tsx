@@ -1,42 +1,31 @@
 "use client";
 
-import { Alert, Button, Card, PasswordInput, TextInput } from "@mantine/core";
+import { Alert, Button, Card } from "@mantine/core";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { startSocialSignIn } from "@/lib/mac-session";
 
 export default function SignInPage() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackPath = searchParams.get("callbackUrl") || "/";
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState<"google" | "microsoft" | null>(null);
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const signIn = async (provider: "google" | "microsoft") => {
     setError(null);
-    setIsLoading(true);
-
-    const res = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-      callbackUrl,
-    });
-
-    if (res?.error) {
-      setError("Invalid email or password");
-      setIsLoading(false);
-      return;
-    }
-
-    if (res?.url) {
-      window.location.href = res.url;
-    } else {
-      window.location.href = callbackUrl;
+    setLoading(provider);
+    try {
+      // Absolute URL back to mploy so central can redirect here after auth.
+      const callbackURL = new URL(
+        callbackPath,
+        window.location.origin,
+      ).toString();
+      await startSocialSignIn(provider, callbackURL);
+    } catch {
+      setError("Could not start sign-in. Please try again.");
+      setLoading(null);
     }
   };
 
@@ -45,10 +34,7 @@ export default function SignInPage() {
       <Card withBorder radius="lg" p="xl">
         <h1 className="text-2xl font-semibold mb-2">Sign in</h1>
         <p className="text-sm opacity-80 mb-6">
-          Don’t have an account?{" "}
-          <Link className="underline" href="/sign-up">
-            Sign up
-          </Link>
+          Continue with your Monash Coding account.
         </p>
 
         {error && (
@@ -57,33 +43,12 @@ export default function SignInPage() {
           </Alert>
         )}
 
-        <form onSubmit={onSubmit} className="flex flex-col gap-3">
-          <TextInput
-            label="Email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.currentTarget.value)}
-            required
-          />
-          <PasswordInput
-            label="Password"
-            value={password}
-            onChange={(e) => setPassword(e.currentTarget.value)}
-            required
-          />
-          <Button type="submit" loading={isLoading} bg="accent" c="black">
-            Sign in
-          </Button>
-          <p className="text-xs leading-5 opacity-70">
-            We handle account and usage data as described in our{" "}
-            <Link className="underline" href="/privacy">
-              Privacy Policy
-            </Link>
-            .
-          </p>
+        <div className="flex flex-col gap-3">
           <Button
             variant="default"
-            onClick={() => signIn("google", { callbackUrl })}
+            loading={loading === "google"}
+            disabled={loading !== null}
+            onClick={() => signIn("google")}
             leftSection={
               <svg width="18" height="18" viewBox="0 0 48 48">
                 <path
@@ -107,7 +72,30 @@ export default function SignInPage() {
           >
             Sign in with Google
           </Button>
-        </form>
+          <Button
+            variant="default"
+            loading={loading === "microsoft"}
+            disabled={loading !== null}
+            onClick={() => signIn("microsoft")}
+            leftSection={
+              <svg width="18" height="18" viewBox="0 0 23 23">
+                <path fill="#f35325" d="M1 1h10v10H1z" />
+                <path fill="#81bc06" d="M12 1h10v10H12z" />
+                <path fill="#05a6f0" d="M1 12h10v10H1z" />
+                <path fill="#ffba08" d="M12 12h10v10H12z" />
+              </svg>
+            }
+          >
+            Sign in with Microsoft
+          </Button>
+          <p className="text-xs leading-5 opacity-70">
+            We handle account and usage data as described in our{" "}
+            <Link className="underline" href="/privacy">
+              Privacy Policy
+            </Link>
+            .
+          </p>
+        </div>
       </Card>
     </div>
   );

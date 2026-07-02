@@ -1,9 +1,8 @@
 "use server";
 
 import { getMongoClientPromise } from "@/lib/mongodb";
-import { getAuthOptions } from "@/lib/auth";
+import { requireMacUserId } from "@/lib/mac-auth";
 import logger from "@/lib/logger";
-import { getServerSession } from "next-auth";
 import type { Db } from "mongodb";
 import { ObjectId } from "mongodb";
 import {
@@ -18,7 +17,7 @@ import {
 } from "@/types/application";
 
 type RecruitmentCycleRecord = {
-  userId: ObjectId;
+  userId: string;
   cycleId: string;
   name: string;
   isDefault: boolean;
@@ -28,7 +27,7 @@ type RecruitmentCycleRecord = {
 
 type ApplicationRecord = {
   _id: ObjectId;
-  userId: ObjectId;
+  userId: string;
   jobId: string;
   status: ApplicationStatus;
   startedAt: Date;
@@ -41,7 +40,7 @@ type ApplicationRecord = {
 
 type ApplicationStatusEventRecord = {
   _id: ObjectId;
-  userId: ObjectId;
+  userId: string;
   jobId: string;
   fromStatus?: ApplicationStatus | null;
   toStatus: ApplicationStatus;
@@ -51,13 +50,6 @@ type ApplicationStatusEventRecord = {
 };
 
 let statusEventIndexesPromise: Promise<string[]> | null = null;
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function requireUserId(session: any) {
-  const id = (session?.user as { id?: string } | undefined)?.id;
-  if (!id) throw new Error("Not authenticated");
-  return id;
-}
 
 function serializeCycle(
   doc: Partial<RecruitmentCycleRecord>,
@@ -107,14 +99,14 @@ function serializeStatusEvent(
   };
 }
 
-async function ensureDefaultCycle(db: Db, userObjectId: ObjectId) {
+async function ensureDefaultCycle(db: Db, userId: string) {
   const now = new Date();
 
   await db.collection<RecruitmentCycleRecord>("application_cycles").updateOne(
-    { userId: userObjectId, cycleId: DEFAULT_RECRUITMENT_CYCLE_ID },
+    { userId, cycleId: DEFAULT_RECRUITMENT_CYCLE_ID },
     {
       $setOnInsert: {
-        userId: userObjectId,
+        userId,
         cycleId: DEFAULT_RECRUITMENT_CYCLE_ID,
         name: "Current cycle",
         isDefault: true,
@@ -150,7 +142,7 @@ async function ensureStatusEventIndexes(db: Db) {
 
 async function recordApplicationStatusEvent(
   db: Db,
-  userObjectId: ObjectId,
+  userId: string,
   event: {
     jobId: string;
     fromStatus?: ApplicationStatus | null;
@@ -167,7 +159,7 @@ async function recordApplicationStatusEvent(
       .collection<ApplicationStatusEventRecord>("application_status_events")
       .insertOne({
         _id: new ObjectId(),
-        userId: userObjectId,
+        userId,
         jobId: event.jobId,
         fromStatus: event.fromStatus ?? null,
         toStatus: event.toStatus,
@@ -195,18 +187,16 @@ function parseLocalDate(value: string | undefined, fallback: Date) {
 }
 
 export async function listRecruitmentCycles(): Promise<RecruitmentCycle[]> {
-  const session = await getServerSession(getAuthOptions());
-  const userId = requireUserId(session);
-  const userObjectId = new ObjectId(userId);
+  const userId = await requireMacUserId();
 
   const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
 
-  await ensureDefaultCycle(db, userObjectId);
+  await ensureDefaultCycle(db, userId);
 
   const docs = await db
     .collection<RecruitmentCycleRecord>("application_cycles")
-    .find({ userId: userObjectId })
+    .find({ userId })
     .sort({ isDefault: -1, createdAt: 1 })
     .toArray();
 
@@ -216,9 +206,7 @@ export async function listRecruitmentCycles(): Promise<RecruitmentCycle[]> {
 export async function createRecruitmentCycle(
   name: string,
 ): Promise<RecruitmentCycle> {
-  const session = await getServerSession(getAuthOptions());
-  const userId = requireUserId(session);
-  const userObjectId = new ObjectId(userId);
+  const userId = await requireMacUserId();
   const trimmed = name.trim();
   if (!trimmed) throw new Error("Cycle name is required");
 
@@ -227,7 +215,7 @@ export async function createRecruitmentCycle(
   const now = new Date();
   const cycleId = new ObjectId().toString();
   const doc = {
-    userId: userObjectId,
+    userId,
     cycleId,
     name: trimmed,
     isDefault: false,
@@ -235,7 +223,7 @@ export async function createRecruitmentCycle(
     updatedAt: now,
   };
 
-  await ensureDefaultCycle(db, userObjectId);
+  await ensureDefaultCycle(db, userId);
   await db
     .collection<RecruitmentCycleRecord>("application_cycles")
     .insertOne(doc);
@@ -247,9 +235,7 @@ export async function renameRecruitmentCycle(
   cycleId: string,
   name: string,
 ): Promise<RecruitmentCycle> {
-  const session = await getServerSession(getAuthOptions());
-  const userId = requireUserId(session);
-  const userObjectId = new ObjectId(userId);
+  const userId = await requireMacUserId();
   const trimmed = name.trim();
   if (!trimmed) throw new Error("Cycle name is required");
 
@@ -257,26 +243,24 @@ export async function renameRecruitmentCycle(
   const db = client.db(process.env.MONGODB_DATABASE || "default");
   const now = new Date();
 
-  await ensureDefaultCycle(db, userObjectId);
+  await ensureDefaultCycle(db, userId);
   await db
     .collection<RecruitmentCycleRecord>("application_cycles")
     .updateOne(
-      { userId: userObjectId, cycleId },
+      { userId, cycleId },
       { $set: { name: trimmed, updatedAt: now } },
     );
 
   const doc = await db
     .collection<RecruitmentCycleRecord>("application_cycles")
-    .findOne({ userId: userObjectId, cycleId });
+    .findOne({ userId, cycleId });
 
   if (!doc) throw new Error("Cycle not found");
   return serializeCycle(doc);
 }
 
 export async function deleteRecruitmentCycle(cycleId: string) {
-  const session = await getServerSession(getAuthOptions());
-  const userId = requireUserId(session);
-  const userObjectId = new ObjectId(userId);
+  const userId = await requireMacUserId();
   if (cycleId === DEFAULT_RECRUITMENT_CYCLE_ID) {
     throw new Error("The default cycle cannot be deleted");
   }
@@ -284,12 +268,12 @@ export async function deleteRecruitmentCycle(cycleId: string) {
   const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
 
-  await ensureDefaultCycle(db, userObjectId);
+  await ensureDefaultCycle(db, userId);
   await db
     .collection<RecruitmentCycleRecord>("application_cycles")
-    .deleteOne({ userId: userObjectId, cycleId });
+    .deleteOne({ userId, cycleId });
   const moved = await db.collection("applications").updateMany(
-    { userId: userObjectId, cycleId },
+    { userId, cycleId },
     {
       $set: { cycleId: DEFAULT_RECRUITMENT_CYCLE_ID, updatedAt: new Date() },
     },
@@ -299,9 +283,7 @@ export async function deleteRecruitmentCycle(cycleId: string) {
 }
 
 export async function syncLocalApplications(apps: LocalApplication[]) {
-  const session = await getServerSession(getAuthOptions());
-  const userId = requireUserId(session);
-  const userObjectId = new ObjectId(userId);
+  const userId = await requireMacUserId();
 
   const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
@@ -309,7 +291,7 @@ export async function syncLocalApplications(apps: LocalApplication[]) {
 
   if (!apps.length) {
     const current = await collection
-      .find({ userId: userObjectId })
+      .find({ userId })
       .sort({ updatedAt: -1 })
       .toArray();
 
@@ -333,14 +315,14 @@ export async function syncLocalApplications(apps: LocalApplication[]) {
     const localUpdatedAt = parseLocalDate(app.updatedAt, localStartedAt);
     const nextCycleId = app.cycleId ?? DEFAULT_RECRUITMENT_CYCLE_ID;
     const existing = await collection.findOne({
-      userId: userObjectId,
+      userId,
       jobId: app.jobId,
     });
 
     if (!existing) {
       await collection.insertOne({
         _id: new ObjectId(),
-        userId: userObjectId,
+        userId,
         jobId: app.jobId,
         status: app.status,
         startedAt: localStartedAt,
@@ -350,7 +332,7 @@ export async function syncLocalApplications(apps: LocalApplication[]) {
         ...(app.starred !== undefined ? { starred: app.starred } : {}),
       });
 
-      await recordApplicationStatusEvent(db, userObjectId, {
+      await recordApplicationStatusEvent(db, userId, {
         jobId: app.jobId,
         fromStatus: null,
         toStatus: app.status,
@@ -380,7 +362,7 @@ export async function syncLocalApplications(apps: LocalApplication[]) {
       },
     );
 
-    await recordApplicationStatusEvent(db, userObjectId, {
+    await recordApplicationStatusEvent(db, userId, {
       jobId: app.jobId,
       fromStatus: existing.status,
       toStatus: app.status,
@@ -392,7 +374,7 @@ export async function syncLocalApplications(apps: LocalApplication[]) {
   }
 
   const current = await collection
-    .find({ userId: userObjectId })
+    .find({ userId })
     .sort({ updatedAt: -1 })
     .toArray();
 
@@ -407,15 +389,14 @@ export async function syncLocalApplications(apps: LocalApplication[]) {
 }
 
 export async function listApplications(): Promise<DbApplication[]> {
-  const session = await getServerSession(getAuthOptions());
-  const userId = requireUserId(session);
+  const userId = await requireMacUserId();
 
   const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
 
   const docs = await db
     .collection<ApplicationRecord>("applications")
-    .find({ userId: new ObjectId(userId) })
+    .find({ userId })
     .sort({ updatedAt: -1 })
     .limit(500)
     .toArray();
@@ -452,8 +433,7 @@ export async function listApplications(): Promise<DbApplication[]> {
 export async function listApplicationStatusEvents(
   jobIds: string[],
 ): Promise<ApplicationStatusEvent[]> {
-  const session = await getServerSession(getAuthOptions());
-  const userId = requireUserId(session);
+  const userId = await requireMacUserId();
 
   if (!jobIds.length) return [];
 
@@ -464,7 +444,7 @@ export async function listApplicationStatusEvents(
   const docs = await db
     .collection<ApplicationStatusEventRecord>("application_status_events")
     .find({
-      userId: new ObjectId(userId),
+      userId,
       jobId: { $in: Array.from(new Set(jobIds)) },
     })
     .sort({ createdAt: 1 })
@@ -478,16 +458,14 @@ export async function addApplication(
   jobId: string,
   jobSnapshot: ApplicationJobSnapshot,
 ) {
-  const session = await getServerSession(getAuthOptions());
-  const userId = requireUserId(session);
-  const userObjectId = new ObjectId(userId);
+  const userId = await requireMacUserId();
 
   const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
   const now = new Date();
 
   const result = await db.collection("applications").updateOne(
-    { userId: userObjectId, jobId },
+    { userId, jobId },
     {
       $set: { updatedAt: now, jobSnapshot },
       $setOnInsert: {
@@ -500,7 +478,7 @@ export async function addApplication(
   );
 
   if (result.upsertedCount > 0) {
-    await recordApplicationStatusEvent(db, userObjectId, {
+    await recordApplicationStatusEvent(db, userId, {
       jobId,
       fromStatus: null,
       toStatus: "STARTED",
@@ -513,14 +491,13 @@ export async function addApplication(
 }
 
 export async function deleteApplication(jobId: string) {
-  const session = await getServerSession(getAuthOptions());
-  const userId = requireUserId(session);
+  const userId = await requireMacUserId();
 
   const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
 
   await db.collection("applications").deleteOne({
-    userId: new ObjectId(userId),
+    userId,
     jobId,
   });
 
@@ -530,9 +507,7 @@ export async function deleteApplication(jobId: string) {
 export async function restoreDeletedApplication(
   application: DbApplication,
 ): Promise<DbApplication> {
-  const session = await getServerSession(getAuthOptions());
-  const userId = requireUserId(session);
-  const userObjectId = new ObjectId(userId);
+  const userId = await requireMacUserId();
 
   const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
@@ -544,7 +519,7 @@ export async function restoreDeletedApplication(
     application.notes.trim().length > 0;
 
   await collection.updateOne(
-    { userId: userObjectId, jobId: application.jobId },
+    { userId, jobId: application.jobId },
     {
       $set: {
         jobId: application.jobId,
@@ -558,14 +533,14 @@ export async function restoreDeletedApplication(
       },
       ...(hasNotes ? {} : { $unset: { notes: "" } }),
       $setOnInsert: {
-        userId: userObjectId,
+        userId,
       },
     },
     { upsert: true },
   );
 
   const restored = await collection.findOne({
-    userId: userObjectId,
+    userId,
     jobId: application.jobId,
   });
 
@@ -580,9 +555,7 @@ export async function createCustomApplication(
   date: string,
   cycleId = DEFAULT_RECRUITMENT_CYCLE_ID,
 ): Promise<DbApplication> {
-  const session = await getServerSession(getAuthOptions());
-  const userId = requireUserId(session);
-  const userObjectId = new ObjectId(userId);
+  const userId = await requireMacUserId();
 
   const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
@@ -592,7 +565,7 @@ export async function createCustomApplication(
   const parsedDate = new Date(date);
 
   const result = await db.collection("applications").insertOne({
-    userId: userObjectId,
+    userId,
     jobId,
     status,
     cycleId,
@@ -601,7 +574,7 @@ export async function createCustomApplication(
     jobSnapshot,
   });
 
-  await recordApplicationStatusEvent(db, userObjectId, {
+  await recordApplicationStatusEvent(db, userId, {
     jobId,
     fromStatus: null,
     toStatus: status,
@@ -624,17 +597,15 @@ export async function updateApplicationStatus(
   jobId: string,
   status: ApplicationStatus,
 ) {
-  const session = await getServerSession(getAuthOptions());
-  const userId = requireUserId(session);
-  const userObjectId = new ObjectId(userId);
+  const userId = await requireMacUserId();
 
   const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
   const collection = db.collection<ApplicationRecord>("applications");
-  const existing = await collection.findOne({ userId: userObjectId, jobId });
+  const existing = await collection.findOne({ userId, jobId });
 
   await collection.updateOne(
-    { userId: userObjectId, jobId },
+    { userId, jobId },
     {
       $set: { status, updatedAt: new Date() },
       $setOnInsert: {
@@ -645,7 +616,7 @@ export async function updateApplicationStatus(
     { upsert: true },
   );
 
-  await recordApplicationStatusEvent(db, userObjectId, {
+  await recordApplicationStatusEvent(db, userId, {
     jobId,
     fromStatus: existing?.status ?? null,
     toStatus: status,
@@ -657,22 +628,20 @@ export async function updateApplicationStatus(
 }
 
 export async function toggleApplicationStar(jobId: string, starred: boolean) {
-  const session = await getServerSession(getAuthOptions());
-  const userId = requireUserId(session);
+  const userId = await requireMacUserId();
 
   const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
 
   await db
     .collection("applications")
-    .updateOne({ userId: new ObjectId(userId), jobId }, { $set: { starred } });
+    .updateOne({ userId, jobId }, { $set: { starred } });
 
   return { ok: true, starred };
 }
 
 export async function updateApplicationNotes(jobId: string, notes: string) {
-  const session = await getServerSession(getAuthOptions());
-  const userId = requireUserId(session);
+  const userId = await requireMacUserId();
 
   const client = await getMongoClientPromise();
   const db = client.db(process.env.MONGODB_DATABASE || "default");
@@ -682,9 +651,7 @@ export async function updateApplicationNotes(jobId: string, notes: string) {
     ? { $set: { notes, updatedAt: new Date() } }
     : { $unset: { notes: "" }, $set: { updatedAt: new Date() } };
 
-  await db
-    .collection("applications")
-    .updateOne({ userId: new ObjectId(userId), jobId }, update);
+  await db.collection("applications").updateOne({ userId, jobId }, update);
 
   return { ok: true, notes: hasNotes ? notes : undefined };
 }

@@ -1,8 +1,8 @@
 "use client";
 
-import { SessionProvider } from "next-auth/react";
+import { MacSessionProvider } from "@/lib/mac-session";
 import { PropsWithChildren } from "react";
 
 export default function AuthSessionProvider({ children }: PropsWithChildren) {
-  return <SessionProvider>{children}</SessionProvider>;
+  return <MacSessionProvider>{children}</MacSessionProvider>;
 }

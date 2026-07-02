@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useMacSession } from "@/lib/mac-session";
 import {
   Box,
   Button,
@@ -167,7 +167,7 @@ export default function MyApplicationsClient({
   initialStages: UserStage[];
   initialCycles: RecruitmentCycle[];
 }) {
-  const { status: sessionStatus } = useSession();
+  const { status: sessionStatus } = useMacSession();
   const [apps, setApps] = useState<DbApplication[]>(initial);
   const [stages, setStages] = useState<UserStage[]>(() =>
     readStageOrder(initialStages),
