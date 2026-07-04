@@ -6,12 +6,12 @@ import Logo from "@/components/layout/logo";
 import SearchBar from "@/components/search/search-bar";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
+import { useMacSession, signOutCentral } from "@/lib/mac-session";
 
 export const NavBarMobile = () => {
   const [showSearch, setShowSearch] = useState(false);
   const pathname = usePathname();
-  const { data: session, status } = useSession();
+  const { data: session, status } = useMacSession();
 
   const menuItems = [
     { href: "/", label: "Home" },
@@ -75,7 +75,7 @@ export const NavBarMobile = () => {
                     <Menu.Item
                       color="red"
                       leftSection={<IconLogout size={16} />}
-                      onClick={() => signOut({ callbackUrl: "/" })}
+                      onClick={() => signOutCentral("/")}
                     >
                       Sign out
                     </Menu.Item>

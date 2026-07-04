@@ -1,13 +1,13 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
+import { useMacSession, signOutCentral } from "@/lib/mac-session";
 import { Avatar, Menu } from "@mantine/core";
 import { IconUser, IconLogout } from "@tabler/icons-react";
 
 export default function NavLinks() {
   const pathname = usePathname();
-  const { data: session, status } = useSession();
+  const { data: session, status } = useMacSession();
 
   const linkClass = (href: string) =>
     `text-lg ${pathname === href ? "font-bold underline-fancy" : ""}`;
@@ -56,7 +56,7 @@ export default function NavLinks() {
             <Menu.Item
               color="red"
               leftSection={<IconLogout size={16} />}
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={() => signOutCentral("/")}
             >
               Sign out
             </Menu.Item>

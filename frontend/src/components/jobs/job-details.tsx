@@ -20,7 +20,7 @@ import { addApplication } from "@/app/my-applications/actions";
 import { trackApplyClick } from "@/actions/analytics";
 import { sendGAEvent } from "@next/third-parties/google";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useMacSession } from "@/lib/mac-session";
 
 const APPLY_SIGNIN_PROMPT_SESSION_KEY = "mp:apply-signin-prompt-shown:v1";
 
@@ -31,7 +31,7 @@ export default function JobDetails() {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const signinPromptShownRef = useRef(false);
   const [showSigninModal, setShowSigninModal] = useState(false);
-  const { data: session, status: sessionStatus } = useSession();
+  const { data: session, status: sessionStatus } = useMacSession();
 
   // Scroll to top whenever a new job is selected
   useEffect(() => {
