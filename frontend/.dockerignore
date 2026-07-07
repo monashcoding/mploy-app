@@ -1,0 +1,14 @@
+# Build context = frontend/. Keep the image lean and deterministic: never ship
+# local deps/build output/secrets into the build.
+node_modules
+.next
+npm-debug.log*
+.env
+.env.*
+.git
+.gitignore
+Dockerfile
+.dockerignore
+README.md
+tsconfig.tsbuildinfo
+.DS_Store

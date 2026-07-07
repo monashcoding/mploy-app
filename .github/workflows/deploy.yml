@@ -1,0 +1,77 @@
+name: Build & publish image
+
+# Build the mploy webapp Docker image OFF the Oracle box (GitHub's runners do
+# the heavy build) and push it to GHCR. Dokploy then just *pulls* the prebuilt
+# image and runs it — so several apps can share one Oracle box without their
+# builds fighting over RAM/CPU. See docs/deploy.md.
+
+on:
+  push:
+    branches: [development]
+    # Only rebuild when something that affects the image changes.
+    paths:
+      - "frontend/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch: {} # allow manual "Run workflow"
+
+env:
+  # NOTE: not ${{ github.repository }} — that's monashcoding/mploy-app. The
+  # published image name is deliberately just "mploy".
+  IMAGE: ghcr.io/monashcoding/mploy
+
+jobs:
+  build:
+    # Native ARM64 runner — Oracle Ampere is arm64, and this is free on public
+    # repos. Avoids ~5x slower QEMU cross-compilation.
+    runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: read
+      packages: write # push to GHCR
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image metadata (tags)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=long
+
+      - name: Build & push (linux/arm64)
+        uses: docker/build-push-action@v6
+        with:
+          # Build context is frontend/ — the webapp is a self-contained npm app
+          # (not a workspace), so npm ci resolves from frontend/package-lock.json.
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # No build-args: mploy has no NEXT_PUBLIC_* build-time vars, and
+          # `next build` doesn't touch the DB. All secrets are runtime env in
+          # Dokploy.
+
+      # Tell Dokploy to pull the new image and redeploy. Create the app in
+      # Dokploy with provider "Docker" pointing at ghcr.io/monashcoding/mploy:latest,
+      # then copy its deploy webhook URL into the repo secret
+      # DOKPLOY_DEPLOY_WEBHOOK. Skipped automatically until that secret exists.
+      - name: Trigger Dokploy redeploy
+        env:
+          # Secrets can't be used directly in `if:`, so hoist into env first.
+          DOKPLOY_DEPLOY_WEBHOOK: ${{ secrets.DOKPLOY_DEPLOY_WEBHOOK }}
+        if: ${{ env.DOKPLOY_DEPLOY_WEBHOOK != '' }}
+        run: curl -fsSL -X POST "$DOKPLOY_DEPLOY_WEBHOOK"
