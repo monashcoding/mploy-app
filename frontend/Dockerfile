@@ -1,52 +1,53 @@
-# -------------------------
-# Base
-# -------------------------
-FROM node:20-alpine AS base
-WORKDIR /app
+# syntax=docker/dockerfile:1
 
-# -------------------------
-# Dependencies
-# -------------------------
+# ---------------------------------------------------------------------------
+# mploy webapp — self-hosted image (Oracle Cloud + Dokploy).
+#
+# Build context is frontend/ (this directory). mploy's frontend is a
+# self-contained npm app — NOT a pnpm workspace — so npm ci resolves
+# everything from frontend/package-lock.json. The Spring Boot backend is a
+# separate service and is not part of this image.
+#
+# There are NO build-time vars: the app has no NEXT_PUBLIC_* values (the GA id
+# is hardcoded), and `next build` does NOT touch MongoDB (every DB route is
+# force-dynamic or reads searchParams — nothing is prerendered against the DB).
+# So everything secret (MONGODB_URI, NEXTAUTH_SECRET, OAuth creds, Notion keys)
+# is a *runtime* env var, set in Dokploy — never baked into the image.
+# ---------------------------------------------------------------------------
+
+FROM node:22-slim AS base
+WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# ---- deps ---------------------------------------------------------------
 FROM base AS deps
-COPY package.json package-lock.json* ./
+COPY package.json package-lock.json ./
 RUN npm ci
 
-# -------------------------
-# Builder
-# -------------------------
-FROM base AS builder
+# ---- build --------------------------------------------------------------
+FROM base AS build
 COPY --from=deps /app/node_modules ./node_modules
-COPY package.json package-lock.json* ./
-COPY tsconfig.json next.config.ts ./
-COPY postcss.config.mjs tailwind.config.ts ./
-COPY public ./public
-COPY src ./src
+COPY . .
 RUN npm run build
 
-# -------------------------
-# Runner
-# -------------------------
-FROM base AS runner
+# ---- runtime ------------------------------------------------------------
+FROM node:22-slim AS runner
 WORKDIR /app
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0
 
-# Default: prod, can override with `-e NODE_ENV=development`
-ENV NODE_ENV=production
+# Run as a non-root user.
+RUN groupadd --system --gid 1001 nodejs \
+ && useradd --system --uid 1001 --gid nodejs nextjs
 
-# Copy runtime deps
-COPY --from=deps /app/node_modules ./node_modules
+# `output: "standalone"` bundles server.js + its traced node_modules. Static
+# assets and public/ aren't traced, so copy them alongside.
+COPY --from=build --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=build --chown=nextjs:nodejs /app/public ./public
 
-# Copy built assets
-COPY --from=builder --chown=1001:1001 /app/.next/standalone ./
-COPY --from=builder --chown=1001:1001 /app/.next/static ./.next/static
-COPY --from=builder --chown=1001:1001 /app/public ./public
-
-# Create non-root user
-RUN addgroup --system --gid 1001 nodejs \
- && adduser --system --uid 1001 nextjs
 USER nextjs
-
 EXPOSE 3000
-ENV PORT=3000
-ENV HOSTNAME=0.0.0.0
-
-CMD ["npm", "start"]
+CMD ["node", "server.js"]
