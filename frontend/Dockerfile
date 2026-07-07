@@ -8,11 +8,12 @@
 # everything from frontend/package-lock.json. The Spring Boot backend is a
 # separate service and is not part of this image.
 #
-# There are NO build-time vars: the app has no NEXT_PUBLIC_* values (the GA id
-# is hardcoded), and `next build` does NOT touch MongoDB (every DB route is
-# force-dynamic or reads searchParams — nothing is prerendered against the DB).
-# So everything secret (MONGODB_URI, NEXTAUTH_SECRET, OAuth creds, Notion keys)
-# is a *runtime* env var, set in Dokploy — never baked into the image.
+# NEXT_PUBLIC_* vars (client auth URL + PostHog) are inlined into the client
+# bundle at build time, so they must be present as build ARGs. They're all
+# browser-public values. Everything secret (MONGODB_URI, Notion keys) and all
+# server-only config (AUTH_URL, JWT_AUDIENCE) is a *runtime* env var set in
+# Dokploy — never a build arg. `next build` does NOT touch MongoDB (every DB
+# route is force-dynamic or reads searchParams), so no DB is needed to build.
 # ---------------------------------------------------------------------------
 
 FROM node:22-slim AS base
@@ -28,6 +29,16 @@ RUN npm ci
 FROM base AS build
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# NEXT_PUBLIC_* must exist at build time — they're inlined into the client
+# bundle. Pass via --build-arg (Dokploy: Build → Build Args; CI: build-args).
+ARG NEXT_PUBLIC_AUTH_URL
+ARG NEXT_PUBLIC_POSTHOG_KEY
+ARG NEXT_PUBLIC_POSTHOG_HOST
+ENV NEXT_PUBLIC_AUTH_URL=$NEXT_PUBLIC_AUTH_URL \
+    NEXT_PUBLIC_POSTHOG_KEY=$NEXT_PUBLIC_POSTHOG_KEY \
+    NEXT_PUBLIC_POSTHOG_HOST=$NEXT_PUBLIC_POSTHOG_HOST
+
 RUN npm run build
 
 # ---- runtime ------------------------------------------------------------

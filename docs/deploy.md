@@ -31,24 +31,32 @@ The box only ever runs the finished containers.
 - Next.js is built with `output: "standalone"`; the runtime just runs
   `node server.js`. `outputFileTracingRoot` is pinned to `frontend/` so the
   standalone entrypoint always lands at `.next/standalone/server.js`.
-- **No build-time vars.** There are no `NEXT_PUBLIC_*` values (the Google
-  Analytics id is hardcoded), and `next build` does **not** touch MongoDB —
-  every DB-backed route is `force-dynamic` or reads `searchParams`, so nothing
-  is prerendered against the database. Everything below is therefore a
-  **runtime** env var set in Dokploy; nothing is baked into the image.
+- **Build-time vs runtime env.** The `NEXT_PUBLIC_*` vars (client auth URL +
+  PostHog) are inlined into the client bundle, so they're passed as
+  **build-args** (repo Variables → CI → Docker `ARG`). Everything else —
+  secrets (`MONGODB_URI`, `NOTION_API_KEY`) and server-only config (`AUTH_URL`,
+  `JWT_AUDIENCE`) — is a **runtime** env var set in Dokploy, never baked in.
+  `next build` does **not** touch MongoDB (every DB-backed route is
+  `force-dynamic` or reads `searchParams`), so no DB is needed to build.
 
 ## One-time GitHub setup
 
-1. **Repo Secret** (Settings → Secrets and variables → Actions → _Secrets_):
+1. **Repo Variables** (Settings → Secrets and variables → Actions →
+   _Variables_). All browser-public (they get inlined into the client bundle),
+   so Variables not Secrets:
+   - `NEXT_PUBLIC_AUTH_URL` = `https://auth.monashcoding.com`
+   - `NEXT_PUBLIC_POSTHOG_HOST` = `https://us.i.posthog.com`
+   - `NEXT_PUBLIC_POSTHOG_KEY` = _(PostHog project API key, `phc_…`)_
+   The workflow has fallbacks for the first two; without the PostHog key,
+   client analytics is simply disabled.
+2. **Repo Secret** (Settings → Secrets and variables → Actions → _Secrets_):
    - `DOKPLOY_DEPLOY_WEBHOOK` = the deploy webhook URL Dokploy generates for
      the app (added after the Dokploy step below). Until it exists, the
      workflow builds/pushes the image but skips the redeploy trigger.
-2. **Make the GHCR package public** (or give Dokploy a read token) so the VM
+3. **Make the GHCR package public** (or give Dokploy a read token) so the VM
    can pull without auth: after the first push, open the package at
    `github.com/orgs/monashcoding/packages` → Package settings → change
    visibility to Public.
-
-There are no repo _Variables_ to set — the build takes no build-args.
 
 ## One-time Dokploy setup
 
@@ -56,20 +64,21 @@ There are no repo _Variables_ to set — the build takes no build-args.
    - Image: `ghcr.io/monashcoding/mploy:latest`
    - (If you kept the package private: add GHCR registry credentials — a
      GitHub PAT with `read:packages`.)
-2. **Environment** (runtime vars):
+2. **Environment** (runtime vars — server-side only):
    ```
    MONGODB_URI=mongodb+srv://<user>:<pass>@<atlas-cluster>/<db>
    MONGODB_DATABASE=default
-   NEXTAUTH_SECRET=<random secret>
-   NEXTAUTH_URL=https://jobs.monashcoding.com
-   GOOGLE_CLIENT_ID=<oauth client id>
-   GOOGLE_CLIENT_SECRET=<oauth client secret>
+   AUTH_URL=https://auth.monashcoding.com
+   JWT_AUDIENCE=mac-suite
    NOTION_API_KEY=<notion integration token>
    NOTION_DATABASE_ID=<notion database id>
    ```
-   MongoDB is hosted externally (Atlas), so `MONGODB_URI` is a normal
-   `mongodb+srv://` connection string — no on-box private-IP caveat. Make sure
-   the Atlas cluster's IP access list allows the Oracle VM's egress IP.
+   Auth is the central MAC auth service; `AUTH_URL`/`JWT_AUDIENCE` are the
+   server-side token-mint + JWKS-verification config (the client-side
+   `NEXT_PUBLIC_AUTH_URL` is baked in at build time, above). MongoDB is hosted
+   externally (Atlas), so `MONGODB_URI` is a normal `mongodb+srv://` string —
+   no on-box private-IP caveat. Make sure the Atlas cluster's IP access list
+   allows the Oracle VM's egress IP.
 3. **Port**: container listens on `3000`.
 4. **Domains**: add `jobs.monashcoding.com` → container port `3000` → enable
    HTTPS (Let's Encrypt).
@@ -93,7 +102,7 @@ hit **Deploy** in Dokploy.
 ## Notes
 
 - `next build` does **not** touch MongoDB, so `MONGODB_URI` is a runtime-only
-  var. There are no build-args at all.
+  var. The only build-args are the browser-public `NEXT_PUBLIC_*` values.
 - The container runs as a non-root user (`nextjs`, uid 1001).
 - The image is `linux/arm64` only — it runs on the Ampere A1 box and won't run
   on an x86 host without emulation.

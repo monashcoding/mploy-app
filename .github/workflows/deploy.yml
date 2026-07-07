@@ -61,9 +61,14 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          # No build-args: mploy has no NEXT_PUBLIC_* build-time vars, and
-          # `next build` doesn't touch the DB. All secrets are runtime env in
-          # Dokploy.
+          # NEXT_PUBLIC_* are inlined into the client bundle at build time.
+          # They're browser-public, so configure them as repo *Variables*
+          # (Settings → Secrets and variables → Actions → Variables). The
+          # fallbacks keep the build working before you set them.
+          build-args: |
+            NEXT_PUBLIC_AUTH_URL=${{ vars.NEXT_PUBLIC_AUTH_URL || 'https://auth.monashcoding.com' }}
+            NEXT_PUBLIC_POSTHOG_HOST=${{ vars.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com' }}
+            NEXT_PUBLIC_POSTHOG_KEY=${{ vars.NEXT_PUBLIC_POSTHOG_KEY }}
 
       # Tell Dokploy to pull the new image and redeploy. Create the app in
       # Dokploy with provider "Docker" pointing at ghcr.io/monashcoding/mploy:latest,
