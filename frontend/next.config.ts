@@ -9,7 +9,12 @@ const nextConfig: NextConfig = {
   // package-lock.json makes Next infer the repo root as the tracing root and
   // nest the standalone output under frontend/, breaking the Dockerfile CMD.
   outputFileTracingRoot: path.join(__dirname),
+  turbopack: {
+    root: path.resolve(__dirname),
+  },
+  
   serverExternalPackages: ["mongodb", "pino", "pino-pretty"],
+  
 };
 
 export default nextConfig;
