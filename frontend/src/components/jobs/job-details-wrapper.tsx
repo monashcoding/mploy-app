@@ -21,7 +21,7 @@ export default function JobDetailsWrapper({ job }: JobDetailsWrapperProps) {
     // Set the fetched job into context
     setSelectedJob(job);
     trackJobView({ jobId: job.id, ref });
-  }, [job, setSelectedJob]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [job.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return <JobDetails />;
 }
