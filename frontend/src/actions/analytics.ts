@@ -11,7 +11,7 @@ export async function trackJobView(data: {
 }) {
   try {
     const client = await getMongoClientPromise();
-    const db = client.db();
+    const db = client.db("default");
     await db.collection(VIEWS_COLLECTION).insertOne({
       jobId: data.jobId,
       ref: data.ref || null,
@@ -30,7 +30,7 @@ export async function trackApplyClick(job: {
 }) {
   try {
     const client = await getMongoClientPromise();
-    const db = client.db();
+    const db = client.db("default");
     await db.collection(CLICKS_COLLECTION).insertOne({
       jobId: job.jobId,
       jobTitle: job.jobTitle,

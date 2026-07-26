@@ -16,7 +16,7 @@ async function main() {
 
   const client = new MongoClient(uri);
   await client.connect();
-  const db = client.db();
+  const db = client.db("default");
 
   await db
     .collection("job_views")
