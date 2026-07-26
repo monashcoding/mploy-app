@@ -10,6 +10,8 @@ import JobDetails from "@/components/jobs/job-details";
 import JobListLoading from "@/components/layout/job-list-loading";
 import JobPagination from "@/components/jobs/job-pagination";
 import { useMediaQuery } from "@mantine/hooks";
+import { useSearchParams } from "next/navigation";
+import { trackJobView } from "@/actions/analytics";
 
 interface JobListProps {
   jobs: Job[]; // Regular jobs
@@ -20,6 +22,8 @@ export default function JobList({ jobs }: JobListProps) {
   const { selectedJob, setSelectedJob, isLoading } = useFilterContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const searchParams = useSearchParams();
+  const ref = searchParams.get("ref");
 
   useEffect(() => {
     if (!selectedJob) {
@@ -51,6 +55,7 @@ export default function JobList({ jobs }: JobListProps) {
               key={job.id}
               onClick={() => {
                 setSelectedJob(job);
+                trackJobView({ jobId: job.id, ref });
                 // Only open modal on mobile
                 if (window.innerWidth < 1024) {
                   setIsModalOpen(true);

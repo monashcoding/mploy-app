@@ -21,6 +21,7 @@ import { trackApplyClick } from "@/actions/analytics";
 import { sendGAEvent } from "@next/third-parties/google";
 import Link from "next/link";
 import { useMacSession } from "@/lib/mac-session";
+import { useSearchParams } from "next/navigation";
 
 const APPLY_SIGNIN_PROMPT_SESSION_KEY = "mp:apply-signin-prompt-shown:v1";
 
@@ -32,6 +33,8 @@ export default function JobDetails() {
   const signinPromptShownRef = useRef(false);
   const [showSigninModal, setShowSigninModal] = useState(false);
   const { data: session, status: sessionStatus } = useMacSession();
+  const searchParams = useSearchParams();
+  const ref = searchParams.get("ref");
 
   // Scroll to top whenever a new job is selected
   useEffect(() => {
@@ -80,6 +83,7 @@ export default function JobDetails() {
       jobId: selectedJob.id,
       jobTitle: selectedJob.title,
       companyName: selectedJob.company?.name || "Unknown",
+      ref,
     });
 
     sendGAEvent("event", "apply_click", {
