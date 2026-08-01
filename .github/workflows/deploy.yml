@@ -49,7 +49,7 @@ jobs:
             type=sha,format=long
 
       - name: Build & push (linux/arm64)
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           # Build context is frontend/ — the webapp is a self-contained npm app
           # (not a workspace), so npm ci resolves from frontend/package-lock.json.
